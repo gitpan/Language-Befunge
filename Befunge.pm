@@ -1,4 +1,4 @@
-# $Id: Befunge.pm,v 1.34 2002/04/12 13:02:15 jquelin Exp $
+# $Id: Befunge.pm,v 1.37 2002/04/12 16:32:01 jquelin Exp $
 #
 # Copyright (c) 2002 Jerome Quelin <jquelin@cpan.org>
 # All rights reserved.
@@ -76,7 +76,7 @@ use Language::Befunge::LaheySpace;
 use base qw(Exporter);
 
 # Public variables of the module.
-our $VERSION   = '0.10';
+our $VERSION   = '0.11';
 our $HANDPRINT = 'JQBF98'; # the handprint of the interpreter.
 our @EXPORT    =  qw! read_file store_code run_code !;
 $| = 1;
@@ -213,6 +213,7 @@ sub run_code {
                 } else {
                     debug "-> We are in string-mode.\n";
                     # A banal character.
+                    $ip->space_pushed(0);
                     $ip->spush( $ord );                 
                 }
             } else {
@@ -583,7 +584,7 @@ sub run_code {
                     $char eq '&' and do {
                         debug "-> Numeric input\n"; 
                         my $in = <STDIN>;
-                        if ( $in =~ /(-\d+)/ ) {
+                        if ( $in =~ /(-?\d+)/ ) {
                             $in = $1;
                             $in < -2**31  and $in = -2**31;
                             $in > 2**31-1 and $in = 2**31-1;
@@ -597,7 +598,7 @@ sub run_code {
                     # Ascii input.
                     $char eq '~' and do {
                         debug "-> Ascii input\n"; 
-                        my $in = $ip->input or <STDIN>;
+                        my $in = $ip->input || <STDIN>;
                         my $c = substr $in, 0, 1, "";
                         $ip->spush( ord($c) );
                         $ip->input( $in );

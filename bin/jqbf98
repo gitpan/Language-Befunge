@@ -1,0 +1,58 @@
+#!/usr/bin/perl -w
+#
+# $Id$
+#
+# Copyright (c) 2002 Jerome Quelin <jquelin@cpan.org>
+# All rights reserved.
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the same terms as Perl itself.
+#
+
+use strict;
+use Language::Befunge;
+
+=head1 NAME
+
+jqbf98.pl - a Befunge-98 interpreter.
+
+
+=head1 SYNOPSIS
+
+    jqbf98 program.bf
+
+
+=head1 DESCRIPTION
+
+This is a full featured Concurrent Befunge-98 interpreter.
+Just provide the name of the Befunge script, and there you go!
+
+=cut
+
+read_file( shift );
+exit run_code;
+
+__END__
+
+=head1 AUTHOR
+
+Jerome Quelin, E<lt>jquelin@cpan.orgE<gt>
+
+
+=head1 COPYRIGHT
+
+This program is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.
+
+
+=head1 SEE ALSO
+
+=over 4
+
+=item L<perl>
+
+=item L<Language::Befunge>
+
+=back
+
+=cut

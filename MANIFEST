@@ -6,6 +6,10 @@ MANIFEST
 Makefile.PL
 README
 bf98-specs.html
+bin/jqbf98
+examples/anagram.bf
+examples/fact.bf
+examples/hello.bf
 instr.txt
 t/01basic.t
 t/02befunge.t

@@ -1,5 +1,12 @@
 Revision history for Perl extension Language::Befunge.
 
+0.11 Fri Apr 12 18:33:09 CEST 2002
+        - Bug fix in the way spaces are handled in strings.
+        - Bug fix in numeric input.
+        - Bug fix in ascii input.
+        - New script jqbf98, a standalone interpreter.
+        - Rewrite of Makefile.PL to install this file.
+
 0.10 Fri Apr 12 15:04:10 CEST 2002
         - More POD documentation.
         - Bug fix in instruction t.
