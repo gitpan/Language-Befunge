@@ -1,4 +1,4 @@
-# $Id: Befunge.pm,v 1.47 2002/04/15 10:00:58 jquelin Exp $
+# $Id: Befunge.pm,v 1.48 2002/04/15 14:11:13 jquelin Exp jquelin $
 #
 # Copyright (c) 2002 Jerome Quelin <jquelin@cpan.org>
 # All rights reserved.
@@ -74,7 +74,7 @@ use Language::Befunge::IP;
 use Language::Befunge::LaheySpace;
 
 # Public variables of the module.
-our $VERSION   = '0.32';
+our $VERSION   = '0.33';
 our $HANDPRINT = 'JQBF98'; # the handprint of the interpreter.
 our $AUTOLOAD;
 our $subs;
@@ -101,6 +101,7 @@ sub new {
         kcounter => 0,
         DEBUG    => 0,
         curip    => undef,
+        lastip   => undef,
         ips      => [],
         newips   => [],
         torus    => new Language::Befunge::LaheySpace,
@@ -142,9 +143,14 @@ will be repeated).
 
 Set wether the interpreter should output debug messages.
 
-=head2 curip( IPref )
+=head2 curip( [IPref] )
 
 Get or set the current Instruction Pointer processed.
+
+=head2 lastip( [IPref] )
+
+Get or set the last Instruction Pointer (when C<@> or C<q>
+instructions are encountered).
 
 =head2 ips( [arrayref] )
 
@@ -162,7 +168,7 @@ Get the Lahey space object.
 =cut
 BEGIN {
     my @subs = split /\|/, 
-      $subs = 'file|params|retval|kcounter|DEBUG|curip|ips|newips|torus';
+      $subs = 'file|params|retval|kcounter|DEBUG|curip|lastip|ips|newips|torus';
     use subs @subs;
 }
 sub AUTOLOAD {
@@ -299,6 +305,7 @@ Side effect: clear the previous code.
 =cut
 sub store_code {
     my ($self, $code) = @_;
+    $self->debug( "Storing code\n" );
     $self->torus->clear;
     $self->torus->store( $code );
 }
@@ -879,8 +886,15 @@ sub op_decis_cmp {
     my $v1 = $ip->spop;
     $self->debug( "comparing $v1 with $v2: straight forward!\n"), return if $v1 == $v2;
 
-    $v1 < $v2 ? $ip->dir_turn_left : $ip->dir_turn_right;
-    $self->debug( "comparing $v1 with $v2: turning:" . ($v1 < $v2) ? "left\n" : "right\n" );
+    my $dir;
+    if ( $v1 < $v2 ) {
+        $ip->dir_turn_left;
+        $dir = "left";
+    } else {
+        $ip->dir_turn_right;
+        $dir = "right";
+    }
+    $self->debug( "comparing $v1 with $v2: turning: $dir\n" );
 }
 $meths{'w'} = "op_decis_cmp";
 
@@ -993,7 +1007,8 @@ $meths{'k'} = "op_flow_repeat";
 sub op_flow_kill_thread {
     my $self = shift;
     $self->debug( "end of Instruction Pointer\n" );
-    $self->curip->end(1);
+    $self->curip->end('@');
+    $self->lastip( $self->curip );
 }
 $meths{'@'} = "op_flow_kill_thread";
 
@@ -1006,8 +1021,9 @@ sub op_flow_quit {
     $self->debug( "end program\n" );
     $self->newips( [] );
     $self->ips( [] );
-    $self->curip->end(1);
+    $self->curip->end('q');
     $self->retval( $self->curip->spop );
+    $self->lastip( $self->curip );
 }
 $meths{'q'} = "op_flow_quit";
 

@@ -1,5 +1,10 @@
 Revision history for Perl extension Language::Befunge.
 
+0.33 Mon Apr 15 17:21:23 CEST 2002
+        - Fancy stuff added in order to support Inline::Befunge (does
+          not change the default behavior)
+        - One more debug message
+
 0.32 Mon Apr 15 12:01:53 CEST 2002
         - POD fixing in doc/library.pod
 
