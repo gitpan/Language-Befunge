@@ -82,7 +82,7 @@ instruction in the interpreter:
 |113    |q  X |Quit/98         |r       |         |immediate exit, returncode = r        |
 |114    |r  X |Reflect/98      |        |         |delta <- delta * -1                   |
 |115    |s  X |Store Char/98   |c       |         |store-funge-space(position+delta,v)   |
-|116    |t    |Split/98/c      |        |         |Split IP                              |
+|116    |t  X |Split/98/c      |        |         |Split IP                              |
 |117    |u  X |S Under Stack/98|n       |(en..e1) |                                      |
 |118    |v  X |Go South/2D     |        |         |delta <- (0,1)                        |
 |119    |w  X |Compare/98/2D   |a b     |         |if (a>b) ']' elsif (a<b) '[' else 'z' |

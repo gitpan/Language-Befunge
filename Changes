@@ -1,5 +1,11 @@
 Revision history for Perl extension Language::Befunge.
 
+0.10 Fri Apr 12 15:04:10 CEST 2002
+        - More POD documentation.
+        - Bug fix in instruction t.
+        - More debug messages.
+        - New test 21concur.t -> tests concurrent Funge.
+
 0.09 Fri Apr 12 12:05:03 CEST 2002
         - Bug fix in y instruction (flags).
         - Bug fix in y instruction (size of TOSS).

@@ -66,15 +66,3 @@ COPYRIGHT
 
     This program is free software; you can redistribute it and/or
     modify it under the same terms as Perl itself.
-
-
-TODO
-
-    - test it, and all the instructions... (glups!)
-    - implement the libraries mechanism: "(" and ")" respectively.
-    - implement a standard/simple mechanism in order to allow user to
-      write their own extensions (aka fingerprints)
-    - maybe rewrite the core loop in order to take benefits of the
-      hash mechanism instead of a giant switch tester.
-    - check all the module docs.
-    - write standard libraries.

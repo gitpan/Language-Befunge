@@ -1,4 +1,4 @@
-# $Id: Befunge.pm,v 1.31 2002/04/12 09:59:44 jquelin Exp $
+# $Id: Befunge.pm,v 1.34 2002/04/12 13:02:15 jquelin Exp $
 #
 # Copyright (c) 2002 Jerome Quelin <jquelin@cpan.org>
 # All rights reserved.
@@ -76,7 +76,7 @@ use Language::Befunge::LaheySpace;
 use base qw(Exporter);
 
 # Public variables of the module.
-our $VERSION   = '0.09';
+our $VERSION   = '0.10';
 our $HANDPRINT = 'JQBF98'; # the handprint of the interpreter.
 our @EXPORT    =  qw! read_file store_code run_code !;
 $| = 1;
@@ -787,8 +787,10 @@ sub run_code {
 
                     # -= Concurrent Funge =-
                     $char eq 't' and do {
+                        debug "-> Spawning new IP.\n";
                         my $newip = $ip->clone;
                         $newip->dir_reverse;
+                        $torus->move_ip_forward($newip);
                         push @new_ip, $newip;
                         last switch;
                     };
@@ -836,6 +838,61 @@ sub run_code {
 
 1;
 __END__
+
+
+=head1 TODO
+
+=over 4
+
+=item o
+
+Implement the libraries mechanism: "(" and ")" respectively.
+
+=item o
+
+Implement a standard/simple mechanism in order to allow user to write
+their own extensions (aka fingerprints)
+
+=item o
+
+Maybe rewrite the core loop in order to take benefits of the
+hash mechanism instead of a giant switch tester.
+
+=item o
+
+Check all the module docs.
+
+=item o
+
+Write standard libraries.
+
+=back
+
+
+=head1 BUGS
+
+Although this module comes with a full set of tests, maybe there are
+subtle bugs - or maybe even I misinterpreted the Funge-98
+specs. Please report them to me.
+
+There are some bugs anyway, but they come from the specs:
+
+=over 4
+
+=item o
+
+About the 18th cell pushed by the C<y> instruction: Funge specs just
+tell to push onto the stack the size of the stacks, but nothing is
+said about how user will retrieve the number of stacks.
+
+=item o
+
+About the 19th cell pushed by the C<y> instruction: what this
+interpreter pushes on the stack may not be accurate, since this is a
+module and the main perl application may have already processed the
+command line.
+
+=back
 
 
 =head1 AUTHOR
