@@ -6,6 +6,12 @@ MANIFEST
 Makefile.PL
 README
 bf98-specs.html
+instr.txt
 t/01basic.t
+t/02befunge.t
 t/03ip.t
 t/04lahey.t
+t/10stdio.t
+t/11nums.t
+t/12maths.t
+t/q.bf

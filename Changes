@@ -1,5 +1,15 @@
 Revision history for Perl extension Language::Befunge.
 
+0.03  Thu Apr 11 09:59:28 CEST 2002
+        - bug fix with string-mode.
+        - debug facilities.
+        - new test 02befunge.t -> tests the exported functions
+        - new test 10stdio.t   -> tests ,. and space
+        - new test 11nums.t    -> tests 0-9a-f
+        - new test 12maths.t   -> tests +-*/%
+        - new file inst.txt with the instruction and their current
+          status (tested with a X).
+
 0.02  Wed Apr 10 14:22:31 CEST 2002
         - new function store_code.
         - Language::Befunge synopsis extended.
@@ -8,6 +18,6 @@ Revision history for Perl extension Language::Befunge.
 0.01  Wed Apr 10 14:01:20 CEST 2002
 	- original version.
         - every instruction is implemented, but _not_ tested.
-        - Module LaheySpace written and tested.
-        - Module IP written and tested.
+        - module LaheySpace written and tested.
+        - module IP written and tested.
 

@@ -1,6 +1,10 @@
 #-*- cperl -*-
-# $Id: 04lahey.t,v 1.4 2002/04/10 07:50:12 jquelin Exp $
+# $Id: 04lahey.t,v 1.5 2002/04/11 07:20:49 jquelin Exp $
 #
+
+#----------------------------------------------------------#
+#          This file tests the LaheySpace module.          #
+#----------------------------------------------------------#
 
 use strict;
 use Test;
