@@ -1,5 +1,9 @@
 Revision history for Perl extension Language::Befunge.
 
+0.31 Mon Apr 15 09:41:21 CEST 2002
+        - Smarter way of handling parameters.
+        - jqbf98 interpreter now handles parameters.
+
 0.30 Sun Apr 14 15:53:19 CEST 2002
         - Befunge.pm now has an Object Oriented interface.
         - rewriting tests to take the new interface into account.

@@ -1,4 +1,4 @@
-# $Id: Befunge.pm,v 1.43 2002/04/14 13:38:30 jquelin Exp $
+# $Id: Befunge.pm,v 1.46 2002/04/15 07:40:15 jquelin Exp $
 #
 # Copyright (c) 2002 Jerome Quelin <jquelin@cpan.org>
 # All rights reserved.
@@ -19,13 +19,12 @@ Language::Befunge - a Befunge-98 interpreter.
 
     use Language::Befunge;
     my $interp = new Language::Befunge( "program.bf" );
-    $interp->run_code;
+    $interp->run_code( "param", 7, "foo" );
 
     Or, one can write directly:
     my $interp = new Language::Befunge;
     $interp->store_code( <<'END_OF_CODE' );
-    v @,,,,"foo"a <
-    >             ^
+    < @,,,,"foo"a
     END_OF_CODE
     $interp->run_code;
 
@@ -75,7 +74,7 @@ use Language::Befunge::IP;
 use Language::Befunge::LaheySpace;
 
 # Public variables of the module.
-our $VERSION   = '0.30';
+our $VERSION   = '0.31';
 our $HANDPRINT = 'JQBF98'; # the handprint of the interpreter.
 our $AUTOLOAD;
 our $subs;
@@ -97,6 +96,7 @@ sub new {
     my $class = ref($proto) || $proto;
     my $self  = 
       { file     => "STDIN",
+        params   => [],
         retval   => 0,
         kcounter => 0,
         DEBUG    => 0,
@@ -124,6 +124,10 @@ All the following accessors are autoloaded.
 =head2 file( [filename] )
 
 Get or set the filename of the script.
+
+=head2 params( [arrayref] )
+
+Get or set the parameters of the script.
 
 =head2 retval( [retval] )
 
@@ -158,7 +162,7 @@ Get the Lahey space object.
 =cut
 BEGIN {
     my @subs = split /\|/, 
-      $subs = 'file|retval|kcounter|DEBUG|curip|ips|newips|torus';
+      $subs = 'file|params|retval|kcounter|DEBUG|curip|ips|newips|torus';
     use subs @subs;
 }
 sub AUTOLOAD {
@@ -307,7 +311,7 @@ sub store_code {
 
 =over 4
 
-=item run_code(  )
+=item run_code( [params]  )
 
 Run the current code. That is, create a new Instruction Pointer and
 move it around the code.
@@ -317,6 +321,7 @@ Return the exit code of the program.
 =cut
 sub run_code {
     my $self = shift;
+    $self->params( [ @_ ] );
 
     # Cosmetics.
     $self->debug( "\n-= NEW RUN (".$self->file.") =-\n" );
@@ -1427,11 +1432,8 @@ sub op_sys_info {
     my @sizes = reverse $ip->ss_sizes;
     push @cells, \@sizes;
                     
-    # 19. $file + @ARGV.
-    # !!FIXME!! This may not be accurate, since this
-    # is a module and the main perl application may
-    # have already processed the command line.
-    my $str = join chr(0), $self->file, @ARGV, chr(0);
+    # 19. $file + params.
+    my $str = join chr(0), $self->file, @{$self->params}, chr(0);
     my @cmdline = reverse map { ord } split //, $str;
     push @cells, \@cmdline;
                     
@@ -1615,13 +1617,6 @@ There are some bugs anyway, but they come from the specs:
 About the 18th cell pushed by the C<y> instruction: Funge specs just
 tell to push onto the stack the size of the stacks, but nothing is
 said about how user will retrieve the number of stacks.
-
-=item o
-
-About the 19th cell pushed by the C<y> instruction: what this
-interpreter pushes on the stack may not be accurate, since this is a
-module and the main perl application may have already processed the
-command line.
 
 =item o
 

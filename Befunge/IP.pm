@@ -1,4 +1,4 @@
-# $Id: IP.pm,v 1.12 2002/04/13 11:09:19 jquelin Exp jquelin $
+# $Id: IP.pm,v 1.14 2002/04/14 14:36:50 jquelin Exp $
 #
 # Copyright (c) 2002 Jerome Quelin <jquelin@cpan.org>
 # All rights reserved.
@@ -107,31 +107,31 @@ sub set_pos {
 
 All the following accessors are autoloaded.
 
-=head2 id( id )
+=head2 id( [id] )
 
 Get or set the unique ID of the IP.
 
-=head2 curx( x )
+=head2 curx( [x] )
 
 Get or set the current x-coordinate of the IP.
 
-=head2 cury( y )
+=head2 cury( [y] )
 
 Get or set the current y-coordinate of the IP.
 
-=head2 dx( dx )
+=head2 dx( [dx] )
 
 Get or set the horizontal offset of the IP.
 
-=head2 dy( dy )
+=head2 dy( [dy] )
 
 Get or set the vertical offset of the IP.
 
-=head2 storx( x )
+=head2 storx( [x] )
 
 Get or set the x-coordinate of the storage offset of the IP.
 
-=head2 story( y )
+=head2 story( [y] )
 
 Get or set the y-coordinate of the storage offset of the IP.
 

@@ -1,5 +1,5 @@
 #-*- cperl -*-
-# $Id: 20system.t,v 1.2 2002/04/14 13:12:36 jquelin Exp $
+# $Id: 20system.t,v 1.3 2002/04/15 07:38:10 jquelin Exp $
 #
 
 #---------------------------------#
@@ -236,11 +236,12 @@ BEGIN { $tests += 1 };
 
 sel; # 19. Args.
 $bef->store_code( <<'END_OF_CODE' );
-a9+y,,,,,q
+a9+y >  :#, _ $a, :#v _q
+     ^              <
 END_OF_CODE
-$bef->run_code;
+$bef->run_code( "foo", 7, "bar" );
 $out = slurp;
-ok( $out, "STDIN" );
+ok( $out, "STDIN\nfoo\n7\nbar\n" );
 BEGIN { $tests += 1 };
 
 sel; # 20. %ENV.
