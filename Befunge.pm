@@ -1,4 +1,4 @@
-# $Id: Befunge.pm,v 1.54 2002/04/24 06:47:41 jquelin Exp $
+# $Id: Befunge.pm,v 1.55 2002/05/03 12:46:25 jquelin Exp $
 #
 # Copyright (c) 2002 Jerome Quelin <jquelin@cpan.org>
 # All rights reserved.
@@ -74,7 +74,7 @@ use Language::Befunge::IP;
 use Language::Befunge::LaheySpace;
 
 # Public variables of the module.
-our $VERSION   = '0.37';
+our $VERSION   = '0.38';
 our $HANDPRINT = 'JQBF98'; # the handprint of the interpreter.
 our $AUTOLOAD;
 our $subs;
@@ -464,7 +464,6 @@ sub process_ip {
 
     # Tick done for this IP, let's move it and push it in the
     # set of non-terminated IPs.
-    $self->debug( "IP processed: moving it and storing it\n" );
     $self->move_curip;
     $self->kcounter(-1);
     push @{ $self->newips }, $ip unless $ip->end;
@@ -1237,16 +1236,21 @@ $meths{','} = "op_stdio_out_ascii";
 =cut
 sub op_stdio_in_num {
     my $self = shift;
-    my $in = <STDIN>;
-    if ( $in =~ /(-?\d+)/ ) {
-        $in = $1;
-        $in < -2**31  and $in = -2**31;
-        $in > 2**31-1 and $in = 2**31-1;
-    } else {
-        $in = 0;
+    my $ip = $self->curip;
+    my ($in, $nb);
+    while ( not defined($nb) ) {
+        $in = $ip->input || <STDIN> while not $in;
+        if ( $in =~ s/^.*?(-?\d+)// ) {
+            $nb = $1;
+            $nb < -2**31  and $nb = -2**31;
+            $nb > 2**31-1 and $nb = 2**31-1;
+        } else {
+            $in = "";
+        }
+        $ip->input( $in );
     }
-    $self->curip->spush( $in );
-    $self->debug( "numeric input: pushing $in\n" ); 
+    $ip->spush( $nb );
+    $self->debug( "numeric input: pushing $nb\n" ); 
 }
 $meths{'&'} = "op_stdio_in_num";
 
@@ -1257,7 +1261,8 @@ $meths{'&'} = "op_stdio_in_num";
 sub op_stdio_in_ascii {
     my $self = shift;
     my $ip = $self->curip;
-    my $in = $ip->input || <STDIN>;
+    my $in;
+    $in = $ip->input || <STDIN> while not $in;
     my $chr = substr $in, 0, 1, "";
     my $ord = ord $chr;
     $ip->spush( $ord );
