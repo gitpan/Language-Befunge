@@ -1,4 +1,4 @@
-# $Id: LaheySpace.pm,v 1.5 2002/04/11 12:42:24 jquelin Exp $
+# $Id: LaheySpace.pm,v 1.6 2002/04/11 16:30:34 jquelin Exp $
 #
 # Copyright (c) 2002 Jerome Quelin <jquelin@cpan.org>
 # All rights reserved.
@@ -223,7 +223,7 @@ sub set_value {
     # Ensure we can set the value.
     $self->set_min( $x, $y );
     $self->set_max( $x, $y );
-    $self->{torus}[$y][$x] = $val;
+    $self->{torus}[$y-$self->ymin][$x-$self->xmin] = $val;
 }
 
 =head2 move_ip_forward( ip )

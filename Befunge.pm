@@ -1,4 +1,4 @@
-# $Id: Befunge.pm,v 1.25 2002/04/11 15:46:15 jquelin Exp $
+# $Id: Befunge.pm,v 1.27 2002/04/11 17:32:15 jquelin Exp $
 #
 # Copyright (c) 2002 Jerome Quelin <jquelin@cpan.org>
 # All rights reserved.
@@ -76,7 +76,7 @@ use Language::Befunge::LaheySpace;
 use base qw(Exporter);
 
 # Public variables of the module.
-our $VERSION   = '0.07';
+our $VERSION   = '0.08';
 our $HANDPRINT = 'JQBF98'; # the handprint of the interpreter.
 our @EXPORT    =  qw! read_file store_code run_code !;
 $| = 1;
@@ -199,17 +199,19 @@ sub run_code {
 
             # Check if we are in string-mode.
             if ( $ip->string_mode ) {
-                debug "We are in string-mode.";
                 if ( $char eq '"' ) {
                     # End of string-mode.
+                    debug "-> End of string-mode.\n";
                     $ip->string_mode(0);
                     $ip->space_pushed(0);
                 } elsif ( $char eq ' ' ) {
+                    debug "-> SGML style spaces.\n";
                     # A serie of spaces, to be treated as one space.
                     $torus->move_ip_forward( $ip );
                     $ip->space_pushed or $ip->spush( $ord ), $ip->space_pushed(1);
                     redo ip;
                 } else {
+                    debug "-> We are in string-mode.\n";
                     # A banal character.
                     $ip->spush( $ord );                 
                 }
@@ -545,14 +547,16 @@ sub run_code {
                     # -= Funge-space storage =-
                     # Get instruction.
                     $char eq 'g' and do {
+                        debug "-> Fetch character\n";
                         my $y = $ip->spop + $ip->story;
                         my $x = $ip->spop + $ip->storx;
-                        $ip->spush( torus_get_value( $x, $y ) );
+                        $ip->spush( $torus->get_value( $x, $y ) );
                         last switch;
                     };
 
                     # Put instruction.
                     $char eq 'p' and do {
+                        debug "-> Store character\n";
                         my $y = $ip->spop + $ip->story;
                         my $x = $ip->spop + $ip->storx;
                         $torus->set_value( $x, $y, $ip->spop );
@@ -602,6 +606,7 @@ sub run_code {
 
                     # File input.
                     $char eq 'i' and do {
+                        debug "-> Input file\n";
                         # Fetch arguments.
                         my $path = $ip->spop_gnirts;
                         my $flag = $ip->spop; # unused in this interpreter.
@@ -626,6 +631,7 @@ sub run_code {
 
                     # File output.
                     $char eq 'o' and do {
+                        debug "-> Output file\n";
                         # Fetch arguments.
                         my $path = $ip->spop_gnirts;
                         my $flag = $ip->spop;
@@ -637,8 +643,8 @@ sub run_code {
 
                         # Treat the data chunk as text file?
                         if ( $flag & 1 ) {
-                            $data =~ s/^\s+$//mg; # blank lines are now void.
-                            $data =~ s/\n+\z//; # final blank lines are stripped.
+                            $data =~ s/ +$//mg;  # blank lines are now void.
+                            $data =~ s/\n+\z/\n/;   # final blank lines are stripped.
                         }
 
                         # Write file.

@@ -20,4 +20,6 @@ t/15decis.t
 t/16string.t
 t/17stack.t
 t/18sos.t
+t/19storg.t
+t/hello.bf
 t/q.bf

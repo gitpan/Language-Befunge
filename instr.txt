@@ -69,16 +69,16 @@ instruction in the interpreter:
 |100    |d  X |Push Thirteen/98|        |13       |                                      |
 |101    |e  X |Push Fourteen/98|        |14       |                                      |
 |102    |f  X |Push Fifteen/98 |        |15       |                                      |
-|103    |g    |Get             |Va      |v        |v = fetch-funge-space(offset+Va)      |
+|103    |g  X |Get             |Va      |v        |v = fetch-funge-space(offset+Va)      |
 |104    |h  - |Go High/98/3D   |        |         |delta <- (0,0,-1)                     |
-|105    |i    |Input File/98/f |Va f STR|Va Vb    |inputs file                           |
+|105    |i  X |Input File/98/f |Va f STR|Va Vb    |inputs file                           |
 |106    |j  X |Jump Forward/98 |s       |         |pos <- pos + delta * s                |
 |107    |k  X |Iterate/98      |n       |         |execute next instruction now, n times |
 |108    |l  - |Go Low/98/3D    |        |         |delta <- (0,0,1)                      |
 |109    |m  - |HighLow If/98/3D|b       |         |delta <- if (b) (0,0,-1) else (0,0,1) |
 |110    |n  X |Clear Stack/98  |en..e1  |         |                                      |
-|111    |o    |Output File/98/f|VaVbfSTR|         |outputs file                          |
-|112    |p    |Put             |v Va    |         |store-funge-space(offset+Va,v)        |
+|111    |o  X |Output File/98/f|VaVbfSTR|         |outputs file                          |
+|112    |p  X |Put             |v Va    |         |store-funge-space(offset+Va,v)        |
 |113    |q  X |Quit/98         |r       |         |immediate exit, returncode = r        |
 |114    |r  X |Reflect/98      |        |         |delta <- delta * -1                   |
 |115    |s  X |Store Char/98   |c       |         |store-funge-space(position+delta,v)   |

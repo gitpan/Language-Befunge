@@ -1,5 +1,5 @@
 #-*- cperl -*-
-# $Id: 10stdio.t,v 1.5 2002/04/11 12:50:26 jquelin Exp $
+# $Id: 10stdio.t,v 1.6 2002/04/11 17:32:28 jquelin Exp $
 #
 
 #----------------------------------#
@@ -16,6 +16,7 @@ my $file;
 my $fh;
 my $tests;
 my $out;
+my $slurp;
 
 BEGIN { $tests = 0 };
 
@@ -61,6 +62,81 @@ BEGIN { $tests += 1 };
 
 # Not testing input.
 # If somebody know how to test input automatically...
+
+# File input.
+sel; # unknown file.
+store_code( <<'END_OF_CODE' );
+v q.2 i v# "/dev/a_file_that_probably_does_not_exist"0 <
+>                 ;vector; 3 6   ;flag; 0              ^
+        > 1.q
+END_OF_CODE
+run_code;
+$out = slurp;
+ok( $out, "1 " );
+sel; # existant file.
+store_code( <<'END_OF_CODE' );
+v v i "t/hello.bf"0           <
+>     ;vector; 3 6  ;flag; 0  ^
+  .
+  .
+  .
+  .
+  >
+END_OF_CODE
+run_code;
+$out = slurp;
+ok( $out, "6 3 2 35 hello world!\n" );
+BEGIN { $tests += 2 };
+
+
+# File output.
+sel; # unknown file.
+store_code( <<'END_OF_CODE' );
+v q.2 o v# "/ved/a_file_that_probably_does_not_exist"0 <
+>          ;size; 4 5   ;offset; 7 8       ;flag; 0    ^
+    q.1 <
+END_OF_CODE
+run_code;
+$out = slurp;
+ok( $out, "1 " );
+sel; # valid file.
+store_code( <<'END_OF_CODE' );
+v q o "t/foo.txt"0  0 ;flag;     <
+>     ;size; 4 4   ;offset; 3 2  ^
+   foo!
+
+   ;-)
+END_OF_CODE
+run_code;
+$out = slurp;
+ok( $out, "" );
+open FOO, "<t/foo.txt" or die $!;
+{
+    local $/;
+    $slurp = <FOO>;
+}
+ok( $slurp, "foo!\n    \n;-) \n    \n" );
+unlink "t/foo.txt";
+sel; # flag: text file.
+store_code( <<'END_OF_CODE' );
+v q o "t/foo.txt"0  1 ;flag;     <
+>     ;size; 4 4   ;offset; 3 2  ^
+   foo!
+
+   ;-)
+END_OF_CODE
+run_code;
+$out = slurp;
+ok( $out, "" );
+open FOO, "<t/foo.txt" or die $!;
+{
+    local $/;
+    $slurp = <FOO>;
+}
+ok( $slurp, "foo!\n\n;-)\n" );
+unlink "t/foo.txt";
+BEGIN { $tests += 5 };
+
 
 BEGIN { plan tests => $tests };
 

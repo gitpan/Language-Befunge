@@ -1,5 +1,13 @@
 Revision history for Perl extension Language::Befunge.
 
+0.08 Thu Apr 11 19:34:38 CEST 2002
+        - Fixed some bad API calls in Befunge.pm
+        - Bug fix in LaheySpace.pm
+        - More debug messages in Befunge.pm
+        - Minor bug fix in output file for text flag.
+        - New test 19storg.t -> tests storage
+        - 10stdio.t extended to test input and output file.
+
 0.07 Thu Apr 11 17:49:03 CEST 2002
         - Fixed a bug in IP.pm and 03ip.pm
         - Fixed some bad API calls in Befunge.pm
@@ -38,7 +46,6 @@ Revision history for Perl extension Language::Befunge.
 0.02  Wed Apr 10 14:22:31 CEST 2002
         - New function store_code.
         - Language::Befunge synopsis extended.
-
 
 0.01  Wed Apr 10 14:01:20 CEST 2002
 	- Original version.
