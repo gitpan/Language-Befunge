@@ -19,4 +19,5 @@ t/14flow.t
 t/15decis.t
 t/16string.t
 t/17stack.t
+t/18sos.t
 t/q.bf

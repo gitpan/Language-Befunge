@@ -83,14 +83,14 @@ instruction in the interpreter:
 |114    |r  X |Reflect/98      |        |         |delta <- delta * -1                   |
 |115    |s  X |Store Char/98   |c       |         |store-funge-space(position+delta,v)   |
 |116    |t    |Split/98/c      |        |         |Split IP                              |
-|117    |u    |S Under Stack/98|n       |(en..e1) |                                      |
+|117    |u  X |S Under Stack/98|n       |(en..e1) |                                      |
 |118    |v  X |Go South/2D     |        |         |delta <- (0,1)                        |
 |119    |w  X |Compare/98/2D   |a b     |         |if (a>b) ']' elsif (a<b) '[' else 'z' |
 |120    |x  X |Abs Delta/98    |Va      |         |delta <- Va                           |
 |121    |y    |Get SysInf/98   |c       |en(..e1) |                                      |
 |122    |z  X |No-OP/98        |        |         |                                      |
-|123    |{    |Begin Block/98  |en..e1 n|(en..e1) |offset <- pos + delta, etc            |
+|123    |{  X |Begin Block/98  |en..e1 n|(en..e1) |offset <- pos + delta, etc            |
 |124    ||  X |NorthSouth If/2D|b       |         |delta <- if (b) (0,-1) else (0,1)     |
-|125    |}    |End Block/98    |en..e1 n|(en..e1) |offset <- SOSS Va, etc                |
+|125    |}  X |End Block/98    |en..e1 n|(en..e1) |offset <- SOSS Va, etc                |
 |126    |~  ? |Input Char      |        |c        |c = readchar()                        |
 +-------+-----+----------------+--------+---------+--------------------------------------+

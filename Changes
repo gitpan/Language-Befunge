@@ -1,41 +1,48 @@
 Revision history for Perl extension Language::Befunge.
 
+0.07 Thu Apr 11 17:49:03 CEST 2002
+        - Fixed a bug in IP.pm and 03ip.pm
+        - Fixed some bad API calls in Befunge.pm
+        - More debug messages.
+        - New test 18sos.t -> tests stack stack manipulation
+        - instr.txt rewritten.
+
 0.06 Thu Apr 11 15:06:50 CEST 2002
-        - pod cleaning in LaheySpace.pm.
-        - some bug fixes in Befunge.pm
-        - new test 16string.t -> tests string thingies
-        - new test 17stack.t  -> tests stack stuff
+        - Pod cleaning in LaheySpace.pm.
+        - Some bug fixes in Befunge.pm
+        - New test 16string.t -> tests string thingies
+        - New test 17stack.t  -> tests stack stuff
         
 0.05 Thu Apr 11 14:25:10 CEST 2002
-        - completed 14flow.t
-        - new test 15decis.t -> tests decision making
+        - Completed 14flow.t
+        - New test 15decis.t -> tests decision making
 
 0.04 Thu Apr 11 12:04:30 CEST 2002
         - store_code includes magic to display the correct filename in
           error msgs.
         - instr.txt explained.
-        - bug fixes for control flow instructions.
-        - new test 13dir.t  -> tests direction changing
-        - new test 14flow.t -> tests flow control
+        - Bug fixes for control flow instructions.
+        - New test 13dir.t  -> tests direction changing
+        - New test 14flow.t -> tests flow control
 
 0.03  Thu Apr 11 09:59:28 CEST 2002
-        - bug fix with string-mode.
-        - debug facilities.
-        - new test 02befunge.t -> tests the exported functions
-        - new test 10stdio.t   -> tests ,. and space
-        - new test 11nums.t    -> tests 0-9a-f
-        - new test 12maths.t   -> tests +-*/%
-        - new file inst.txt with the instruction and their current
+        - Bug fix with string-mode.
+        - Debug facilities.
+        - New test 02befunge.t -> tests the exported functions
+        - New test 10stdio.t   -> tests ,. and space
+        - New test 11nums.t    -> tests 0-9a-f
+        - New test 12maths.t   -> tests +-*/%
+        - New file inst.txt with the instruction and their current
           status (tested with a X).
 
 0.02  Wed Apr 10 14:22:31 CEST 2002
-        - new function store_code.
+        - New function store_code.
         - Language::Befunge synopsis extended.
 
 
 0.01  Wed Apr 10 14:01:20 CEST 2002
-	- original version.
-        - every instruction is implemented, but _not_ tested.
-        - module LaheySpace written and tested.
-        - module IP written and tested.
+	- Original version.
+        - Every instruction is implemented, but _not_ tested.
+        - Module LaheySpace written and tested.
+        - Module IP written and tested.
 

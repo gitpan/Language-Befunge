@@ -1,4 +1,4 @@
-# $Id: IP.pm,v 1.10 2002/04/10 11:46:14 jquelin Exp $
+# $Id: IP.pm,v 1.11 2002/04/11 15:23:40 jquelin Exp $
 #
 # Copyright (c) 2002 Jerome Quelin <jquelin@cpan.org>
 # All rights reserved.
@@ -361,8 +361,12 @@ sub ss_remove {
   sw: {
         $n == 0 and last sw;
         $n < 0 and do {
-            # Push zeroes.
-            push @$new_toss, (0) x abs($n);
+            # Remove values.
+            if ( scalar(@$new_toss) >= abs($n) ) {
+                splice @$new_toss, $n;
+            } else {
+                $new_toss = [];
+            }
             last sw;
         };
         $n > 0 and do {

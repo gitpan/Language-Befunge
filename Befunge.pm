@@ -1,4 +1,4 @@
-# $Id: Befunge.pm,v 1.24 2002/04/11 13:01:28 jquelin Exp $
+# $Id: Befunge.pm,v 1.25 2002/04/11 15:46:15 jquelin Exp $
 #
 # Copyright (c) 2002 Jerome Quelin <jquelin@cpan.org>
 # All rights reserved.
@@ -76,9 +76,9 @@ use Language::Befunge::LaheySpace;
 use base qw(Exporter);
 
 # Public variables of the module.
-our $VERSION = '0.06';
+our $VERSION   = '0.07';
 our $HANDPRINT = 'JQBF98'; # the handprint of the interpreter.
-our @EXPORT  =  qw! read_file store_code run_code !;
+our @EXPORT    =  qw! read_file store_code run_code !;
 $| = 1;
 
 # Private variables of the module.
@@ -507,7 +507,8 @@ sub run_code {
                     # -= Stack stack manipulation =-
                     # Begin block.
                     $char eq '{' and do {
-                        $ip->ss_create( $ip->spop ); # create new TOSS.
+                        debug "-> Begin block\n";
+                        $ip->ss_create( $ip->spop );  # create new TOSS.
                         $ip->soss_push( $ip->storx ); # Store the current storage
                         $ip->soss_push( $ip->story ); # offset on SOSS.
                         # Set the new Storage Offset.
@@ -522,6 +523,7 @@ sub run_code {
                 
                     # End block.
                     $char eq '}' and do {
+                        debug "-> End bloc\n";
                         $ip->ss_count <= 0 and $ip->dir_reverse, last switch;
                         # Restore Storage offset.
                         $ip->story( $ip->soss_pop );
@@ -533,6 +535,7 @@ sub run_code {
                 
                     # Stack under stack.
                     $char eq 'u' and do {
+                        debug "-> Transfering values\n";
                         $ip->ss_count <= 0 and $ip->dir_reverse, last switch;
                         $ip->ss_transfer( $ip->spop );
                         last switch;
@@ -552,7 +555,7 @@ sub run_code {
                     $char eq 'p' and do {
                         my $y = $ip->spop + $ip->story;
                         my $x = $ip->spop + $ip->storx;
-                        torus_set_value( $x, $y, $ip->spop );
+                        $torus->set_value( $x, $y, $ip->spop );
                         last switch;
                     };
 
@@ -560,6 +563,7 @@ sub run_code {
                     # -= Standard Input/Output =-
                     # Numeric output.
                     $char eq '.' and do {
+                        debug "-> Numeric output\n"; 
                         print($ip->spop, " ") or $ip->dir_reverse;
                         last switch;
                     };
@@ -573,6 +577,7 @@ sub run_code {
 
                     # Numeric input.
                     $char eq '&' and do {
+                        debug "-> Numeric input\n"; 
                         my $in = <STDIN>;
                         if ( $in =~ /(-\d+)/ ) {
                             $in = $1;
@@ -587,6 +592,7 @@ sub run_code {
 
                     # Ascii input.
                     $char eq '~' and do {
+                        debug "-> Ascii input\n"; 
                         my $in = $ip->input or <STDIN>;
                         my $c = substr $in, 0, 1, "";
                         $ip->spush( ord($c) );
@@ -793,8 +799,6 @@ sub run_code {
                     $ip->dir_reverse;
                 }
             }
-
-            debug "-> End of parsing\n";
 
             # Check if we must reexecute the instruction.
             if ( $kcounter > 1 ) {

@@ -1,5 +1,5 @@
 #-*- cperl -*-
-# $Id: 03ip.t,v 1.9 2002/04/11 12:49:45 jquelin Exp $
+# $Id: 03ip.t,v 1.10 2002/04/11 15:23:17 jquelin Exp $
 #
 
 #----------------------------------#
@@ -80,15 +80,15 @@ BEGIN { $tests += 10 };
 # stack to perform the action (filled with zeroes).
 #
 #                   enough   not enough
-# create   (<0)       102        X
-# create   (=0)       131        X
-# create   (>0)       92        136
-# remove   (<0)       117        X
-# remove   (=0)       151        X
-# remove   (>0)       122       159
-# transfer (<0)       156       108
-# transfer (=0)       148        X
-# transfer (>0)       98        141
+# create   (<0)      106         X
+# create   (=0)      136         X
+# create   (>0)       96        141
+# remove   (<0)      121         X
+# remove   (=0)      156         X
+# remove   (>0)      164        127
+# transfer (<0)      161        110
+# transfer (=0)      153         X
+# transfer (>0)      102        146
 $ip->sclear;
 $ip->spush( 11, 12, 13, 14, 15, 16, 17, 18, 19 );
 ok( $ip->scount, 9 );             # toss = (11,12,13,14,15,16,17,18,19)
@@ -118,11 +118,12 @@ $ip->soss_clear;                  # soss = ()
 ok( $ip->soss_count, 0 );
 $ip->spush( 16, 17 );             # toss = (16, 17)
 $ip->soss_push( 13, 14, 15, 16 ); # soss = (13,14,15,16)
-$ip->ss_remove( -1 );             # destroy toss, push zeroes.
+$ip->ss_remove( -1 );             # destroy toss, remove elems.
 ok( $ip->ss_count, 1 );
-ok( $ip->scount, 5 );             # toss = (13,14,15,16,0)
-ok( $ip->spop, 0 );               # toss = (13,14,15,16)
-ok( $ip->spop, 16 );              # toss = (13,14,15)
+ok( $ip->scount, 3 );             # toss = (13,14,15)
+ok( $ip->spop, 15 );              # toss = (13,14)
+ok( $ip->spop, 14 );              # toss = (13)
+$ip->spush( 14, 15 );
 $ip->ss_remove( 5 );              # destroy toss, push values (not enough).
 ok( $ip->ss_count, 0 );
 ok( $ip->scount, 9 );             # toss = (11,12,13,14,0,0,13,14,15)
@@ -160,13 +161,13 @@ $ip->spush( 18 );                 # toss = (12,18)
 $ip->ss_transfer( -1 );           # move elems from toss to soss (enough).
 ok( $ip->scount, 1 );             # toss = (12)
 ok( $ip->soss_count, 4 );         # soss = (11,12,13,18)
-$ip->ss_remove( 3 );              # destroy toss, values filled (not enough).
-ok( $ip->scount, 7 );             # toss = (11,12,13,18,0,0,12)
+$ip->ss_remove( 1 );              # destroy toss, values filled (enough).
+ok( $ip->scount, 5 );             # toss = (11,12,13,18,12)
 ok( $ip->ss_count, 0 );
-ok( $ip->spop, 12 );              # toss = (11,12,13,18,0,0)
-ok( $ip->spop, 0 );               # toss = (11,12,13,18,0)
-ok( $ip->spop, 0 );               # toss = (11,12,13,18)
+ok( $ip->spop, 12 );              # toss = (11,12,13,18)
 ok( $ip->spop, 18 );              # toss = (11,12,13)
+ok( $ip->spop, 13 );              # toss = (11,12)
+ok( $ip->spop, 12 );              # toss = (11)
 BEGIN { $tests += 55 };
 
 # Test cardinal directions.
