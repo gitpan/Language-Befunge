@@ -1,5 +1,5 @@
 #-*- cperl -*-
-# $Id: 10stdio.t,v 1.3 2002/04/11 07:38:33 jquelin Exp $
+# $Id: 10stdio.t,v 1.4 2002/04/11 12:06:43 jquelin Exp $
 #
 
 #--------------------------------------------------#
@@ -38,17 +38,6 @@ sub slurp () {
     unlink $file;
     return $content;
 }
-
-# Space is a no-op.
-sel;
-store_code( <<'END_OF_CODE' );
-   f   f  +     7       +  ,   q
-END_OF_CODE
-run_code;
-$out = slurp;
-ok( $out, "%" );
-BEGIN { $tests += 1 };
-
 
 # Ascii output.
 sel;

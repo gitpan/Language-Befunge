@@ -1,4 +1,4 @@
-# $Id: Befunge.pm,v 1.22 2002/04/11 10:03:35 jquelin Exp $
+# $Id: Befunge.pm,v 1.23 2002/04/11 10:08:56 jquelin Exp jquelin $
 #
 # Copyright (c) 2002 Jerome Quelin <jquelin@cpan.org>
 # All rights reserved.
@@ -76,7 +76,7 @@ use Language::Befunge::LaheySpace;
 use base qw(Exporter);
 
 # Public variables of the module.
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 our $HANDPRINT = 'JQBF98'; # the handprint of the interpreter.
 our @EXPORT  =  qw! read_file store_code run_code !;
 $| = 1;
@@ -154,7 +154,8 @@ Return the exit code of the program.
 
 =cut
 sub run_code {
-    debug "\n=-=-=-=-=-=-=-=\n";
+    debug "\n";
+    debug "=-=-=-=-=-=-=-=\n";
     debug "-=  NEW RUN  =-\n";
     debug "=-=-=-=-=-=-=-=\n";
 
@@ -344,6 +345,7 @@ sub run_code {
                     # -= Decision Making =-
                     # Negation.
                     $char eq '!' and do {
+                        debug "-> Logical not\n";
                         $ip->spush( $ip->spop ? 0 : 1 );
                         last switch;
                     };
@@ -352,18 +354,21 @@ sub run_code {
                     $char eq '`' and do {
                         my $v2 = $ip->spop;
                         my $v1 = $ip->spop;
+                        debug "-> Comparing $v1 vs $v2\n";
                         $ip->spush( ($v1 > $v2) ? 1 : 0 );
                         last switch;
                     };
 
                     # Horizontal if.
                     $char eq '_' and do {
+                        debug "-> Horizontal if\n";
                         $ip->spop ? $ip->dir_go_west : $ip->dir_go_east;
                         last switch;
                     };
 
                     # Vertical if.
                     $char eq '|' and do {
+                        debug "-> Vertical if\n";
                         $ip->spop ? $ip->dir_go_north : $ip->dir_go_south;
                         last switch;
                     };
@@ -381,6 +386,7 @@ sub run_code {
                     # -= Flow Control =-
                     # No-op.
                     $char eq ' ' and do {
+                        debug "-> Slurping next spaces\n";
                         # A serie of spaces is to be treated as _one_ NO-OP.
                         $torus->move_ip_forward($ip) 
                           while $torus->get_value( $ip->curx, $ip->cury ) == 32;
@@ -396,7 +402,7 @@ sub run_code {
                     };
 
                     # True no-op.
-                    $char eq 'z' and last switch;
+                    $char eq 'z' and debug "-> No-op\n", last switch;
 
                     # Comments.
                     $char eq ';' and do {

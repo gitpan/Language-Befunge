@@ -1,5 +1,9 @@
 Revision history for Perl extension Language::Befunge.
 
+0.05 Thu Apr 11 14:25:10 CEST 2002
+        - completed 14flow.t
+        - new test 15decis.t -> tests decision making
+
 0.04 Thu Apr 11 12:04:30 CEST 2002
         - store_code includes magic to display the correct filename in
           error msgs.

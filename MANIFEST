@@ -16,4 +16,5 @@ t/11nums.t
 t/12maths.t
 t/13dir.t
 t/14flow.t
+t/15decis.t
 t/q.bf
