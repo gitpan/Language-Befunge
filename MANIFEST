@@ -17,4 +17,6 @@ t/12maths.t
 t/13dir.t
 t/14flow.t
 t/15decis.t
+t/16string.t
+t/17stack.t
 t/q.bf

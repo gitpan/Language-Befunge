@@ -1,4 +1,4 @@
-# $Id: Befunge.pm,v 1.23 2002/04/11 10:08:56 jquelin Exp jquelin $
+# $Id: Befunge.pm,v 1.24 2002/04/11 13:01:28 jquelin Exp $
 #
 # Copyright (c) 2002 Jerome Quelin <jquelin@cpan.org>
 # All rights reserved.
@@ -76,7 +76,7 @@ use Language::Befunge::LaheySpace;
 use base qw(Exporter);
 
 # Public variables of the module.
-our $VERSION = '0.05';
+our $VERSION = '0.06';
 our $HANDPRINT = 'JQBF98'; # the handprint of the interpreter.
 our @EXPORT  =  qw! read_file store_code run_code !;
 $| = 1;
@@ -227,21 +227,24 @@ sub run_code {
                     # -= Strings =-
                     # Toggle string-mode.
                     $char eq '"' and do {
+                        debug "-> Entering string mode.\n";
                         $ip->string_mode(1);
                         last switch;
                     };
 
                     # Fetch character.
                     $char eq "'" and do {
+                        debug "-> Fetching character\n";
                         $torus->move_ip_forward( $ip );
-                        $ip->spush( torus_get_value( $ip->curx, $ip->cury ) );
+                        $ip->spush( $torus->get_value( $ip->curx, $ip->cury ) );
                         last switch;
                     };
 
                     # Store character.
                     $char eq 's' and do {
+                        debug "-> Storing character\n";
                         $torus->move_ip_forward( $ip );
-                        torus_set_value( $ip->curx, $ip->cury, $ip->spop );
+                        $torus->set_value( $ip->curx, $ip->cury, $ip->spop );
                         last switch;
                     };
 
@@ -377,6 +380,7 @@ sub run_code {
                     $char eq 'w' and do {
                         my $v2 = $ip->spop;
                         my $v1 = $ip->spop;
+                        debug "-> Comparing $v1 with $v2\n";
                         last switch if $v1 == $v2;
                         $v1 < $v2 ? $ip->dir_turn_left : $ip->dir_turn_right;
                         last switch;
@@ -468,6 +472,7 @@ sub run_code {
                     # -= Stack Manipulation =-
                     # Pop.
                     $char eq '$' and do {
+                        debug "-> Popping a value.\n";
                         $ip->spop;
                         last switch;
                     };
@@ -475,6 +480,7 @@ sub run_code {
                     # Duplicate.
                     $char eq ':' and do {
                         my $value = $ip->spop;
+                        debug "-> Duplicating $value\n";
                         $ip->spush( $value );
                         $ip->spush( $value );
                         last switch;
@@ -484,13 +490,15 @@ sub run_code {
                     $char eq '\\' and do {
                         my $v2 = $ip->spop;
                         my $v1 = $ip->spop;
+                        debug "-> Swapping $v1 and $v2\n";
                         $ip->spush( $v2 );
-                        $ip->spush( $v2 );
+                        $ip->spush( $v1 );
                         last switch;
                     };
 
                     # Clear stack.
                     $char eq 'n' and do {
+                        debug "-> Clearing stack\n";
                         $ip->sclear;
                         last switch;
                     };

@@ -1,4 +1,4 @@
-# $Id: LaheySpace.pm,v 1.4 2002/04/10 07:49:43 jquelin Exp $
+# $Id: LaheySpace.pm,v 1.5 2002/04/11 12:42:24 jquelin Exp $
 #
 # Copyright (c) 2002 Jerome Quelin <jquelin@cpan.org>
 # All rights reserved.
@@ -178,7 +178,7 @@ sub store {
 }
 
 
-=head2 get_value( x, y )warn "apres: ",$self->xmax,",",$self->ymax,"\n";
+=head2 get_value( x, y )
 
 
 Return the number stored in the torus at the specified location. If

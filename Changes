@@ -1,5 +1,11 @@
 Revision history for Perl extension Language::Befunge.
 
+0.06 Thu Apr 11 15:06:50 CEST 2002
+        - pod cleaning in LaheySpace.pm.
+        - some bug fixes in Befunge.pm
+        - new test 16string.t -> tests string thingies
+        - new test 17stack.t  -> tests stack stuff
+        
 0.05 Thu Apr 11 14:25:10 CEST 2002
         - completed 14flow.t
         - new test 15decis.t -> tests decision making

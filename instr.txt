@@ -1,20 +1,20 @@
-  Instruction Quick Reference
+Instruction Quick Reference
+---------------------------
 
-   / modifiers:
-     * 98 Funge-98 only, not in Befunge-93.
-     * 2D Minimum 2 dimensions (not in Unefunge).
-     * 3D Minimum 3 dimensions (not in Unefunge or Befunge).
-     * c Concurrent Funge. Check y to see if these instructions are
-       implemented.
-     * f Filesystem Funge. Check y to see if these instructions are
-       implemented.
+ / modifiers:
+   * 98 Funge-98 only, not in Befunge-93.
+   * 2D Minimum 2 dimensions (not in Unefunge).
+   * 3D Minimum 3 dimensions (not in Unefunge or Befunge).
+   * c Concurrent Funge. Check y to see if these instructions are implemented.
+   * f Filesystem Funge. Check y to see if these instructions are implemented.
 
 Note from jquelin:
+------------------
 In the ASCII column, I added a symbol telling the status of the
-instruction in the interpreter.
--> a "X" means implemented and tested.
--> a "?" means implemented but won't be tested.
--> a "-" means unimplemented (irrelevant).
+instruction in the interpreter:
+   * a "X" means implemented and tested.
+   * a "?" means implemented but won't be tested.
+   * a "-" means unimplemented (irrelevant).
 
 
 +-------+-----+----------------+--------+---------+--------------------------------------+
@@ -25,12 +25,12 @@ instruction in the interpreter.
 +-------+-----+----------------+--------+---------+--------------------------------------+
 |32     |spaXe|Space           |        |         |not normally executed                 |
 |33     |!  X |Logical Not     |b       |NOT b    |                                      |
-|34     |"    |Toggle Stringmod|        |         |stringmode <- NOT stringmode          |
+|34     |"  X |Toggle Stringmod|        |         |stringmode <- NOT stringmode          |
 |35     |#  X |Trampoline      |        |         |pos <- pos + delta                    |
-|36     |$    |Pop             |n       |         |                                      |
+|36     |$  X |Pop             |n       |         |                                      |
 |37     |%  X |Remainder       |a b     |a REM b  |                                      |
 |38     |&  ? |Input Integer   |        |a        |a = readint()                         |
-|39     |'    |Fetch Char/98   |        |c        |pos <- pos + delta                    |
+|39     |'  X |Fetch Char/98   |        |c        |pos <- pos + delta                    |
 |40     |(    |Load/98         |en..e1 n|f 1      |overloads A-Z                         |
 |41     |)    |Unload/98       |en..e1 n|         |unloads last A-Z                      |
 |42     |*  X |Multiply        |a b     |a * b    |                                      |
@@ -49,7 +49,7 @@ instruction in the interpreter.
 |55     |7  X |Push Seven      |        |7        |                                      |
 |56     |8  X |Push Eight      |        |8        |                                      |
 |57     |9  X |Push Niner      |        |9        |                                      |
-|58     |:    |Duplicate       |v       |v v      |                                      |
+|58     |:  X |Duplicate       |v       |v v      |                                      |
 |59     |;  X |Jump Over/98    |        |         |nothing executed until next semicolon |
 |60     |<  X |Go West         |        |         |delta <- (-1,0)                       |
 |61     |=    |Execute/98/f    |STR     |r        |r = system-execute(STR)               |
@@ -58,7 +58,7 @@ instruction in the interpreter.
 |64     |@  X |Stop            |        |         |halt IP                               |
 |65-90  |AZ   |                |        |         |Fingerprint-Defined/98                |
 |91     |[  X |Turn Left/98/2D |        |         |delta <- rot(-90, delta)              |
-|92     |\    |Swap            |a b     |b a      |                                      |
+|92     |\  X |Swap            |a b     |b a      |                                      |
 |93     |]  X |Turn Right/98/2D|        |         |delta <- rot(90, delta)               |
 |94     |^  X |Go North/2D     |        |         |delta <- (0,-1)                       |
 |95     |_  X |East-West If    | b      |         |delta <- if (b) (-1,0) else (1,0)     |
@@ -76,12 +76,12 @@ instruction in the interpreter.
 |107    |k  X |Iterate/98      |n       |         |execute next instruction now, n times |
 |108    |l  - |Go Low/98/3D    |        |         |delta <- (0,0,1)                      |
 |109    |m  - |HighLow If/98/3D|b       |         |delta <- if (b) (0,0,-1) else (0,0,1) |
-|110    |n    |Clear Stack/98  |en..e1  |         |                                      |
+|110    |n  X |Clear Stack/98  |en..e1  |         |                                      |
 |111    |o    |Output File/98/f|VaVbfSTR|         |outputs file                          |
 |112    |p    |Put             |v Va    |         |store-funge-space(offset+Va,v)        |
 |113    |q  X |Quit/98         |r       |         |immediate exit, returncode = r        |
 |114    |r  X |Reflect/98      |        |         |delta <- delta * -1                   |
-|115    |s    |Store Char/98   |c       |         |store-funge-space(position+delta,v)   |
+|115    |s  X |Store Char/98   |c       |         |store-funge-space(position+delta,v)   |
 |116    |t    |Split/98/c      |        |         |Split IP                              |
 |117    |u    |S Under Stack/98|n       |(en..e1) |                                      |
 |118    |v  X |Go South/2D     |        |         |delta <- (0,1)                        |
