@@ -1,4 +1,4 @@
-# $Id: Befunge.pm,v 1.16 2002/04/10 11:09:33 jquelin Exp $
+# $Id: Befunge.pm,v 1.16 2002/04/10 11:09:33 jquelin Exp jquelin $
 #
 # Copyright (c) 2002 Jerome Quelin <jquelin@cpan.org>
 # All rights reserved.
@@ -17,8 +17,16 @@ Language::Befunge - a Befunge-98 interpreter.
 
 =head1 SYNOPSIS
 
-  use Language::Befunge;
-  read_file( "program.bf" );
+    use Language::Befunge;
+    read_file( "program.bf" );
+    run_code;
+
+    Or, one can write directly:
+    store_code( <<'END_OF_CODE' );
+    v @,,,,"foo"a <
+    >             ^
+    END_OF_CODE
+    run_code;
 
 
 =head1 DESCRIPTION
@@ -68,10 +76,9 @@ use Language::Befunge::LaheySpace;
 use base qw(Exporter);
 
 # Public variables of the module.
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 our $HANDPRINT = 'JQBF98'; # the handprint of the interpreter.
-our @EXPORT  = 
-  qw! read_file run_code !;
+our @EXPORT  =  qw! read_file store_code run_code !;
 $| = 1;
 
 # Private variables of the module.
@@ -87,8 +94,7 @@ my $torus = new Language::Befunge::LaheySpace;
 
 Read a file (given as argument) and store its code.
 
-Side effect: clear the previous code, as well as all the Instruction
-Pointers (IP) moving around the code.
+Side effect: clear the previous code.
 
 =cut
 sub read_file {
@@ -102,6 +108,19 @@ sub read_file {
     close BF;
 
     # Store code.
+    store_code( $code );
+}
+
+
+=head2 store_code(  )
+
+Store the given code in the Lahey space.
+
+Side effect: clear the previous code.
+
+=cut
+sub store_code {
+    my $code = shift;
     $torus->clear;
     $torus->store( $code );
 }
