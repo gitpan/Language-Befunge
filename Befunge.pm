@@ -1,4 +1,4 @@
-# $Id: Befunge.pm,v 1.51 2002/04/16 15:12:39 jquelin Exp $
+# $Id: Befunge.pm,v 1.53 2002/04/22 15:14:31 jquelin Exp $
 #
 # Copyright (c) 2002 Jerome Quelin <jquelin@cpan.org>
 # All rights reserved.
@@ -12,7 +12,7 @@ require v5.6;
 
 =head1 NAME
 
-Language::Befunge - a Befunge-98 interpreter.
+Language::Befunge - a Befunge-98 interpreter
 
 
 =head1 SYNOPSIS
@@ -74,7 +74,7 @@ use Language::Befunge::IP;
 use Language::Befunge::LaheySpace;
 
 # Public variables of the module.
-our $VERSION   = '0.35';
+our $VERSION   = '0.36';
 our $HANDPRINT = 'JQBF98'; # the handprint of the interpreter.
 our $AUTOLOAD;
 our $subs;
@@ -584,8 +584,7 @@ sub op_math_addition {
     my $ip = $self->curip;
 
     # Fetching values.
-    my $v2 = $ip->spop;
-    my $v1 = $ip->spop;
+    my ($v1, $v2) = $ip->spop_vec;
     $self->debug( "adding: $v1+$v2\n" );
     my $res = $v1 + $v2;
 
@@ -607,8 +606,7 @@ sub op_math_substraction {
     my $ip = $self->curip;
 
     # Fetching values.
-    my $v2 = $ip->spop;
-    my $v1 = $ip->spop;
+    my ($v1, $v2) = $ip->spop_vec;
     $self->debug( "substracting: $v1-$v2\n" );
     my $res = $v1 - $v2;
 
@@ -630,8 +628,7 @@ sub op_math_multiplication {
     my $ip = $self->curip;
 
     # Fetching values.
-    my $v2 = $ip->spop;
-    my $v1 = $ip->spop;
+    my ($v1, $v2) = $ip->spop_vec;
     $self->debug( "multiplicating: $v1*$v2\n" );
     my $res = $v1 * $v2;
 
@@ -653,8 +650,7 @@ sub op_math_division {
     my $ip = $self->curip;
 
     # Fetching values.
-    my $v2 = $ip->spop;
-    my $v1 = $ip->spop;
+    my ($v1, $v2) = $ip->spop_vec;
     $self->debug( "dividing: $v1/$v2\n" );
     my $res = $v2 == 0 ? 0 : int($v1 / $v2);
 
@@ -674,8 +670,7 @@ sub op_math_remainder {
     my $ip = $self->curip;
 
     # Fetching values.
-    my $v2 = $ip->spop;
-    my $v1 = $ip->spop;
+    my ($v1, $v2) = $ip->spop_vec;
     $self->debug( "remainder: $v1%$v2\n" );
     my $res = $v2 == 0 ? 0 : int($v1 % $v2);
 
@@ -796,8 +791,7 @@ Hmm, the user seems to know where he wants to go. Let's trust him/her.
 sub op_dir_set_delta {
     my $self = shift;
     my $ip = $self->curip;
-    my $new_dy = $ip->spop;
-    my $new_dx = $ip->spop;
+    my ($new_dx, $new_dy) = $ip->spop_vec;
     $self->debug( "setting delta to ($new_dx, $new_dy)\n" );
     $ip->set_delta( $new_dx, $new_dy );
 }
@@ -835,8 +829,7 @@ sub op_decis_gt {
     my $ip = $self->curip;
 
     # Fetching values.
-    my $v2 = $ip->spop;
-    my $v1 = $ip->spop;
+    my ($v1, $v2) = $ip->spop_vec;
     $self->debug( "comparing $v1 vs $v2\n" );
     $ip->spush( ($v1 > $v2) ? 1 : 0 );
 }
@@ -850,11 +843,10 @@ sub op_decis_horiz_if {
     my $self = shift;
     my $ip = $self->curip;
 
-$self->debug("FOO\n");
     # Fetching value.
     my $val = $ip->spop;
     $val ? $ip->dir_go_west : $ip->dir_go_east;
-    $self->debug( "horizontal if: going " . $val ? "west\n" : "east\n" );
+    $self->debug( "horizontal if: going " . ( $val ? "west\n" : "east\n" ) );
 }
 $meths{'_'} = "op_decis_horiz_if";
 
@@ -869,7 +861,7 @@ sub op_decis_vert_if {
     # Fetching value.
     my $val = $ip->spop;
     $val ? $ip->dir_go_north : $ip->dir_go_south;
-    $self->debug( "vertical if: going " . $val ? "north\n" : "south\n" );
+    $self->debug( "vertical if: going " . ( $val ? "north\n" : "south\n" ) );
 }
 $meths{'|'} = "op_decis_vert_if";
 
@@ -882,8 +874,7 @@ sub op_decis_cmp {
     my $ip = $self->curip;
 
     # Fetching value.
-    my $v2 = $ip->spop;
-    my $v1 = $ip->spop;
+    my ($v1, $v2) = $ip->spop_vec;
     $self->debug( "comparing $v1 with $v2: straight forward!\n"), return if $v1 == $v2;
 
     my $dir;
@@ -1066,8 +1057,7 @@ $meths{':'} = "op_stack_duplicate";
 sub op_stack_swap {
     my $self = shift;
     my $ ip = $self->curip;
-    my $v2 = $ip->spop;
-    my $v1 = $ip->spop;
+    my ($v1, $v2) = $ip->spop_vec;
     $self->debug( "swapping $v1 and $v2\n" );
     $ip->spush( $v2 );
     $ip->spush( $v1 );
@@ -1172,8 +1162,9 @@ sub op_store_get {
     my $ip = $self->curip;
 
     # Fetching coordinates.
-    my $y = $ip->spop + $ip->story;
-    my $x = $ip->spop + $ip->storx;
+    my ($x, $y) = $ip->spop_vec;
+    $x += $ip->storx;
+    $y += $ip->story;
 
     # Fetching char.
     my $val = $self->torus->get_value( $x, $y );
@@ -1192,8 +1183,9 @@ sub op_store_put {
     my $ip = $self->curip;
 
     # Fetching coordinates.
-    my $y = $ip->spop + $ip->story;
-    my $x = $ip->spop + $ip->storx;
+    my ($x, $y) = $ip->spop_vec;
+    $x += $ip->storx;
+    $y += $ip->story;
 
     # Fetching char.
     my $val = $ip->spop;
@@ -1287,8 +1279,9 @@ sub op_stdio_in_file {
     # Fetch arguments.
     my $path = $ip->spop_gnirts;
     my $flag = $ip->spop; # unused in this interpreter.
-    my $yin = $ip->spop + $ip->story;
-    my $xin = $ip->spop + $ip->storx;
+    my ($xin, $yin) = $ip->spop_vec;
+    $xin += $ip->storx;
+    $yin += $ip->story;
 
     # Read file.
     $self->debug( "input file '$path' at ($xin,$yin)\n" );
@@ -1317,10 +1310,10 @@ sub op_stdio_out_file {
     # Fetch arguments.
     my $path = $ip->spop_gnirts;
     my $flag = $ip->spop;
-    my $yin = $ip->spop + $ip->story;
-    my $xin = $ip->spop + $ip->storx;
-    my $hei = $ip->spop;
-    my $wid = $ip->spop;
+    my ($xin, $yin) = $ip->spop_vec;
+    $xin += $ip->storx;
+    $yin += $ip->story;
+    my ($hei, $wid) = $ip->spop_vec;
     my $data = $self->torus->rectangle( $xin, $yin, $wid, $hei );
 
     # Cosmetics.

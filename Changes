@@ -1,5 +1,17 @@
 Revision history for Perl extension Language::Befunge.
 
+0.36 Mon Apr 22 20:44:10 CEST 2002
+        - jqbf98 now understands the -v flag (verbose)
+        - New examples tpr00.bf, palyn.bf
+        - IP.pm now has two methods spush_vec and spop_vec. Befunge.pm
+          modified to take advantage of those methods.
+        - IP.pm now has a method spush_args to push (and convert)
+          arguments on the stack.
+        - IP.pm comes with a storage facility to allow library to
+          fetch and store whatever data they want. This is highly
+          experimental and the interface may change in future
+          releases.
+
 0.35 Tue Apr 16 17:20:29 CEST 2002
         - LaheySpace::labels_lookup() now also returns the velocity
           that found the label.

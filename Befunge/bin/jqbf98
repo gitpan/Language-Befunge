@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 #
-# $Id: jqbf98,v 1.2 2002/04/15 07:40:50 jquelin Exp $
+# $Id: jqbf98,v 1.3 2002/04/22 15:38:46 jquelin Exp $
 #
 # Copyright (c) 2002 Jerome Quelin <jquelin@cpan.org>
 # All rights reserved.
@@ -11,6 +11,7 @@
 
 use strict;
 use Language::Befunge;
+use Getopt::Long;
 
 =head1 NAME
 
@@ -19,7 +20,7 @@ jqbf98.pl - a Befunge-98 interpreter.
 
 =head1 SYNOPSIS
 
-    jqbf98 program.bf
+    jqbf98 [-v] program.bf
 
 
 =head1 DESCRIPTION
@@ -29,7 +30,11 @@ Just provide the name of the Befunge script, and there you go!
 
 =cut
 
+my %opts;
+Getopt::Long::Configure('no_auto_abbrev', 'bundling', 'ignore_case', 'no_pass_through');
+GetOptions( \%opts, "verbose|v") or die;
 my $bef = new Language::Befunge( shift );
+$bef->DEBUG( $opts{verbose} );
 exit $bef->run_code( @ARGV );
 
 __END__

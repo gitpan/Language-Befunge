@@ -1,4 +1,4 @@
-# $Id: IP.pm,v 1.14 2002/04/14 14:36:50 jquelin Exp $
+# $Id: IP.pm,v 1.16 2002/04/22 18:11:03 jquelin Exp $
 #
 # Copyright (c) 2002 Jerome Quelin <jquelin@cpan.org>
 # All rights reserved.
@@ -15,12 +15,14 @@ require v5.6;
 Language::Befunge::IP - an Instruction Pointer for a Befunge-97 program.
 
 
-=head1 SYNOPSIS
-
-
-
 =head1 DESCRIPTION
 
+This is the class implementing the Instruction Pointers. An
+Instruction Pointer (aka IP) has a stack, and a stack of stacks that
+can be manipulated via the methods of the class.
+
+We need a class, since this is a concurrent Befunge, so we can have
+more than one IP travelling on the Lahey space.
 
 =cut
 
@@ -38,7 +40,7 @@ our $subs;
 
 BEGIN {
     my @subs = split /\|/, 
-      $subs = 'id|curx|cury|dx|dy|storx|story|string_mode'.
+      $subs = 'id|curx|cury|dx|dy|storx|story|data|string_mode'.
               '|end|toss|ss|input|libs';
     use subs @subs;
 }
@@ -69,6 +71,7 @@ sub new {
         string_mode  => 0,
         end          => 0,
         input        => "",
+        data         => {},
         libs         => [],
       };
     bless $self, $class;
@@ -134,6 +137,10 @@ Get or set the x-coordinate of the storage offset of the IP.
 =head2 story( [y] )
 
 Get or set the y-coordinate of the storage offset of the IP.
+
+=head2 data(  )
+
+Get the library private storage space.
 
 =head2 input( [string] )
 
@@ -229,6 +236,34 @@ sub spush {
     push @{ $self->toss }, @_;
 }
 
+=item spush_vec( x, y )
+
+Push a vector on top of the stack. The x coordinate is pushed first.
+
+=cut
+*Language::Befunge::IP::spush_vec = \&Language::Befunge::IP::spush;
+
+=item spush_args ( arg, ... )
+
+Push a list of argument on top of the stack (the first argument will
+be the deeper one). Convert each argument: a number is pushed as is,
+whereas a string is pushed as a 0gnirts.
+
+B</!\> Do B<not> push references or weird arguments: this method
+supports only numbers (positive and negative) and strings.
+
+=cut
+sub spush_args {
+    my $self = shift;
+    foreach my $arg ( @_ ) {
+        $self->spush
+          ( ($arg =~ /^-?\d+$/) ?
+              $arg                                    # A number.
+            : reverse map {ord} split //, $arg.chr(0) # A string.
+          );
+    }
+}
+
 =item spop(  )
 
 Pop a value from the stack. If the stack is empty, no error occurs and
@@ -240,6 +275,18 @@ sub spop {
     my $val = pop @{ $self->toss };
     defined $val or $val = 0;
     return $val;
+}
+
+=item spop_vec(  )
+
+Pop a vector from the stack. Return the tuple -- hi, python fans! --
+(x, y).
+
+=cut
+sub spop_vec {
+    my $self = shift;
+    my ($y, $x) = ($self->spop(), $self->spop());
+    return $x, $y;
 }
 
 =item spop_gnirts(  )
@@ -641,6 +688,21 @@ sub unload {
     $offset == -1 and return undef;
     splice @{ $self->libs }, $offset, 1;
     return $lib;
+}
+
+=item extdata( library, [value] )
+
+Store or fetch a value in a private space. This private space is
+reserved for libraries that need to store internal values.
+
+Since in Perl references are plain scalars, one can store a reference
+to an array or even a hash.
+
+=cut
+sub extdata {
+    my $self = shift;
+    my $lib  = shift;
+    @_ ? $self->data->{$lib} = shift : $self->data->{$lib};
 }
 
 =back

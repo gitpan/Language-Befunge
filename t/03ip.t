@@ -1,5 +1,5 @@
 #-*- cperl -*-
-# $Id: 03ip.t,v 1.11 2002/04/14 12:03:29 jquelin Exp $
+# $Id: 03ip.t,v 1.13 2002/04/22 18:10:51 jquelin Exp $
 #
 
 #----------------------------------#
@@ -63,9 +63,24 @@ ok( $ip->svalue(-1), 83 );
 ok( $ip->scount, 11 );
 ok( $ip->spop_gnirts, "String" );
 ok( $ip->scount, 4 );
+$ip->spush_vec( 4, 5);
+ok( $ip->scount, 6);
+ok( $ip->spop, 5 );
+ok( $ip->spop, 4 );
+my ($x, $y) = $ip->spop_vec;
+ok( $x, 78 );
+ok( $y, 14 );
+$ip->spush_args( "foo", 7, "bar" );
+ok( $ip->scount, 11 );
+ok( $ip->spop, 98 );
+ok( $ip->spop, 97 );
+ok( $ip->spop, 114 );
+ok( $ip->spop, 0 );
+ok( $ip->spop, 7 );
+ok( $ip->spop_gnirts, "foo" );
 $ip->sclear;
 ok( $ip->scount, 0 );
-BEGIN { $tests += 10 };
+BEGIN { $tests += 22 };
 
 # Test stack stack.
 # The following table gives the line number where the

@@ -1,5 +1,5 @@
 # This -*- perl -*- script writes the Makefile for Language::Befunge
-# $Id: Makefile.PL,v 1.4 2002/04/13 11:14:27 jquelin Exp $
+# $Id: Makefile.PL,v 1.5 2002/04/16 16:20:41 jquelin Exp $
 
 #------------------------------------------#
 #          Configuration section.          #
@@ -36,12 +36,11 @@ die "Usage: $0 [-n]\n" unless ( getopts("n") );
 if (@programs_to_install) {
     print <<EOT;
 
-This package comes with a Befunge interpreter that I can try to
-install in $Config{sitebin}.
-
    Note that you can avoid these questions by passing
    the '-n' option to 'Makefile.PL'.
 
+This package comes with a Befunge interpreter that I can try to
+install in $Config{sitebin}.
 EOT
 
     my @tmp;
@@ -57,7 +56,7 @@ EOT
 $| = 1;
 my $missing_modules = 0;
 
-print "\nChecking for Storable...";
+print "Checking for Storable...";
 eval {
     require Storable;
     Storable->VERSION(0);
