@@ -1,4 +1,4 @@
-# $Id: Befunge.pm,v 1.38 2002/04/12 16:48:18 jquelin Exp $
+# $Id: Befunge.pm,v 1.42 2002/04/13 11:10:10 jquelin Exp $
 #
 # Copyright (c) 2002 Jerome Quelin <jquelin@cpan.org>
 # All rights reserved.
@@ -76,7 +76,7 @@ use Language::Befunge::LaheySpace;
 use base qw(Exporter);
 
 # Public variables of the module.
-our $VERSION   = '0.12';
+our $VERSION   = '0.20';
 our $HANDPRINT = 'JQBF98'; # the handprint of the interpreter.
 our @EXPORT    =  qw! read_file store_code run_code !;
 $| = 1;
@@ -797,11 +797,90 @@ sub run_code {
                     };
             
 
-                    # -= Capital letters =-
+                    # -= Library semantics =-
+                    # Loading new library.
+                    $char eq '(' and do {
+                        # Fetching fingerprint.
+                        my $count = $ip->spop;
+                        my $fgrprt = 0;
+                        while ( $count-- > 0 ) {
+                            my $val = $ip->spop;
+                            croak "$file ($x,$y) - Attempt to build a fingerprint with a negative number"
+                              if $val < 0;
+                            $fgrprt = $fgrprt * 256 + $val;
+                        }
+
+                        # Transform the fingerprint into a library name.
+                        my $lib = "";
+                        my $finger = $fgrprt;
+                        while ( $finger > 0 ) {
+                            my $c = $finger % 0x100;
+                            $lib .= chr($c);
+                            $finger = int ( $finger / 0x100 );
+                        }
+                        $lib = __PACKAGE__ . "::lib::" . reverse $lib;
+
+
+                        # Checking if library exists.
+                        debug "-> Loading library $lib\n";
+                        eval "require $lib";
+                        if ( $@ ) {
+                            debug sprintf( "-> Unknown extension 0x%x: reversing\n", $fgrprt );
+                            $ip->dir_reverse;
+                        } else {
+                            debug sprintf( "-> Extension %x loaded\n", $fgrprt );
+                            $ip->load( $lib );
+                            $ip->spush( $fgrprt, 1 );
+                        }
+                        last switch;
+                    };
+
+                    # Unloading library.
+                    $char eq ')' and do {
+                        # Fetching fingerprint.
+                        my $count = $ip->spop;
+                        my $fgrprt = 0;
+                        while ( $count-- > 0 ) {
+                            my $val = $ip->spop;
+                            croak "$file ($x,$y) - Attempt to build a fingerprint with a negative number"
+                              if $val < 0;
+                            $fgrprt = $fgrprt * 256 + $val;
+                        }
+
+                        # Transform the fingerprint into a library name.
+                        my $lib = "";
+                        my $finger = $fgrprt;
+                        while ( $finger > 0 ) {
+                            my $c = $finger % 0x100;
+                            $lib .= chr($c);
+                            $finger = int ( $finger / 0x100 );
+                        }
+                        $lib = __PACKAGE__ . "::lib::" . reverse $lib;
+
+                        # Unload the library.
+                        debug "-> Unloading library $lib.\n";
+                        unless ( defined( $ip->unload($lib) ) ) {
+                            # The library wasn't loaded.
+                            $ip->dir_reverse;
+                        }
+                        last switch;
+                    };
+
+                    # Specific semantics.
                     $char =~ /[A-Z]/ and do {
-                        # Non-overloaded capitals default to
-                        # reverse.
-                        $ip->dir_reverse;
+                        debug "-> Library semantics.\n";
+
+                        my $found = 0;
+                        foreach my $lib ( @{ $ip->libs } ) {
+                            eval { 
+                                no strict 'refs';
+                                &{$lib."::".$char}($ip, $torus);
+                            };
+                            $found++, last unless $@;
+                        }
+
+                        # Non-overloaded capitals default to reverse.
+                        $ip->dir_reverse unless $found;
                         last switch;
                     };
 
@@ -847,15 +926,6 @@ __END__
 
 =item o
 
-Implement the libraries mechanism: "(" and ")" respectively.
-
-=item o
-
-Implement a standard/simple mechanism in order to allow user to write
-their own extensions (aka fingerprints)
-
-=item o
-
 Maybe rewrite the core loop in order to take benefits of the
 hash mechanism instead of a giant switch tester.
 
@@ -892,6 +962,19 @@ About the 19th cell pushed by the C<y> instruction: what this
 interpreter pushes on the stack may not be accurate, since this is a
 module and the main perl application may have already processed the
 command line.
+
+=item o
+
+About the load semantics. Once a library is loaded, the interpreter is
+to put onto the TOSS the fingerprint of the just-loaded library. But
+nothing is said if the fingerprint is bigger than the maximum cell
+width (here, 4 bytes). This means that libraries can't have a name
+bigger than C<0x80000000>, ie, more than four letters with the first
+one smaller than C<P> (C<chr(80)>).
+
+Since perl is not so rigid, one can build libraries with more than
+four letters, but perl will issue a warning about non-portability of
+numbers greater than C<0xffffffff>.
 
 =back
 

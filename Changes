@@ -1,5 +1,16 @@
 Revision history for Perl extension Language::Befunge.
 
+0.20 Sat Apr 13 13:08:17 CEST 2002
+        - Befunge.pm modified to understand libraries semantics:
+          parens (to load/unload) and capital letters.
+        - IP modified in order to accept the libraries semantics.
+        - New directory lib/ where to put libraries.
+        - New libraries FOO and HELO
+        - New test 22lib -> test libraries semantics.
+        - Pod completed in Befunge.pm
+        - Tutorial (doc/library.pod) on how to build new extensions.
+        - all instructions implemented in instr.txt
+
 0.12 Fri Apr 12 18:51:04 CEST 2002
         - Shipped with some examples.
         - Shipped with the Funge-98 specs.

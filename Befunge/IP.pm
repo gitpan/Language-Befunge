@@ -1,4 +1,4 @@
-# $Id: IP.pm,v 1.11 2002/04/11 15:23:40 jquelin Exp $
+# $Id: IP.pm,v 1.12 2002/04/13 11:09:19 jquelin Exp $
 #
 # Copyright (c) 2002 Jerome Quelin <jquelin@cpan.org>
 # All rights reserved.
@@ -38,7 +38,8 @@ our $subs;
 
 BEGIN {
     my @subs = split /\|/, 
-      $subs = 'id|curx|cury|dx|dy|storx|story|string_mode|space_pushed|toss|ss|input';
+      $subs = 'id|curx|cury|dx|dy|storx|story|string_mode|space_pushed'.
+              '|toss|ss|input|libs';
     use subs @subs;
 }
 
@@ -68,6 +69,7 @@ sub new {
         string_mode  => 0,
         space_pushed => 0,
         input        => "",
+        libs         => [],
       };
     bless $self, $class;
     $self->id( $self->get_new_id );
@@ -145,6 +147,10 @@ Get or set the string_mode of the IP.
 
 Get or set wether a space has been pushed on the stack when
 encountering a serie of spaces in string-mode.
+
+=head2 libs(  )
+
+Access the current stack of loaded libraries.
 
 =head2 ss(  )
 
@@ -597,6 +603,48 @@ sub dir_reverse {
     $self->set_delta( 0 + $self->dx * -1, 0 + $self->dy * -1 );
 }
 
+=back
+
+=head2 Libraries semantics
+
+=over 4
+
+=item load( lib )
+
+Load the given library semantics.
+
+=cut
+sub load {
+    my ($self, $lib) = @_;
+    unshift @{ $self->libs }, $lib;
+}
+
+=item unload( lib )
+
+Unload the given library semantics.
+
+Return the library name if it was correctly unloaded, undef otherwise.
+
+B</!\> If the library has been loaded twice, this method will only
+unload the most recent library. Ie, if an IP has loaded the libraries
+( C<FOO>, C<BAR>, C<FOO>, C<BAZ> ) and one calls C<unload( "FOO" )>,
+then the IP will follow the semantics of C<BAZ>, then C<BAR>, then
+<FOO> (!).
+
+=cut
+sub unload {
+    my ($self, $lib) = @_;
+    
+    my $offset = -1;
+    foreach my $i ( 0..$#{$self->libs} ) {
+        $offset = $i, last if $self->libs->[$i] eq $lib;
+    }
+    $offset == -1 and return undef;
+    splice @{ $self->libs }, $offset, 1;
+    return $lib;
+}
+
+=back
 
 =head1 PRIVATE METHODS
 
@@ -613,8 +661,6 @@ sub get_new_id {
 1;
 __END__
 
-
-=back
 
 =head1 AUTHOR
 

@@ -31,8 +31,8 @@ instruction in the interpreter:
 |37     |%  X |Remainder       |a b     |a REM b  |                                      |
 |38     |&  ? |Input Integer   |        |a        |a = readint()                         |
 |39     |'  X |Fetch Char/98   |        |c        |pos <- pos + delta                    |
-|40     |(    |Load/98         |en..e1 n|f 1      |overloads A-Z                         |
-|41     |)    |Unload/98       |en..e1 n|         |unloads last A-Z                      |
+|40     |(  X |Load/98         |en..e1 n|f 1      |overloads A-Z                         |
+|41     |)  X |Unload/98       |en..e1 n|         |unloads last A-Z                      |
 |42     |*  X |Multiply        |a b     |a * b    |                                      |
 |43     |+  X |Add             |a b     |a + b    |                                      |
 |44     |,  X |Output Char     |c       |         |writechar(c)                          |
@@ -56,7 +56,7 @@ instruction in the interpreter:
 |62     |>  X |Go East         |        |         |delta <- (1,0)                        |
 |63     |?  X |Go Away         |        |         |delta <- (1,0)?(-1,0)?(0,1)?(0,-1)    |
 |64     |@  X |Stop            |        |         |halt IP                               |
-|65-90  |AZ   |                |        |         |Fingerprint-Defined/98                |
+|65-90  |AZ X |                |        |         |Fingerprint-Defined/98                |
 |91     |[  X |Turn Left/98/2D |        |         |delta <- rot(-90, delta)              |
 |92     |\  X |Swap            |a b     |b a      |                                      |
 |93     |]  X |Turn Right/98/2D|        |         |delta <- rot(90, delta)               |
