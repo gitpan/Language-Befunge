@@ -1,5 +1,5 @@
 #-*- cperl -*-
-# $Id: 10stdio.t,v 1.7 2002/04/14 12:16:48 jquelin Exp $
+# $Id: 10stdio.t,v 1.2 2004/10/25 18:06:53 jquelin Exp $
 #
 
 #----------------------------------#
@@ -88,6 +88,19 @@ $out = slurp;
 ok( $out, "6 3 2 35 hello world!\n" );
 BEGIN { $tests += 2 };
 
+# binary file input
+sel;
+$bef->store_code( <<'END_OF_CODE' );
+v qiv# "t/hello.bf"0        <
+>     ;vector; 6 9 ;flag; 1 ^
+    <q ,,,,,,,,,"IO Error"a
+END_OF_CODE
+$bef->run_code;
+$out = slurp;
+ok( $bef->torus->rectangle(6, 9, 71, 1),
+    qq{v q  ,,,,,,,,,,,,,"hello world!"a <\n>                                 ^} . "\n" );
+ok( $out, "" );
+BEGIN { $tests += 2 };
 
 # File output.
 sel; # unknown file.

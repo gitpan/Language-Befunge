@@ -1,4 +1,4 @@
-# $Id: IP.pm,v 1.17 2002/04/24 06:47:26 jquelin Exp $
+# $Id: IP.pm,v 1.2 2003/02/22 10:31:35 jquelin Exp $
 #
 # Copyright (c) 2002 Jerome Quelin <jquelin@cpan.org>
 # All rights reserved.
@@ -8,7 +8,7 @@
 #
 
 package Language::Befunge::IP;
-require v5.6;
+require 5.006;
 
 =head1 NAME
 

@@ -1,6 +1,6 @@
-# $Id: LaheySpace.pm,v 1.10 2002/04/16 15:18:48 jquelin Exp $
+# $Id: LaheySpace.pm,v 1.5 2004/10/25 18:06:53 jquelin Exp $
 #
-# Copyright (c) 2002 Jerome Quelin <jquelin@cpan.org>
+# Copyright (c) 2002-2003 Jerome Quelin <jquelin@cpan.org>
 # All rights reserved.
 #
 # This program is free software; you can redistribute it and/or
@@ -8,7 +8,7 @@
 #
 
 package Language::Befunge::LaheySpace;
-require v5.6;
+require 5.006;
 
 =head1 NAME
 
@@ -24,24 +24,12 @@ Language::Befunge::LaheySpace - a LaheySpace representation.
 
 =cut
 
-# A little anal retention ;-)
+
+# Modules we rely upon.
 use strict;
 use warnings;
-
-# Modules we relied upon.
 use Carp;     # This module can't explode :o)
 
-# Variables of the module.
-our $AUTOLOAD;
-our $subs;
-
-BEGIN {
-    my @subs = split /\|/, 
-      $subs = 'xmin|xmax|ymin|ymax';
-    use subs @subs;
-}
-
-# Private variables of the module.
 
 
 =head1 CONSTRUCTOR
@@ -56,8 +44,8 @@ sub new {
     my $class = ref($proto) || $proto;
     my $self  = 
       { xmin   => 0, # the upper-left x-coordinate
-        xmax   => 0, # the bottom-right x-coordinate
         ymin   => 0, # the upper-left y-coordinate
+        xmax   => 0, # the bottom-right x-coordinate
         ymax   => 0, # the bottom-right y-coordinate
         torus  => [],
       };
@@ -65,56 +53,7 @@ sub new {
     return $self;
 }
 
-=head1 ACCESSORS
 
-Those accessors are private, and are not meant to be used from outside
-this module (the torus won't enlarge if used directly). You've been
-warned.
-
-=pod
-
-All the following accessors are autoloaded.
-
-=head2 xmin( [x] )
-
-Get or set the current minimum x-coordinate of the torus.
-
-=head2 xmax( [x] )
-
-Get or set the current minimum x-coordinate of the torus.
-
-=head2 ymin( [y] )
-
-Get or set the current minimum y-coordinate of the torus.
-
-=head2 ymax( [y] )
-
-Get or set the current minimum y-coordinate of the torus.
-
-=cut
-sub AUTOLOAD {
-    # We don't DESTROY.
-    return if $AUTOLOAD =~ /::DESTROY/;
-
-    # Fetch the attribute name
-    $AUTOLOAD =~ /.*::(\w+)/;
-    my $attr = $1;
-    # Must be one of the registered subs (compile once)
-    if( $attr =~ /$subs/o ) {
-        no strict 'refs';
-
-        # Create the method (but don't pollute other namespaces)
-        *{$AUTOLOAD} = sub {
-            my $self = shift;
-            @_ ? $self->{$attr} = shift : $self->{$attr};
-        };
-
-        # Now do it
-        goto &{$AUTOLOAD};
-    }
-    # Should we really die here?
-    croak "Undefined method $AUTOLOAD";
-}
 
 
 =head1 PUBLIC METHODS
@@ -126,10 +65,10 @@ Clear the torus.
 =cut
 sub clear {
     my $self = shift;
-    $self->xmin(0);
-    $self->ymin(0);
-    $self->xmax(0);
-    $self->ymax(0);
+    $self->{xmin} = 0;
+    $self->{ymin} = 0;
+    $self->{xmax} = 0;
+    $self->{ymax} = 0;
     $self->{torus} = [];
 }
 
@@ -139,7 +78,7 @@ sub clear {
 Store the given code at the specified coordinates. If the coordinates
 are omitted, then the code is stored at the Origin(0, 0) coordinates.
 
-Return the widht and height of the code inserted.
+Return the width and height of the code inserted.
 
 =cut
 sub store {
@@ -154,13 +93,13 @@ sub store {
     my @lines = split $/, $code;
 
     # Fetch min/max values.
-    my $maxy = $#lines + $y - $self->ymin;
+    my $maxy = $#lines + $y - $self->{ymin};
     my $maxlen = 0;
     foreach my $i ( 0..$#lines ) {
         my $len = length $lines[$i];
         $maxlen < $len and $maxlen = $len;
     }
-    my $maxx = $maxlen + $x - 1 + $self->xmin;
+    my $maxx = $maxlen + $x - 1 + $self->{xmin};
 
     # Enlarge torus.
     $self->set_min( $x, $y );
@@ -171,12 +110,48 @@ sub store {
         $lines[$j] .= " " x $maxlen;
         $lines[$j] = substr $lines[$j], 0, $maxlen;
         my @chars = map { ord } split //, $lines[$j];
-        splice @{ $self->{torus}[ $j + $y - $self->ymin ] }, $x - $self->xmin, $maxlen, @chars;
+        splice @{ $self->{torus}[ $j + $y - $self->{ymin} ] }, $x - $self->{xmin}, $maxlen, @chars;
     }
 
     return ($maxlen, scalar( @lines ) );
 }
 
+=head2 store_binary( code, [x, y] )
+
+Store the given code at the specified coordinates. If the coordinates
+are omitted, then the code is stored at the Origin(0, 0) coordinates.
+
+Return the width and height of the code inserted.
+
+This is binary insertion, that is, EOL and FF sequences are stored in
+Funge-space instead of causing the dimension counters to be reset and
+incremented.
+
+=cut
+sub store_binary {
+    my ($self, $code, $x, $y) = @_;
+    $x ||= 0;
+    $y ||= 0;
+
+    # The torus is an array of arrays of numbers.
+    # Each number is the ordinal value of the character
+    # held in this cell.
+
+    # Fetch min/max values.
+    my $maxy = $y - $self->{ymin};
+    my $maxlen = length $code;
+    my $maxx = $maxlen + $x - 1 + $self->{xmin};
+
+    # Enlarge torus.
+    $self->set_min( $x, $y );
+    $self->set_max( $maxx, $maxy );
+
+    # Store code.
+    my @chars = map { ord } split //, $code;
+    splice @{ $self->{torus}[ $y - $self->{ymin} ] }, $x - $self->{xmin}, $maxlen, @chars;
+
+    return ($maxlen, 1 );
+}
 
 =head2 get_value( x, y )
 
@@ -194,12 +169,12 @@ sub get_value {
     my ($self, $x, $y) = @_;
     my $val = 32;               # Default to space.
 
-    if ( $y >= $self->ymin and $y <= $self->ymax ) {
+    if ( $y >= $self->{ymin} and $y <= $self->{ymax} ) {
         # The line is one of the current mapped lines.
-        my $line = $self->{torus}[ $y - $self->ymin];
-        if ( defined $line and $x >= $self->xmin and $x <= scalar( @$line ) ) {
+        my $line = $self->{torus}[ $y - $self->{ymin}];
+        if ( defined $line and $x >= $self->{xmin} and $x <= scalar( @$line ) ) {
             # The column may be mapped on this line.
-            $val = $line->[ $x - $self->xmin];
+            $val = $line->[ $x - $self->{xmin}];
             defined $val or $val = 32;
         }
     }
@@ -223,7 +198,7 @@ sub set_value {
     # Ensure we can set the value.
     $self->set_min( $x, $y );
     $self->set_max( $x, $y );
-    $self->{torus}[$y-$self->ymin][$x-$self->xmin] = $val;
+    $self->{torus}[$y-$self->{ymin}][$x-$self->{xmin}] = $val;
 }
 
 =head2 move_ip_forward( ip )
@@ -248,10 +223,10 @@ sub move_ip_forward {
     # Lahey-space wrapping. That is, the play field is limited to
     # real code, and we do _not_ perform wrapping on all the
     # addressable space.
-    $x = $self->xmin + ($x - $self->xmax) - 1 if $x > $self->xmax;
-    $x = $self->xmax - ($x - $self->xmin) - 1 if $x < $self->xmin;
-    $y = $self->ymin + ($y - $self->ymax) - 1 if $y > $self->ymax;
-    $y = $self->ymax - ($y - $self->ymin) - 1 if $y < $self->ymin;
+    $x = $self->{xmin} + ($x - $self->{xmax}) - 1 if $x > $self->{xmax};
+    $x = $self->{xmax} - ($x - $self->{xmin}) - 1 if $x < $self->{xmin};
+    $y = $self->{ymin} + ($y - $self->{ymax}) - 1 if $y > $self->{ymax};
+    $y = $self->{ymax} - ($y - $self->{ymin}) - 1 if $y < $self->{ymin};
 
     # Store new position.
     $ip->set_pos( $x, $y );
@@ -272,10 +247,10 @@ sub rectangle {
 
     # Fetch the data.
     my $data = "";
-    foreach my $i ( $y-$self->ymin .. $y-$self->ymin+$h-1 ) {
+    foreach my $i ( $y-$self->{ymin} .. $y-$self->{ymin}+$h-1 ) {
         $data .= join "", 
           map { chr } 
-            ( @{ $self->{torus}[$i] } )[ $x-$self->xmin .. $x-$self->xmin+$w-1 ];
+            ( @{ $self->{torus}[$i] } )[ $x-$self->{xmin} .. $x-$self->{xmin}+$w-1 ];
         $data .= "\n";
     }
 
@@ -312,7 +287,7 @@ sub labels_lookup {
                 # How exciting, we found a label!
                 exists $labels->{$lab} 
                   and croak "Help! I found two labels '$lab' in the funge space";
-                $labels->{$lab} = [$labx+$self->xmin, $laby+$self->ymin, @$vec];
+                $labels->{$lab} = [$labx+$self->{xmin}, $laby+$self->{ymin}, @$vec];
             }
         }
     }
@@ -333,8 +308,8 @@ sub set_min {
     my ($self, $x, $y) = @_;
 
     # Check if we need to enlarge the torus.
-    $self->enlarge_y( $y - $self->ymin ) if $y < $self->ymin;
-    $self->enlarge_x( $x - $self->xmin ) if $x < $self->xmin;
+    $self->enlarge_y( $y - $self->{ymin} ) if $y < $self->{ymin};
+    $self->enlarge_x( $x - $self->{xmin} ) if $x < $self->{xmin};
 }
 
 
@@ -348,8 +323,8 @@ sub set_max {
     my ($self, $x, $y) = @_;
 
     # Check if we need to enlarge the torus.
-    $self->enlarge_y( $y - $self->ymax ) if $y > $self->ymax;
-    $self->enlarge_x( $x - $self->xmax ) if $x > $self->xmax;
+    $self->enlarge_y( $y - $self->{ymax} ) if $y > $self->{ymax};
+    $self->enlarge_x( $x - $self->{xmax} ) if $x > $self->{xmax};
 }
 
 
@@ -367,11 +342,11 @@ sub enlarge_x {
         # Insert columns _before_ the Lahey space.
         $delta = -$delta;
         map { splice @$_, 0, 0, (32) x $delta } @{ $self->{torus} };
-        $self->xmin( $self->xmin - $delta );
+        $self->{xmin} -= $delta;
     } else {
         # Insert columns _after_ the Lahey space.
         map { splice @$_, scalar(@$_), 0, (32) x $delta } @{ $self->{torus} };
-        $self->xmax( $self->xmax + $delta );
+        $self->{xmax} += $delta;
     }
 }
 
@@ -388,21 +363,23 @@ sub enlarge_y {
 
     if ( scalar @{ $self->{torus} } == 0 ) {
         $self->{torus} = [ map { [] } 0..abs($delta) ];
-        $delta > 0 ?
-          $self->ymax( $self->ymax + $delta )
-          : $self->ymin( $self->ymin + $delta );
+        if ( $delta > 0 ) {
+          $self->{ymax} += $delta;
+        } else {
+          $self->{ymin} += $delta;
+        }
         return;
     }
 
     if ( $delta < 0 ) {
         # Insert rows _before_ the Lahey space.
         $delta = -$delta;
-        unshift @{ $self->{torus} }, [ (32) x ($self->xmax - $self->xmin + 1) ] for 1..$delta;
-        $self->ymin( $self->ymin - $delta );
+        unshift @{ $self->{torus} }, [ (32) x ($self->{xmax} - $self->{xmin} + 1) ] for 1..$delta;
+        $self->{ymin} -= $delta;
     } else {
         # Insert rows _after_ the Lahey space.
-        push @{ $self->{torus} }, [ (32) x ($self->xmax - $self->xmin + 1 ) ] for 1..$delta;
-        $self->ymax( $self->ymax + $delta );
+        push @{ $self->{torus} }, [ (32) x ($self->{xmax} - $self->{xmin} + 1 ) ] for 1..$delta;
+        $self->{ymax} += $delta;
     }
 }
 
@@ -422,10 +399,10 @@ sub labels_try {
     do {
         # Calculate the next cell coordinates.
         $x += $dx; $y += $dy;
-        $x = 0 if $x > ($self->xmax - $self->xmin);
-        $y = 0 if $y > ($self->ymax - $self->ymin);
-        $x = ($self->xmax - $self->xmin) if $x < 0;
-        $y = ($self->ymax - $self->ymin) if $y < 0;
+        $x = 0 if $x > ($self->{xmax} - $self->{xmin});
+        $y = 0 if $y > ($self->{ymax} - $self->{ymin});
+        $x = ($self->{xmax} - $self->{xmin}) if $x < 0;
+        $y = ($self->{ymax} - $self->{ymin}) if $y < 0;
         $comment .= chr( $self->{torus}[$y][$x] );
     } while ( $comment !~ /;.$/ );
 

@@ -16,6 +16,7 @@ Befunge/lib/HELO.pm
 Changes
 MANIFEST
 Makefile.PL
+META.yml
 README
 t/01basic.t
 t/02befunge.t

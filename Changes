@@ -1,5 +1,11 @@
 Revision history for Perl extension Language::Befunge.
 
+1.00 Thu Oct 28 19:13:59 CEST 2004
+        - i instruction support binary flag (courtesy of Philippe Bruhat)
+        - mailing-list available: language-befunge@mongueurs.net
+        - stable for now 2 years, -98 fully implemented: sane basis for
+          further work on the module
+
 0.38 Fri May  3 14:47:09 CEST 2002
         - Removed a (silly) debug message.
         - Fool-proof for ascii input.

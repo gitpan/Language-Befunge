@@ -1,5 +1,5 @@
 #-*- cperl -*-
-# $Id: 04lahey.t,v 1.8 2002/04/16 15:19:09 jquelin Exp $
+# $Id: 04lahey.t,v 1.2 2003/09/25 14:39:03 jquelin Exp $
 #
 
 #------------------------------------------#
@@ -22,73 +22,62 @@ ok( ref($ls), "Language::Befunge::LaheySpace");
 BEGIN { $tests += 1 };
 
 
-# Test accessors.
-$ls->xmin( -1 );
-$ls->ymin( -2 );
-ok( $ls->xmin, -1 );
-ok( $ls->ymin, -2 );
-$ls->xmax( 10 );
-$ls->ymax( 20 );
-ok( $ls->xmax, 10 );
-ok( $ls->ymax, 20 );
-BEGIN { $tests += 4; }
-
 # Clear method.
 $ls->clear;
-ok( $ls->xmin, 0 );
-ok( $ls->ymin, 0 );
-ok( $ls->xmax, 0 );
-ok( $ls->ymax, 0 );
+ok( $ls->{xmin}, 0 );
+ok( $ls->{ymin}, 0 );
+ok( $ls->{xmax}, 0 );
+ok( $ls->{ymax}, 0 );
 BEGIN { $tests += 4; }
 
 # set_min/set_max methods.
 $ls->clear;
 $ls->set_min( -2, -3 );
-ok( $ls->xmin, -2 );
-ok( $ls->ymin, -3 );
+ok( $ls->{xmin}, -2 );
+ok( $ls->{ymin}, -3 );
 $ls->set_min( -1, -1 ); # Can't shrink.
-ok( $ls->xmin, -2 );
-ok( $ls->ymin, -3 );
+ok( $ls->{xmin}, -2 );
+ok( $ls->{ymin}, -3 );
 $ls->set_max( 4, 5 );
-ok( $ls->xmax, 4 );
-ok( $ls->ymax, 5 );
+ok( $ls->{xmax}, 4 );
+ok( $ls->{ymax}, 5 );
 $ls->set_min( 2, 3 ); # Can't shrink.
-ok( $ls->xmax, 4 );
-ok( $ls->ymax, 5 );
+ok( $ls->{xmax}, 4 );
+ok( $ls->{ymax}, 5 );
 BEGIN{ $tests += 8; }
 
 
 # Enlarge torus.
 $ls->clear;
 $ls->enlarge_y( 3 );
-ok( $ls->xmin, 0 );
-ok( $ls->ymin, 0 );
-ok( $ls->xmax, 0 );
-ok( $ls->ymax, 3 );
+ok( $ls->{xmin}, 0 );
+ok( $ls->{ymin}, 0 );
+ok( $ls->{xmax}, 0 );
+ok( $ls->{ymax}, 3 );
 $ls->enlarge_x( 2 );
-ok( $ls->xmin, 0 );
-ok( $ls->ymin, 0 );
-ok( $ls->xmax, 2 );
-ok( $ls->ymax, 3 );
+ok( $ls->{xmin}, 0 );
+ok( $ls->{ymin}, 0 );
+ok( $ls->{xmax}, 2 );
+ok( $ls->{ymax}, 3 );
 $ls->enlarge_y( -5 );
-ok( $ls->xmin, 0 );
-ok( $ls->ymin, -5 );
-ok( $ls->xmax, 2 );
-ok( $ls->ymax, 3 );
+ok( $ls->{xmin}, 0 );
+ok( $ls->{ymin}, -5 );
+ok( $ls->{xmax}, 2 );
+ok( $ls->{ymax}, 3 );
 $ls->enlarge_x( -4 );
-ok( $ls->xmin, -4 );
-ok( $ls->ymin, -5 );
-ok( $ls->xmax, 2 );
-ok( $ls->ymax, 3 );
+ok( $ls->{xmin}, -4 );
+ok( $ls->{ymin}, -5 );
+ok( $ls->{xmax}, 2 );
+ok( $ls->{ymax}, 3 );
 BEGIN { $tests += 16; }
 
 # Get/Set value.
 $ls->clear;
 $ls->set_value( 10, 5, 65 );
-ok( $ls->xmin, 0 );
-ok( $ls->ymin, 0 );
-ok( $ls->xmax, 10 );
-ok( $ls->ymax, 5 );
+ok( $ls->{xmin}, 0 );
+ok( $ls->{ymin}, 0 );
+ok( $ls->{xmax}, 10 );
+ok( $ls->{ymax}, 5 );
 ok( $ls->get_value( 10, 5 ), 65 );
 ok( $ls->get_value( 1, 1),   32 ); # default to space.
 ok( $ls->get_value( 20, 20), 32 ); # out of bounds.
@@ -108,10 +97,10 @@ EOF
 #  2
 #  3
 #  4
-ok( $ls->xmin, 0 );
-ok( $ls->ymin, 0 );
-ok( $ls->xmax, 16 );
-ok( $ls->ymax, 1 );
+ok( $ls->{xmin}, 0 );
+ok( $ls->{ymin}, 0 );
+ok( $ls->{xmax}, 16 );
+ok( $ls->{ymax}, 1 );
 ok( $ls->get_value( 0, 0),  70 );
 ok( $ls->get_value( 12, 0), 32 ); # default to space.
 ok( $ls->get_value( 1, 5),  32 ); # out of bounds.
@@ -128,10 +117,10 @@ EOF
 #  2         camel llama buffy
 #  3
 #  4
-ok( $ls->xmin, 0 );
-ok( $ls->ymin, 0 );
-ok( $ls->xmax, 20 );
-ok( $ls->ymax, 2 );
+ok( $ls->{xmin}, 0 );
+ok( $ls->{ymin}, 0 );
+ok( $ls->{xmax}, 20 );
+ok( $ls->{ymax}, 2 );
 ok( $ls->get_value( 0, 0),  70  ); # old values.
 ok( $ls->get_value( 4, 1),  70  ); # overwritten.
 ok( $ls->get_value( 20, 2), 121 ); # last value.
@@ -150,10 +139,10 @@ EOF
 #  4
 ok( $w, 17 );
 ok( $h, 2 );
-ok( $ls->xmin, -2 );
-ok( $ls->ymin, -1 );
-ok( $ls->xmax, 20 );
-ok( $ls->ymax, 2 );
+ok( $ls->{xmin}, -2 );
+ok( $ls->{ymin}, -1 );
+ok( $ls->{xmax}, 20 );
+ok( $ls->{ymax}, 2 );
 ok( $ls->get_value( -2, -1), 70  ); # new values.
 ok( $ls->get_value( 0, 0 ),  109 ); # overwritten.
 ok( $ls->get_value( 4, 1 ),  70  ); # old value.
@@ -170,10 +159,10 @@ EOF
 #  2         camel llama buffy
 #  3
 #  4
-ok( $ls->xmin, -2 );
-ok( $ls->ymin, -1 );
-ok( $ls->xmax, 20 );
-ok( $ls->ymax, 2 );
+ok( $ls->{xmin}, -2 );
+ok( $ls->{ymin}, -1 );
+ok( $ls->{xmax}, 20 );
+ok( $ls->{ymax}, 2 );
 ok( $ls->get_value( -2, 0), 70  ); # new values.
 ok( $ls->get_value( 12, 0 ), 32 ); # overwritten space.
 BEGIN { $tests += 6; }

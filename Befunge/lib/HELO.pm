@@ -1,4 +1,4 @@
-# $Id: HELO.pm,v 1.3 2002/04/24 06:53:37 jquelin Exp $
+# $Id: HELO.pm,v 1.1.1.1 2003/02/22 10:17:10 jquelin Exp $
 #
 # Copyright (c) 2002 Jerome Quelin <jquelin@cpan.org>
 # All rights reserved.

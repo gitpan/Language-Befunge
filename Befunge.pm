@@ -1,4 +1,4 @@
-# $Id: Befunge.pm,v 1.55 2002/05/03 12:46:25 jquelin Exp $
+# $Id: Befunge.pm,v 1.6 2004/10/28 17:29:33 jquelin Exp $
 #
 # Copyright (c) 2002 Jerome Quelin <jquelin@cpan.org>
 # All rights reserved.
@@ -8,7 +8,7 @@
 #
 
 package Language::Befunge;
-require v5.6;
+require 5.006;
 
 =head1 NAME
 
@@ -74,7 +74,7 @@ use Language::Befunge::IP;
 use Language::Befunge::LaheySpace;
 
 # Public variables of the module.
-our $VERSION   = '0.38';
+our $VERSION   = '1.00';
 our $HANDPRINT = 'JQBF98'; # the handprint of the interpreter.
 our $AUTOLOAD;
 our $subs;
@@ -1281,7 +1281,7 @@ sub op_stdio_in_file {
 
     # Fetch arguments.
     my $path = $ip->spop_gnirts;
-    my $flag = $ip->spop; # unused in this interpreter.
+    my $flag = $ip->spop;
     my ($xin, $yin) = $ip->spop_vec;
     $xin += $ip->storx;
     $yin += $ip->story;
@@ -1297,7 +1297,9 @@ sub op_stdio_in_file {
     close F or $ip->dir_reverse, return;
 
     # Store the code and the result vector.
-    my ($wid, $hei) = $self->torus->store( $lines, $xin, $yin );
+    my ($wid, $hei) = $flag % 2
+        ? ( $self->torus->store_binary( $lines, $xin, $yin ) )
+        : ( $self->torus->store( $lines, $xin, $yin ) );
     $ip->spush( $wid, $hei, $xin, $yin );
 }
 $meths{'i'} = "op_stdio_in_file";
@@ -1420,12 +1422,12 @@ sub op_sys_info {
     push @cells, \@stor;
 
     # 13. Top-left point.
-    my @topleft = ( $torus->xmin, $torus->ymin );
+    my @topleft = ( $torus->{xmin}, $torus->{ymin} );
     push @cells, \@topleft;
 
     # 14. Dims of the torus.
-    my @dims = ( $torus->xmax - $torus->xmin + 1,
-                 $torus->ymax - $torus->ymin + 1 );
+    my @dims = ( $torus->{xmax} - $torus->{xmin} + 1,
+                 $torus->{ymax} - $torus->{ymin} + 1 );
     push @cells, \@dims;
 
     # 15/16. Current date/time.
@@ -1650,6 +1652,8 @@ numbers greater than C<0xffffffff>.
 =head1 AUTHOR
 
 Jerome Quelin, E<lt>jquelin@cpan.orgE<gt>
+
+Development is discussed on E<lt>language-befunge@mongueurs.netE<gt>
 
 
 =head1 ACKNOWLEDGEMENTS

@@ -1,5 +1,5 @@
 # This -*- perl -*- script writes the Makefile for Language::Befunge
-# $Id: Makefile.PL,v 1.5 2002/04/16 16:20:41 jquelin Exp $
+# $Id: Makefile.PL,v 1.2 2003/02/22 10:31:28 jquelin Exp $
 
 #------------------------------------------#
 #          Configuration section.          #
@@ -39,8 +39,8 @@ if (@programs_to_install) {
    Note that you can avoid these questions by passing
    the '-n' option to 'Makefile.PL'.
 
-This package comes with a Befunge interpreter that I can try to
-install in $Config{sitebin}.
+This package comes with a Befunge interpreter (jqbf98) that I can try
+to install in $Config{sitebin}.
 EOT
 
     my @tmp;
