@@ -1,5 +1,9 @@
 Revision history for Perl extension Language::Befunge.
 
+0.12 Fri Apr 12 18:51:04 CEST 2002
+        - Shipped with some examples.
+        - Shipped with the Funge-98 specs.
+
 0.11 Fri Apr 12 18:33:09 CEST 2002
         - Bug fix in the way spaces are handled in strings.
         - Bug fix in numeric input.

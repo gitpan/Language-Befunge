@@ -1,5 +1,5 @@
 # This -*- perl -*- script writes the Makefile for Language::Befunge
-# $Id: Makefile.PL,v 1.1 2002/04/12 16:07:23 jquelin Exp $
+# $Id: Makefile.PL,v 1.3 2002/04/12 16:43:27 jquelin Exp $
 
 #------------------------------------------#
 #          Configuration section.          #
@@ -90,7 +90,7 @@ WriteMakefile(
     VERSION_FROM  => 'Befunge.pm',
     EXE_FILES     => [ map "bin/$_", @programs_to_install ],
     PREREQ_PM     => { Storable => 0 },
-    clean         => { FILES => "*~ t/*~ Befunge/*~ bin/*~ MANIFEST.bak" },
+    clean         => { FILES => "*~ t/*~ Befunge/*~ Befunge/doc/*~ Befunge/examples/*~ bin/*~ MANIFEST.bak" },
     ABSTRACT_FROM => 'Befunge.pm', # retrieve abstract from module
     AUTHOR        => 'Jerome Quelin, <jquelin@cpan.org>',
 );

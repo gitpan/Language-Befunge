@@ -1,4 +1,4 @@
-# $Id: Befunge.pm,v 1.37 2002/04/12 16:32:01 jquelin Exp $
+# $Id: Befunge.pm,v 1.38 2002/04/12 16:48:18 jquelin Exp $
 #
 # Copyright (c) 2002 Jerome Quelin <jquelin@cpan.org>
 # All rights reserved.
@@ -76,7 +76,7 @@ use Language::Befunge::LaheySpace;
 use base qw(Exporter);
 
 # Public variables of the module.
-our $VERSION   = '0.11';
+our $VERSION   = '0.12';
 our $HANDPRINT = 'JQBF98'; # the handprint of the interpreter.
 our @EXPORT    =  qw! read_file store_code run_code !;
 $| = 1;
