@@ -1,4 +1,4 @@
-# $Id: library.pod,v 1.2 2002/04/14 13:49:42 jquelin Exp $
+# $Id: library.pod,v 1.3 2002/04/15 08:02:33 jquelin Exp $
 
 =head1 Befunge-98 Libraries & Extensions
 
@@ -163,8 +163,6 @@ object).
 
 See L<Language::Befunge> for more documentation about the relevant
 methods.
-
-=back
 
 Hey, that's exactly what we needed in order to implement our C<S>
 instruction! Let's code it just now:
