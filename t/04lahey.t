@@ -1,5 +1,5 @@
 #-*- cperl -*-
-# $Id: 04lahey.t,v 1.7 2002/04/16 12:55:48 jquelin Exp $
+# $Id: 04lahey.t,v 1.8 2002/04/16 15:19:09 jquelin Exp $
 #
 
 #------------------------------------------#
@@ -275,13 +275,21 @@ $href = $ls->labels_lookup;
 ok( scalar(keys(%$href)), 4 );
 ok( $href->{foo}[0], 10 );
 ok( $href->{foo}[1], 5 );
+ok( $href->{foo}[2], 1 );
+ok( $href->{foo}[3], 0 );
 ok( $href->{bar}[0], -2 );
 ok( $href->{bar}[1], 5 );
+ok( $href->{bar}[2], -1 );
+ok( $href->{bar}[3], 0 );
 ok( $href->{baz}[0], 4 );
 ok( $href->{baz}[1], -1 );
+ok( $href->{baz}[2], 0 );
+ok( $href->{baz}[3], -1 );
 ok( $href->{blah}[0], 4 );
 ok( $href->{blah}[1], 12 );
-BEGIN { $tests += 9 };
+ok( $href->{blah}[2], 0 );
+ok( $href->{blah}[3], 1 );
+BEGIN { $tests += 17 };
 # wrapping...
 $ls->clear;
 $ls->store( <<'EOF', -2, -1 );
@@ -299,13 +307,21 @@ $href = $ls->labels_lookup;
 ok( scalar(keys(%$href)), 4 );
 ok( $href->{foo}[0], -1 );
 ok( $href->{foo}[1], -1 );
+ok( $href->{foo}[2], 1 );
+ok( $href->{foo}[3], 0 );
 ok( $href->{bar}[0], 16 );
 ok( $href->{bar}[1], 0 );
+ok( $href->{bar}[2], -1 );
+ok( $href->{bar}[3], 0 );
 ok( $href->{baz}[0], 6 );
 ok( $href->{baz}[1], 6 );
+ok( $href->{baz}[2], 0 );
+ok( $href->{baz}[3], -1 );
 ok( $href->{blah}[0], 9 );
 ok( $href->{blah}[1], 0 );
-BEGIN { $tests += 9 };
+ok( $href->{blah}[2], 0 );
+ok( $href->{blah}[3], 1 );
+BEGIN { $tests += 17 };
 # garbage...
 $ls->clear;
 $ls->store( <<'EOF', -2, -1 );
@@ -316,7 +332,9 @@ $href = $ls->labels_lookup;
 ok( scalar(keys(%$href)), 1 );
 ok( $href->{foo}[0], 14 );
 ok( $href->{foo}[1], -1 );
-BEGIN { $tests += 3 };
+ok( $href->{foo}[2], 1 );
+ok( $href->{foo}[3], 0 );
+BEGIN { $tests += 5 };
 # double define...
 $ls->clear;
 $ls->store( <<'EOF', -2, -1 );

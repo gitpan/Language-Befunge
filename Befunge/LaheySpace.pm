@@ -1,4 +1,4 @@
-# $Id: LaheySpace.pm,v 1.8 2002/04/16 12:58:33 jquelin Exp $
+# $Id: LaheySpace.pm,v 1.10 2002/04/16 15:18:48 jquelin Exp $
 #
 # Copyright (c) 2002 Jerome Quelin <jquelin@cpan.org>
 # All rights reserved.
@@ -285,11 +285,11 @@ sub rectangle {
 
 =head2 labels_lookup(  )
 
-Parse the Lahey space to find sequences such as
-C<;:(\w[^\s;])[^;]*;> and return a hash reference whose keys are
-the labels and the values an anonymous array with is a vector
-describing the absolute position of the character B<just after> the
-trailing C<;>.
+Parse the Lahey space to find sequences such as C<;:(\w[^\s;])[^;]*;>
+and return a hash reference whose keys are the labels and the values
+an anonymous array with four values: a vector describing the absolute
+position of the character B<just after> the trailing C<;>, and a
+vector describing the velocity that lead to this label.
 
 This method will only look in the four cardinal directions.
 
@@ -312,7 +312,7 @@ sub labels_lookup {
                 # How exciting, we found a label!
                 exists $labels->{$lab} 
                   and croak "Help! I found two labels '$lab' in the funge space";
-                $labels->{$lab} = [$labx+$self->xmin, $laby+$self->ymin];
+                $labels->{$lab} = [$labx+$self->xmin, $laby+$self->ymin, @$vec];
             }
         }
     }

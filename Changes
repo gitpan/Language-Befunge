@@ -1,5 +1,10 @@
 Revision history for Perl extension Language::Befunge.
 
+0.35 Tue Apr 16 17:20:29 CEST 2002
+        - LaheySpace::labels_lookup() now also returns the velocity
+          that found the label.
+        - Minor pod update.
+
 0.34 Tue Apr 16 15:00:27 CEST 2002
         - Minor bug fix in LaheySpace.pm. I discovered it by chance,
           since it's a tiny little bug that did not seem to break
