@@ -1,5 +1,15 @@
 Revision history for Perl extension Language::Befunge.
 
+0.34 Tue Apr 16 15:00:27 CEST 2002
+        - Minor bug fix in LaheySpace.pm. I discovered it by chance,
+          since it's a tiny little bug that did not seem to break
+          anything.
+        - LaheySpace now has a labels_lookup() method, that allow to
+          search for labels inside comments. This will be used in
+          Inline::Befunge and maybe some extensions will use this
+          non-standard mechanism.
+        - Minor update to doc/library.pod
+
 0.33 Mon Apr 15 17:21:23 CEST 2002
         - Fancy stuff added in order to support Inline::Befunge (does
           not change the default behavior)

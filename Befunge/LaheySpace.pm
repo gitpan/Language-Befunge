@@ -1,4 +1,4 @@
-# $Id: LaheySpace.pm,v 1.6 2002/04/11 16:30:34 jquelin Exp $
+# $Id: LaheySpace.pm,v 1.8 2002/04/16 12:58:33 jquelin Exp $
 #
 # Copyright (c) 2002 Jerome Quelin <jquelin@cpan.org>
 # All rights reserved.
@@ -154,7 +154,7 @@ sub store {
     my @lines = split $/, $code;
 
     # Fetch min/max values.
-    my $maxy = $#lines + $y;
+    my $maxy = $#lines + $y - $self->ymin;
     my $maxlen = 0;
     foreach my $i ( 0..$#lines ) {
         my $len = length $lines[$i];
@@ -273,10 +273,6 @@ sub rectangle {
     # Fetch the data.
     my $data = "";
     foreach my $i ( $y-$self->ymin .. $y-$self->ymin+$h-1 ) {
-#          warn ">$i<\n";
-#          use Dumpvalue;
-#          my $d = new Dumpvalue;
-#          $d->dumpValue( \$self);
         $data .= join "", 
           map { chr } 
             ( @{ $self->{torus}[$i] } )[ $x-$self->xmin .. $x-$self->xmin+$w-1 ];
@@ -284,6 +280,44 @@ sub rectangle {
     }
 
     return $data;
+}
+
+
+=head2 labels_lookup(  )
+
+Parse the Lahey space to find sequences such as
+C<;:(\w[^\s;])[^;]*;> and return a hash reference whose keys are
+the labels and the values an anonymous array with is a vector
+describing the absolute position of the character B<just after> the
+trailing C<;>.
+
+This method will only look in the four cardinal directions.
+
+This allow to define some labels in the source code, to be used by
+C<Inline::Befunge> (and maybe some exstensions).
+
+=cut
+sub labels_lookup {
+    my $self = shift;
+    my $labels = {};
+    
+  Y: foreach my $y ( 0 .. $#{$self->{torus}} ) {
+      X: foreach my $x ( 0 .. $#{ $self->{torus}[$y] } ) {
+            next X unless $self->{torus}[$y][$x] == ord(";");
+            # Found a semicolon, let's try...
+            VEC: foreach my $vec ( [1,0], [-1,0], [0,1], [0,-1] ) {
+                my ($lab, $labx, $laby) = $self->labels_try( $x, $y, @$vec );
+                defined($lab) or next VEC;
+                
+                # How exciting, we found a label!
+                exists $labels->{$lab} 
+                  and croak "Help! I found two labels '$lab' in the funge space";
+                $labels->{$lab} = [$labx+$self->xmin, $laby+$self->ymin];
+            }
+        }
+    }
+
+    return $labels;
 }
 
 
@@ -373,8 +407,42 @@ sub enlarge_y {
 }
 
 
+=head2 labels_try( x, y, dx, dy )
+
+Try in the specified direction if the funge space matches a label
+definition. Return undef if it wasn't a label definition, or the name
+of the label if it was a valid label.
+
+=cut
+sub labels_try {
+    my ($self, $x, $y, $dx, $dy) = @_;
+    my $comment = "";
+
+    # Fetch the whole comment stuff.
+    do {
+        # Calculate the next cell coordinates.
+        $x += $dx; $y += $dy;
+        $x = 0 if $x > ($self->xmax - $self->xmin);
+        $y = 0 if $y > ($self->ymax - $self->ymin);
+        $x = ($self->xmax - $self->xmin) if $x < 0;
+        $y = ($self->ymax - $self->ymin) if $y < 0;
+        $comment .= chr( $self->{torus}[$y][$x] );
+    } while ( $comment !~ /;.$/ );
+
+    # Check if the comment matches the pattern.
+    $comment =~ /^:(\w[^\s;]*)[^;]*;.$/;
+    return ($1, $x, $y);
+}
+
 1;
 __END__
+
+
+=head1 BUGS
+
+The funge-space representation (a 2-D array) is incredibly wasteful.
+Given the difficulty of writing large befunge programs, this should
+not be noticeable.
 
 
 =head1 AUTHOR

@@ -1,5 +1,5 @@
 #-*- cperl -*-
-# $Id: 04lahey.t,v 1.6 2002/04/11 12:50:06 jquelin Exp $
+# $Id: 04lahey.t,v 1.7 2002/04/16 12:55:48 jquelin Exp $
 #
 
 #------------------------------------------#
@@ -13,6 +13,7 @@ use Language::Befunge::LaheySpace;
 
 my $tests;
 my $ip = new Language::Befunge::IP;
+my $href;
 BEGIN { $tests = 0 };
 
 # Constructor.
@@ -251,6 +252,80 @@ ok( $ip->curx, 6 );
 ok( $ip->cury, 5 );
 BEGIN { $tests += 2; }
 
+# Label lookup
+# four directions.
+$ls->clear;
+$ls->store( <<'EOF', -2, -1 );
+      3
+      ;
+      z
+      a
+      b
+      :
+2;rab:;:foo;1
+      :
+      b
+      l
+      a
+      h
+      ;
+      4
+EOF
+$href = $ls->labels_lookup;
+ok( scalar(keys(%$href)), 4 );
+ok( $href->{foo}[0], 10 );
+ok( $href->{foo}[1], 5 );
+ok( $href->{bar}[0], -2 );
+ok( $href->{bar}[1], 5 );
+ok( $href->{baz}[0], 4 );
+ok( $href->{baz}[1], -1 );
+ok( $href->{blah}[0], 4 );
+ok( $href->{blah}[1], 12 );
+BEGIN { $tests += 9 };
+# wrapping...
+$ls->clear;
+$ls->store( <<'EOF', -2, -1 );
+;1      z  ;   ;:foo
+rab:;   a  4      2;
+        b
+        :  ;
+        ;  :
+           b
+           l
+        3  a
+        ;  h
+EOF
+$href = $ls->labels_lookup;
+ok( scalar(keys(%$href)), 4 );
+ok( $href->{foo}[0], -1 );
+ok( $href->{foo}[1], -1 );
+ok( $href->{bar}[0], 16 );
+ok( $href->{bar}[1], 0 );
+ok( $href->{baz}[0], 6 );
+ok( $href->{baz}[1], 6 );
+ok( $href->{blah}[0], 9 );
+ok( $href->{blah}[1], 0 );
+BEGIN { $tests += 9 };
+# garbage...
+$ls->clear;
+$ls->store( <<'EOF', -2, -1 );
+   ;:foo is foo;1  
+     ;not a label;
+EOF
+$href = $ls->labels_lookup;
+ok( scalar(keys(%$href)), 1 );
+ok( $href->{foo}[0], 14 );
+ok( $href->{foo}[1], -1 );
+BEGIN { $tests += 3 };
+# double define...
+$ls->clear;
+$ls->store( <<'EOF', -2, -1 );
+   ;:foo is foo;1  
+   2;another oof:;
+EOF
+eval { $href = $ls->labels_lookup; };
+ok( $@, qr/^Help! I found two labels 'foo' in the funge space/ );
+BEGIN { $tests += 1 };
+
+
 BEGIN { plan tests => $tests };
-
-

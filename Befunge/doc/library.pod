@@ -1,4 +1,4 @@
-# $Id: library.pod,v 1.3 2002/04/15 08:02:33 jquelin Exp $
+# $Id: library.pod,v 1.4 2002/04/16 13:05:58 jquelin Exp $
 
 =head1 Befunge-98 Libraries & Extensions
 
@@ -209,6 +209,15 @@ whatever you're doing when you're coding a regular module: lots of
 functions, module variables, etc.
 
 =back
+
+
+=head2 Test your extensions
+
+I would B<really> appreciate if you ship me your extensions with a
+test file that tests it. Check the C<t/> directory to fetch an example
+of a test file. In order to keep a clean distribution, name your test
+file after your extension name, such as C<t/lib_LAMA> for our example
+extension.
 
 
 =head1 Tips & Tricks
