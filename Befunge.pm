@@ -1,4 +1,4 @@
-# $Id: Befunge.pm,v 1.19 2002/04/11 07:58:33 jquelin Exp $
+# $Id: Befunge.pm,v 1.22 2002/04/11 10:03:35 jquelin Exp $
 #
 # Copyright (c) 2002 Jerome Quelin <jquelin@cpan.org>
 # All rights reserved.
@@ -76,7 +76,7 @@ use Language::Befunge::LaheySpace;
 use base qw(Exporter);
 
 # Public variables of the module.
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 our $HANDPRINT = 'JQBF98'; # the handprint of the interpreter.
 our @EXPORT  =  qw! read_file store_code run_code !;
 $| = 1;
@@ -126,11 +126,11 @@ sub read_file {
     close BF;
 
     # Store code.
-    store_code( $code );
+    store_code( $code, $file );
 }
 
 
-=head2 store_code(  )
+=head2 store_code( code )
 
 Store the given code in the Lahey space.
 
@@ -139,6 +139,7 @@ Side effect: clear the previous code.
 =cut
 sub store_code {
     my $code = shift;
+    $file = shift || "STDIN"; # black magic for error msgs.
     $torus->clear;
     $torus->store( $code );
 }
@@ -149,8 +150,14 @@ sub store_code {
 Run the current code. That is, create a new Instruction Pointer and
 move it around the code.
 
+Return the exit code of the program.
+
 =cut
 sub run_code {
+    debug "\n=-=-=-=-=-=-=-=\n";
+    debug "-=  NEW RUN  =-\n";
+    debug "=-=-=-=-=-=-=-=\n";
+
     # Create the first Instruction Pointer.
     @ip = ();
     $kcounter = 1;
@@ -164,9 +171,10 @@ sub run_code {
   tick: while ( scalar( @ip ) ) {
         debug "\n** NEW TICK (".scalar(@ip)." ips to process)\n";
         my @new_ip = ();
+        my $ip;
 
         # Cycle through the IPs.
-      ip: while ( my $ip = shift @ip ) {
+      ip: while ( $ip = shift @ip ) {
             debug "* NEW IP $ip\n";
 
             # Fetch values for this IP.
@@ -209,7 +217,7 @@ sub run_code {
               switch: {
                     # -= Numbers =-
                     $char =~ /([0-9a-f])/ and do {
-                        debug "-> Pushing number (".hex($1).")";
+                        debug "-> Pushing number (".hex($1).")\n";
                         $ip->spush( hex($1) );
                         last switch;
                     };
@@ -242,7 +250,7 @@ sub run_code {
                     $char eq '+' and do {
                         my $v2 = $ip->spop;
                         my $v1 = $ip->spop;
-                        debug "-> Adding $v1+$v2\n";
+                        debug "-> Adding: $v1+$v2\n";
                         my $res = $v1 + $v2;
                         $res > 2**31-1 and
                           croak "$file ($x,$y): program overflow while performing addition";
@@ -256,6 +264,7 @@ sub run_code {
                     $char eq '-' and do {
                         my $v2 = $ip->spop;
                         my $v1 = $ip->spop;
+                        debug "-> Substracting: $v1-$v2\n";
                         my $res = $v1 - $v2;
                         $res > 2**31-1 and
                           croak "$file ($x,$y): program overflow while performing substraction";
@@ -269,6 +278,7 @@ sub run_code {
                     $char eq '*' and do {
                         my $v2 = $ip->spop;
                         my $v1 = $ip->spop;
+                        debug "-> Multiplicating: $v1*$v2\n";
                         my $res = $v1 * $v2;
                         $res > 2**31-1 and
                           croak "$file ($x,$y): program overflow while performing multiplication";
@@ -282,6 +292,7 @@ sub run_code {
                     $char eq '/' and do {
                         my $v2 = $ip->spop;
                         my $v1 = $ip->spop;
+                        debug "-> Dividing: $v1/$v2\n";
                         my $res = $v2 == 0 ? 0 : int($v1 / $v2);
                         # Can't do over/underflow with integer division.
                         $ip->spush( $res );
@@ -292,6 +303,7 @@ sub run_code {
                     $char eq '%' and do {
                         my $v2 = $ip->spop;
                         my $v1 = $ip->spop;
+                        debug "-> Remainder: $v1%$v2\n";
                         my $res = ( $v2 == 0 ) ? 0 : int($v1 % $v2);
                         # Can't do over/underflow with integer remainder.
                         $ip->spush( $res );
@@ -301,28 +313,29 @@ sub run_code {
 
                     # -= Direction changing =-
                     # Cardinal directions.
-                    $char eq '>' and do { $ip->dir_go_east;  last switch; };
-                    $char eq '<' and do { $ip->dir_go_west;  last switch; };
-                    $char eq '^' and do { $ip->dir_go_north; last switch; };
-                    $char eq 'v' and do { $ip->dir_go_south; last switch; };
+                    $char eq '>' and do { debug "-> Go east\n";  $ip->dir_go_east;  last switch; };
+                    $char eq '<' and do { debug "-> Go west\n";  $ip->dir_go_west;  last switch; };
+                    $char eq '^' and do { debug "-> Go north\n"; $ip->dir_go_north; last switch; };
+                    $char eq 'v' and do { debug "-> Go south\n"; $ip->dir_go_south; last switch; };
 
                     # Surprise! =D
-                    $char eq '?' and do { $ip->dir_go_away;  last switch; };
+                    $char eq '?' and do { debug "-> Go away\n"; $ip->dir_go_away;  last switch; };
 
                     # Turning right or left, like a car (the specs speak about
                     # a bicycle, but perl is _so_ fast that we can speak about
                     # cars ;) ).
-                    $char eq '[' and do { $ip->dir_turn_left;  last switch; };
-                    $char eq ']' and do { $ip->dir_turn_right; last switch; };
+                    $char eq '[' and do { debug "-> Turn left\n";  $ip->dir_turn_left;  last switch; };
+                    $char eq ']' and do { debug "-> Turn right\n"; $ip->dir_turn_right; last switch; };
 
                     # Complete turn around!
-                    $char eq 'r' and do { $ip->dir_reverse; last switch; };
+                    $char eq 'r' and do { debug "-> Reverse\n"; $ip->dir_reverse; last switch; };
 
                     # Hmm, the user seems to know where he wants to go. Let's
                     # trust him.
                     $char eq 'x' and do {
                         my $new_dy = $ip->spop;
                         my $new_dx = $ip->spop;
+                        debug "-> Setting delta to ($new_dx, $new_dy)\n";
                         $ip->set_delta( $new_dx, $new_dy );
                         last switch;
                     };
@@ -368,7 +381,7 @@ sub run_code {
                     # -= Flow Control =-
                     # No-op.
                     $char eq ' ' and do {
-                        # A serie of spaces is to be treated as one NO-OP.
+                        # A serie of spaces is to be treated as _one_ NO-OP.
                         $torus->move_ip_forward($ip) 
                           while $torus->get_value( $ip->curx, $ip->cury ) == 32;
 
@@ -387,22 +400,20 @@ sub run_code {
 
                     # Comments.
                     $char eq ';' and do {
-                        # Let's skipp al those comments during the tick.
-                        $torus->move_ip_forward($ip) 
-                          while torus_get_value( $ip->curx, $ip->cury ) == ord(";");
-
-                        # Since pointer will be moved forward after the
-                        # switch, we are to put the pointer upon the next_
-                        # semi-colon, instead of the next char following the
-                        # serie.
-                        $ip->dir_reverse;
-                        $torus->move_ip_forward($ip);
-                        $ip->dir_reverse;
+                        debug "-> Comments\n";
+                        # Let's skip all those comments during the tick.
+                        my $o;
+                        for ( $torus->move_ip_forward($ip) ;
+                              ( $o = $torus->get_value( $ip->curx, $ip->cury ) ) != ord(";") ; ) {
+                            debug "-> Skipping ".chr($o)."\n";
+                            $torus->move_ip_forward($ip);
+                        }
                         last switch;
                     };
 
                     # Trampoline. Skip next instruction.
                     $char eq '#' and do {
+                        debug "-> Trampoline! (skipping next instruction)\n";
                         $torus->move_ip_forward($ip);
                         last switch;
                     };
@@ -410,34 +421,38 @@ sub run_code {
                     # Jump to.
                     $char eq 'j' and do {
                         my $count = $ip->spop;
+                        debug "-> Skipping $count instructions\n";
                         $count == 0 and last switch;
                         $count < 0  and $ip->dir_reverse; # We can move backward.
                         $torus->move_ip_forward($ip) for (1..abs($count));
-                        $count < 0  and $ip->dir_reverse;
+                        $count < 0  and $torus->move_ip_forward($ip), $ip->dir_reverse;
+                        last switch;
                     };
 
                     # Repeat instruction.
                     $char eq 'k' and do {
                         $kcounter = $ip->spop;
+                        debug "-> Repeating next instruction $kcounter times.\n";
                         $torus->move_ip_forward($ip);
                         $kcounter == 0 and last switch;
 
                         $kcounter < 0 and # Oops, error.
                           croak "$file ($x,$y): Attempt to repeat ('k') a negative number of times ($kcounter)";
 
-                        my $val = torus_get_value( $ip->curx, $ip->cury );
+                        my $val = $torus->get_value( $ip->curx, $ip->cury );
                         $val > 0 and $val < 256 and chr($val) =~ /([ ;])/ and
                           croak "$file ($x,$y): Attempt to repeat ('k') a forbidden instruction ('$1')";
-                        $kcounter != 0 and $val > 0 and $val < 256 and chr($val) == "k" and
+                        $kcounter != 0 and $val > 0 and $val < 256 and chr($val) eq "k" and
                           croak "$file ($x,$y): Attempt to repeat ('k') a repeat instruction ('k')";
                         redo ip;
                     };
             
                     # End thread.
-                    $char eq '@' and next ip;
+                    $char eq '@' and debug "-> End IP\n", next ip;
 
                     # Quit program.
                     $char eq 'q' and do {
+                        debug "-> End program\n";
                         @new_ip = @ip = ();
                         $retval = $ip->spop;
                         last tick;
@@ -785,6 +800,9 @@ sub run_code {
         # Copy the new ips.
         @ip = @new_ip;
     }
+
+    # Return value...
+    return $retval;
 }
 
 

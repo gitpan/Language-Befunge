@@ -1,5 +1,13 @@
 Revision history for Perl extension Language::Befunge.
 
+0.04 Thu Apr 11 12:04:30 CEST 2002
+        - store_code includes magic to display the correct filename in
+          error msgs.
+        - instr.txt explained.
+        - bug fixes for control flow instructions.
+        - new test 13dir.t  -> tests direction changing
+        - new test 14flow.t -> tests flow control
+
 0.03  Thu Apr 11 09:59:28 CEST 2002
         - bug fix with string-mode.
         - debug facilities.
