@@ -1,0 +1,80 @@
+NAME
+
+    Language::Befunge - a Befunge-98 interpreter.
+
+
+DESCRIPTION
+
+    Enter the realm of topological languages!
+
+    This module implements the Funge-98 specifications on a 2D field (also
+    called Befunge). In particular, be aware that this is not a Trefunge
+    implementation (3D).
+
+    This Befunge-98 interpreters assumes the stack and Funge-Space cells of
+    this implementation are 32 bits signed integers (I hope your os
+    understand those integers). This means that the torus (or Cartesian
+    Lahey-Space topology to be more precise) looks like the following:
+
+                  32-bit Befunge-98
+                  =================
+                          ^
+                          |-2,147,483,648
+                          |
+                          |         x
+              <-----------+----------->
+      -2,147,483,648      |      2,147,483,647
+                          |
+                         y|2,147,483,647
+                          v
+
+    This implementation is meant to work on unix-like systems, because this
+    interpreters only handle the character which ordinal value is 10 (also
+    known as \n) as an End-Of-Line chars. In particular, no warranty is made
+    neither for Microsoft systems (\r\n) nor for Macs (\r).
+
+
+INSTALLATION
+
+    To install this module type the following (you should be familiar
+    with those instructions ;) ):
+
+       perl Makefile.PL
+       make
+       make test
+       make install
+
+
+DEPENDENCIES
+
+    I decided to require at least perl v5.6 in order to have a clean
+    programming style (use diagnostics, our, etc.).
+
+    This module requires Storable in order to be a proper Concurrent
+    Funge (or you can cut in the sources the relevant parts).
+
+
+AUTHOR
+
+    Jerome Quelin, <jquelin@cpan.org>
+
+
+COPYRIGHT
+
+    Copyright (c) 2001 Jerome Quelin <jquelin@cpan.org>
+    All rights reserved.
+
+    This program is free software; you can redistribute it and/or
+    modify it under the same terms as Perl itself.
+
+
+TODO
+
+    - test it, and all the instructions... (glups!)
+    - implement the libraries mechanism: "(" and ")" respectively.
+    - implement a standard/simple mechanism in order to allow user to
+      write their own extensions (aka fingerprints)
+    - maybe rewrite the core loop in order to take benefits of the
+      hash mechanism instead of a giant switch tester.
+    - check all the module docs.
+    - write standard libraries.

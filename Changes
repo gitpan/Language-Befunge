@@ -1,0 +1,8 @@
+Revision history for Perl extension Language::Befunge.
+
+0.01  Wed Apr 10 14:01:20 CEST 2002
+	- original version.
+        - every instruction is implemented, but _not_ tested.
+        - Module LaheySpace written and tested.
+        - Module IP written and tested.
+
