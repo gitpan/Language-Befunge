@@ -1,4 +1,4 @@
-# $Id: library.pod,v 1.4 2002/04/16 13:05:58 jquelin Exp $
+# $Id: library.pod,v 1.5 2002/04/24 06:53:23 jquelin Exp $
 
 =head1 Befunge-98 Libraries & Extensions
 
@@ -120,10 +120,15 @@ The new module is quite easy to begin, since you just have to put the
 following in the newly-created file:
 
     package Language::Befunge::lib::LAMA;
+    sub new { return bless {}, shift; }
     1;
 
 Don't forget the final C<1;>! Since it's a Perl module, perl needs the
 module to return a true value...
+
+Your module is in fact a class, and it should work as a class. That's
+why you need a C<new> constructor, even if it's really a basic one, as
+shown before.    
 
 Once you've done that, your module can be loaded in your Befunge
 program! Let's try the exciting program:
@@ -157,7 +162,7 @@ terrific!
 =head2 Accessing the IP
 
 Since you may want to interact with the I<Instruction Pointer> and/or
-the I<cartesian Lahey space topology>, or whatever, each function will
+the I<cartesian Lahey space topology>, or whatever, each method will
 be called with the current Befunge interpreter (a C<Language::Befunge>
 object).
 
@@ -168,7 +173,7 @@ Hey, that's exactly what we needed in order to implement our C<S>
 instruction! Let's code it just now:
 
     sub S {
-        my $interp = shift;
+        my (undef, $interp) = @_; # Remember it's an OO method.
         $ip->spush( reverse map { ord } split //, "I can see a llama!\n".chr(0) );
     }
 

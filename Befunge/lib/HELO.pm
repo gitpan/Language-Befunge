@@ -1,4 +1,4 @@
-# $Id: HELO.pm,v 1.2 2002/04/14 13:14:16 jquelin Exp $
+# $Id: HELO.pm,v 1.3 2002/04/24 06:53:37 jquelin Exp $
 #
 # Copyright (c) 2002 Jerome Quelin <jquelin@cpan.org>
 # All rights reserved.
@@ -32,6 +32,13 @@ use warnings;
 
 =head1 FUNCTIONS
 
+=head2 new
+
+Create a new HELO instance.
+
+=cut
+sub new { return bless {}, shift; }
+
 =head2 P
 
 Output C<Hello world!\n>.
@@ -47,7 +54,7 @@ Store the gnirts "Hello world!\n"0 on the TOSS.
 
 =cut
 sub S {
-    my $interp = shift;
+    my (undef, $interp) = @_;
     $interp->curip->spush( reverse map { ord } split //, "Hello world!\n".chr(0) );
 }
 

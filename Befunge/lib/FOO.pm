@@ -1,4 +1,4 @@
-# $Id: FOO.pm,v 1.1 2002/04/13 09:37:56 jquelin Exp $
+# $Id: FOO.pm,v 1.2 2002/04/24 06:53:47 jquelin Exp $
 #
 # Copyright (c) 2002 Jerome Quelin <jquelin@cpan.org>
 # All rights reserved.
@@ -30,6 +30,13 @@ use strict;
 use warnings;
 
 =head1 FUNCTIONS
+
+=head2 new
+
+Create a FOO instance.
+
+=cut
+sub new { return bless {}, shift; }
 
 =head2 P
 

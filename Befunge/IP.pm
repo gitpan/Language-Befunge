@@ -1,4 +1,4 @@
-# $Id: IP.pm,v 1.16 2002/04/22 18:11:03 jquelin Exp $
+# $Id: IP.pm,v 1.17 2002/04/24 06:47:26 jquelin Exp $
 #
 # Copyright (c) 2002 Jerome Quelin <jquelin@cpan.org>
 # All rights reserved.
@@ -655,9 +655,10 @@ sub dir_reverse {
 
 =over 4
 
-=item load( lib )
+=item load( obj )
 
-Load the given library semantics.
+Load the given library semantics. The parameter is an extension object
+(a library instance).
 
 =cut
 sub load {
@@ -667,7 +668,7 @@ sub load {
 
 =item unload( lib )
 
-Unload the given library semantics.
+Unload the given library semantics. The parameter is the library name.
 
 Return the library name if it was correctly unloaded, undef otherwise.
 
@@ -683,7 +684,7 @@ sub unload {
     
     my $offset = -1;
     foreach my $i ( 0..$#{$self->libs} ) {
-        $offset = $i, last if $self->libs->[$i] eq $lib;
+        $offset = $i, last if ref($self->libs->[$i]) eq $lib;
     }
     $offset == -1 and return undef;
     splice @{ $self->libs }, $offset, 1;

@@ -1,8 +1,13 @@
 Revision history for Perl extension Language::Befunge.
 
+0.37 Wed Apr 24 08:54:00 CEST 2002
+        - New mechanism of libraries loading: loading instances of
+          extension instead of a plain module.
+        - doc/library.pod modified to reflect this.
+
 0.36 Mon Apr 22 20:44:10 CEST 2002
         - jqbf98 now understands the -v flag (verbose)
-        - New examples tpr00.bf, palyn.bf
+        - New examples tpr00.bf, palin.bf
         - IP.pm now has two methods spush_vec and spop_vec. Befunge.pm
           modified to take advantage of those methods.
         - IP.pm now has a method spush_args to push (and convert)

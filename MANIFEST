@@ -8,7 +8,7 @@ Befunge/doc/library.pod
 Befunge/examples/anagram.bf
 Befunge/examples/fact.bf
 Befunge/examples/hello.bf
-Befunge/examples/palyn.bf
+Befunge/examples/palin.bf
 Befunge/examples/tpr00.bf
 Befunge/examples/tpr01.bf
 Befunge/lib/FOO.pm

@@ -1,4 +1,4 @@
-# $Id: Befunge.pm,v 1.53 2002/04/22 15:14:31 jquelin Exp $
+# $Id: Befunge.pm,v 1.54 2002/04/24 06:47:41 jquelin Exp $
 #
 # Copyright (c) 2002 Jerome Quelin <jquelin@cpan.org>
 # All rights reserved.
@@ -74,7 +74,7 @@ use Language::Befunge::IP;
 use Language::Befunge::LaheySpace;
 
 # Public variables of the module.
-our $VERSION   = '0.36';
+our $VERSION   = '0.37';
 our $HANDPRINT = 'JQBF98'; # the handprint of the interpreter.
 our $AUTOLOAD;
 our $subs;
@@ -426,17 +426,15 @@ sub process_ip {
             $self->debug( "library semantics\n" );
 
             my $found = 0;
-            foreach my $lib ( @{ $ip->libs } ) {
+            foreach my $obj ( @{ $ip->libs } ) {
                 # Try the loaded libraries in order.
-                eval { 
-                    no strict 'refs';
-                    &{$lib."::".$char}($self);
-                };
+                eval "\$obj->$char(\$self)";
                 next if $@; # Uh, this wasn't the good one.
 
                 # We manage to get a library.
+                $found = 1;
+                $self->debug( "library semantics processed by ".ref($obj)."\n" );
                 $found++;
-                $self->debug( "library semantics processed by $lib\n" );
                 last;
             }
 
@@ -1546,7 +1544,8 @@ sub op_lib_load {
         $ip->dir_reverse;
     } else {
         $self->debug( sprintf("extension $lib (0x%x) loaded\n", $fgrprt) );
-        $ip->load( $lib );
+        my $obj = new $lib;
+        $ip->load( $obj );
         $ip->spush( $fgrprt, 1 );
     }
 }
