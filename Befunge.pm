@@ -1,4 +1,4 @@
-# $Id: Befunge.pm,v 1.42 2002/04/13 11:10:10 jquelin Exp $
+# $Id: Befunge.pm,v 1.43 2002/04/14 13:38:30 jquelin Exp $
 #
 # Copyright (c) 2002 Jerome Quelin <jquelin@cpan.org>
 # All rights reserved.
@@ -18,15 +18,16 @@ Language::Befunge - a Befunge-98 interpreter.
 =head1 SYNOPSIS
 
     use Language::Befunge;
-    read_file( "program.bf" );
-    run_code;
+    my $interp = new Language::Befunge( "program.bf" );
+    $interp->run_code;
 
     Or, one can write directly:
-    store_code( <<'END_OF_CODE' );
+    my $interp = new Language::Befunge;
+    $interp->store_code( <<'END_OF_CODE' );
     v @,,,,"foo"a <
     >             ^
     END_OF_CODE
-    run_code;
+    $interp->run_code;
 
 
 =head1 DESCRIPTION
@@ -59,6 +60,8 @@ this interpreters only handle the character which ordinal value is 10
 (also known as \n) as an End-Of-Line chars. In particular, no warranty
 is made neither for Microsoft systems (\r\n) nor for Macs (\r).
 
+This module also implements the Concurrent Funge semantics.
+
 =cut
 
 # A little anal retention ;-)
@@ -67,48 +70,198 @@ use warnings;
 
 # Modules we relied upon.
 use Carp;     # This module can't explode :o)
-use Config;
-use Exporter;
+use Config;   # For the 'y' instruction.
 use Language::Befunge::IP;
 use Language::Befunge::LaheySpace;
 
-# Inheritance.
-use base qw(Exporter);
-
 # Public variables of the module.
-our $VERSION   = '0.20';
+our $VERSION   = '0.30';
 our $HANDPRINT = 'JQBF98'; # the handprint of the interpreter.
-our @EXPORT    =  qw! read_file store_code run_code !;
+our $AUTOLOAD;
+our $subs;
+our %meths;
 $| = 1;
 
-# Private variables of the module.
-my $file;               # Name of the current befunge file.
-my @ip;                 # Set of Instruction Pointers.
-my $retval;             # Return code of the program.
-my $kcounter;           # To store how many times we must repeat an instruction.
-my $torus = new Language::Befunge::LaheySpace;
+=head1 CONSTRUCTOR
 
+=head2 new( [filename] )
 
-
-=head1 PRIVATE FUNCTIONS
-
-=head2 debug(  )
-
-Output debug messages.
+Create a new Befunge interpreter. If a filename is provided, then read
+and store the content of the file in the cartesian Lahey space
+topology of the interpreter.
 
 =cut
-sub DEBUG () { 0; }
-BEGIN {
-    *Language::Befunge::debug =
-      DEBUG ?
-        sub ($) { my $msg = shift; warn "$msg"; }:
-        sub ($) { };
+sub new {
+    # Create and bless the object.
+    my $proto = shift;
+    my $class = ref($proto) || $proto;
+    my $self  = 
+      { file     => "STDIN",
+        retval   => 0,
+        kcounter => 0,
+        DEBUG    => 0,
+        curip    => undef,
+        ips      => [],
+        newips   => [],
+        torus    => new Language::Befunge::LaheySpace,
+      };
+    bless $self, $class;
+
+    # Read the file if needed.
+    my $file = shift;
+    defined($file) and $self->read_file( $file );
+
+    # Return the object.
+    return $self;
 }
 
 
-=head1 EXPORTED FUNCTIONS
 
-=head2 read_file( filename )
+=head1 ACCESSORS
+
+All the following accessors are autoloaded.
+
+=head2 file( [filename] )
+
+Get or set the filename of the script.
+
+=head2 retval( [retval] )
+
+Get or set the current return value of the interpreter.
+
+=head2 kcounter( [kcounter] )
+
+Get or set the kcounter (ie, the number of times the next instruction
+will be repeated).
+
+=head2 DEBUG( boolean )
+
+Set wether the interpreter should output debug messages.
+
+=head2 curip( IPref )
+
+Get or set the current Instruction Pointer processed.
+
+=head2 ips( [arrayref] )
+
+Get or set the current set of IPs travelling in the Lahey space.
+
+=head2 newips( [arrayref] )
+
+Get or set the set of IPs that B<will> travel in the Lahey space
+B<after> the current tick.
+
+=head2 torus(  )
+
+Get the Lahey space object.
+
+=cut
+BEGIN {
+    my @subs = split /\|/, 
+      $subs = 'file|retval|kcounter|DEBUG|curip|ips|newips|torus';
+    use subs @subs;
+}
+sub AUTOLOAD {
+    # We don't DESTROY.
+    return if $AUTOLOAD =~ /::DESTROY/;
+
+    # Fetch the attribute name
+    $AUTOLOAD =~ /.*::(\w+)/;
+    my $attr = $1;
+    # Must be one of the registered subs (compile once)
+    if( $attr =~ /$subs/o ) {
+        no strict 'refs';
+
+        # Create the method (but don't pollute other namespaces)
+        *{$AUTOLOAD} = sub {
+            my $self = shift;
+            @_ ? $self->{$attr} = shift : $self->{$attr};
+        };
+
+        # Now do it
+        goto &{$AUTOLOAD};
+    }
+    # Should we really die here?
+    croak "Undefined method $AUTOLOAD";
+}
+
+
+
+=head1 PUBLIC METHODS
+
+=head2 Utilities
+
+=over 4
+
+=item move_curip( [regex] )
+
+Move the current IP according to its delta on the LaheySpace topology.
+
+If a regex ( a C<qr//> object ) is specified, then IP will move as
+long as the pointed character match the supplied regex.
+
+Example: given the code C<;foobar;> (assuming the IP points on the
+first C<;>) and the regex C<qr/[^;]/>, the IP will move in order to
+point on the C<r>.
+
+=cut
+sub move_curip {
+    my ($self, $re) = @_;
+    my $curip = $self->curip;
+    my $torus = $self->torus;
+
+    if ( defined $re ) {
+        # Moving as long as we did not reach the condition.
+        $torus->move_ip_forward($curip) 
+          while ( chr( $torus->get_value( $curip->curx, $curip->cury ) ) =~ $re );
+
+        # We moved one char too far.
+        $curip->dir_reverse;
+        $torus->move_ip_forward($curip);
+        $curip->dir_reverse;
+
+    } else {
+        # Moving one step beyond...
+        $torus->move_ip_forward($curip);
+    }
+}
+
+
+=item abort( reason )
+
+Abort the interpreter with the given reason, as well as the current
+file and coordinate of the offending instruction.
+
+=cut
+sub abort {
+    my $self = shift;
+    my $file = $self->file;
+    my $x = $self->curip->curx;
+    my $y = $self->curip->cury;
+    croak "$file ($x,$y): ", @_;
+}
+
+
+=item debug( LIST )
+
+Issue a warning if the interpreter has DEBUG enabled.
+
+=cut
+sub debug {
+    my $self = shift;
+    $self->DEBUG or return;
+    warn @_;
+}
+
+=back
+
+
+
+=head2 Code and Data Storage
+
+=over 4
+
+=item read_file( filename )
 
 Read a file (given as argument) and store its code.
 
@@ -116,7 +269,9 @@ Side effect: clear the previous code.
 
 =cut
 sub read_file {
-    $file = shift;
+    my ($self, $file) = @_;
+
+    # Fetch the code.
     my $code;
     open BF, "<$file" or croak "$!";
     {
@@ -126,11 +281,12 @@ sub read_file {
     close BF;
 
     # Store code.
-    store_code( $code, $file );
+    $self->file( $file );
+    $self->store_code( $code );
 }
 
 
-=head2 store_code( code )
+=item store_code( code )
 
 Store the given code in the Lahey space.
 
@@ -138,14 +294,20 @@ Side effect: clear the previous code.
 
 =cut
 sub store_code {
-    my $code = shift;
-    $file = shift || "STDIN"; # black magic for error msgs.
-    $torus->clear;
-    $torus->store( $code );
+    my ($self, $code) = @_;
+    $self->torus->clear;
+    $self->torus->store( $code );
 }
 
+=back
 
-=head2 run_code(  )
+
+
+=head2 Run methods
+
+=over 4
+
+=item run_code(  )
 
 Run the current code. That is, create a new Instruction Pointer and
 move it around the code.
@@ -154,766 +316,1273 @@ Return the exit code of the program.
 
 =cut
 sub run_code {
-    debug "\n";
-    debug "=-=-=-=-=-=-=-=\n";
-    debug "-=  NEW RUN  =-\n";
-    debug "=-=-=-=-=-=-=-=\n";
+    my $self = shift;
+
+    # Cosmetics.
+    $self->debug( "\n-= NEW RUN (".$self->file.") =-\n" );
 
     # Create the first Instruction Pointer.
-    @ip = ();
-    $kcounter = 1;
-    $retval = 0;
-    push @ip, new Language::Befunge::IP;
+    $self->ips( [ new Language::Befunge::IP ] );
+    $self->kcounter(-1);
+    $self->retval(0);
 
-    use Dumpvalue;
-    my $d = new Dumpvalue;
-    #$d->dumpValue( \@ip );
+    # Loop as long as there are IPs.
+    $self->next_tick while scalar @{ $self->ips };
 
-  tick: while ( scalar( @ip ) ) {
-        debug "\n** NEW TICK (".scalar(@ip)." ips to process)\n";
-        my @new_ip = ();
-        my $ip;
+    # Return the exit code.
+    return $self->retval;
+}
 
-        # Cycle through the IPs.
-      ip: while ( $ip = shift @ip ) {
-            debug "* NEW IP $ip\n";
 
-            # Fetch values for this IP.
-            my $x = $ip->curx;
-            my $y = $ip->cury;
+=item next_tick(  )
 
-            my $ord  = $torus->get_value( $x, $y );
-            my $char = $ord < 256 ? chr($ord) : " ";
+Finish the current tick and stop just before the next tick.
 
-            debug "#".$ip->id.":($x,$y): $char (ord=$ord)  Stack=(@{$ip->toss})\n";
+=cut
+sub next_tick {
+    my $self = shift;
 
-            # Check if we must execute the instruction.
-            if ( $kcounter == 0 ) {
-                # We pass in this bloc if and only if the instruction
-                # has been repeated n times with a 'k' instruction.
-                $kcounter = 1;
-                $torus->move_ip_forward($ip);
-                push @new_ip, $ip;
-                next ip;
-            }
+    # Cosmetics.
+    $self->debug( "Tick!\n" );
 
-            # Check if we are in string-mode.
-            if ( $ip->string_mode ) {
-                if ( $char eq '"' ) {
-                    # End of string-mode.
-                    debug "-> End of string-mode.\n";
-                    $ip->string_mode(0);
-                    $ip->space_pushed(0);
-                } elsif ( $char eq ' ' ) {
-                    debug "-> SGML style spaces.\n";
-                    # A serie of spaces, to be treated as one space.
-                    $torus->move_ip_forward( $ip );
-                    $ip->space_pushed or $ip->spush( $ord ), $ip->space_pushed(1);
-                    redo ip;
-                } else {
-                    debug "-> We are in string-mode.\n";
-                    # A banal character.
-                    $ip->space_pushed(0);
-                    $ip->spush( $ord );                 
-                }
-            } else {
+    # Process the set of IPs.
+    $self->newips( [] );
+    $self->process_ip while $self->curip( shift @{ $self->ips } );
 
-              switch: {
-                    # -= Numbers =-
-                    $char =~ /([0-9a-f])/ and do {
-                        debug "-> Pushing number (".hex($1).")\n";
-                        $ip->spush( hex($1) );
-                        last switch;
-                    };
+    # Copy the new ips.
+    $self->ips( $self->newips );
+}
 
 
-                    # -= Strings =-
-                    # Toggle string-mode.
-                    $char eq '"' and do {
-                        debug "-> Entering string mode.\n";
-                        $ip->string_mode(1);
-                        last switch;
-                    };
+=item process_ip(  )
 
-                    # Fetch character.
-                    $char eq "'" and do {
-                        debug "-> Fetching character\n";
-                        $torus->move_ip_forward( $ip );
-                        $ip->spush( $torus->get_value( $ip->curx, $ip->cury ) );
-                        last switch;
-                    };
+Process the current ip.
 
-                    # Store character.
-                    $char eq 's' and do {
-                        debug "-> Storing character\n";
-                        $torus->move_ip_forward( $ip );
-                        $torus->set_value( $ip->curx, $ip->cury, $ip->spop );
-                        last switch;
-                    };
+=cut
+sub process_ip {
+    my $self = shift;
+    my $ip = $self->curip;
 
-
-                    # -= Mathematical operations =-
-                    # Addition.
-                    $char eq '+' and do {
-                        my $v2 = $ip->spop;
-                        my $v1 = $ip->spop;
-                        debug "-> Adding: $v1+$v2\n";
-                        my $res = $v1 + $v2;
-                        $res > 2**31-1 and
-                          croak "$file ($x,$y): program overflow while performing addition";
-                        $res < -2**31 and
-                          croak "$file ($x,$y): program underflow while performing addition";
-                        $ip->spush( $res );
-                        last switch;
-                    };
-
-                    # Substraction.
-                    $char eq '-' and do {
-                        my $v2 = $ip->spop;
-                        my $v1 = $ip->spop;
-                        debug "-> Substracting: $v1-$v2\n";
-                        my $res = $v1 - $v2;
-                        $res > 2**31-1 and
-                          croak "$file ($x,$y): program overflow while performing substraction";
-                        $res < -2**31 and
-                          croak "$file ($x,$y): program underflow while performing substraction";
-                        $ip->spush( $res );
-                        last switch;
-                    };
-
-                    # Multiplication.
-                    $char eq '*' and do {
-                        my $v2 = $ip->spop;
-                        my $v1 = $ip->spop;
-                        debug "-> Multiplicating: $v1*$v2\n";
-                        my $res = $v1 * $v2;
-                        $res > 2**31-1 and
-                          croak "$file ($x,$y): program overflow while performing multiplication";
-                        $res < -2**31 and
-                          croak "$file ($x,$y): program underflow while performing multiplication";
-                        $ip->spush( $res );
-                        last switch;
-                    };
-
-                    # Division.
-                    $char eq '/' and do {
-                        my $v2 = $ip->spop;
-                        my $v1 = $ip->spop;
-                        debug "-> Dividing: $v1/$v2\n";
-                        my $res = $v2 == 0 ? 0 : int($v1 / $v2);
-                        # Can't do over/underflow with integer division.
-                        $ip->spush( $res );
-                        last switch;
-                    };
-
-                    # Remainder.
-                    $char eq '%' and do {
-                        my $v2 = $ip->spop;
-                        my $v1 = $ip->spop;
-                        debug "-> Remainder: $v1%$v2\n";
-                        my $res = ( $v2 == 0 ) ? 0 : int($v1 % $v2);
-                        # Can't do over/underflow with integer remainder.
-                        $ip->spush( $res );
-                        last switch;
-                    };
-
-
-                    # -= Direction changing =-
-                    # Cardinal directions.
-                    $char eq '>' and do { debug "-> Go east\n";  $ip->dir_go_east;  last switch; };
-                    $char eq '<' and do { debug "-> Go west\n";  $ip->dir_go_west;  last switch; };
-                    $char eq '^' and do { debug "-> Go north\n"; $ip->dir_go_north; last switch; };
-                    $char eq 'v' and do { debug "-> Go south\n"; $ip->dir_go_south; last switch; };
-
-                    # Surprise! =D
-                    $char eq '?' and do { debug "-> Go away\n"; $ip->dir_go_away;  last switch; };
-
-                    # Turning right or left, like a car (the specs speak about
-                    # a bicycle, but perl is _so_ fast that we can speak about
-                    # cars ;) ).
-                    $char eq '[' and do { debug "-> Turn left\n";  $ip->dir_turn_left;  last switch; };
-                    $char eq ']' and do { debug "-> Turn right\n"; $ip->dir_turn_right; last switch; };
-
-                    # Complete turn around!
-                    $char eq 'r' and do { debug "-> Reverse\n"; $ip->dir_reverse; last switch; };
-
-                    # Hmm, the user seems to know where he wants to go. Let's
-                    # trust him.
-                    $char eq 'x' and do {
-                        my $new_dy = $ip->spop;
-                        my $new_dx = $ip->spop;
-                        debug "-> Setting delta to ($new_dx, $new_dy)\n";
-                        $ip->set_delta( $new_dx, $new_dy );
-                        last switch;
-                    };
-
-
-                    # -= Decision Making =-
-                    # Negation.
-                    $char eq '!' and do {
-                        debug "-> Logical not\n";
-                        $ip->spush( $ip->spop ? 0 : 1 );
-                        last switch;
-                    };
-
-                    # Comparison.
-                    $char eq '`' and do {
-                        my $v2 = $ip->spop;
-                        my $v1 = $ip->spop;
-                        debug "-> Comparing $v1 vs $v2\n";
-                        $ip->spush( ($v1 > $v2) ? 1 : 0 );
-                        last switch;
-                    };
-
-                    # Horizontal if.
-                    $char eq '_' and do {
-                        debug "-> Horizontal if\n";
-                        $ip->spop ? $ip->dir_go_west : $ip->dir_go_east;
-                        last switch;
-                    };
-
-                    # Vertical if.
-                    $char eq '|' and do {
-                        debug "-> Vertical if\n";
-                        $ip->spop ? $ip->dir_go_north : $ip->dir_go_south;
-                        last switch;
-                    };
-
-                    # Compare instruction.
-                    $char eq 'w' and do {
-                        my $v2 = $ip->spop;
-                        my $v1 = $ip->spop;
-                        debug "-> Comparing $v1 with $v2\n";
-                        last switch if $v1 == $v2;
-                        $v1 < $v2 ? $ip->dir_turn_left : $ip->dir_turn_right;
-                        last switch;
-                    };
-
-
-                    # -= Flow Control =-
-                    # No-op.
-                    $char eq ' ' and do {
-                        debug "-> Slurping next spaces\n";
-                        # A serie of spaces is to be treated as _one_ NO-OP.
-                        $torus->move_ip_forward($ip) 
-                          while $torus->get_value( $ip->curx, $ip->cury ) == 32;
-
-                        # Since pointer will be moved forward after the
-                        # switch, we are to put the pointer upon the _last_
-                        # space of the serie, instead of the next char
-                        # following the serie.
-                        $ip->dir_reverse;
-                        $torus->move_ip_forward($ip);
-                        $ip->dir_reverse;
-                        last switch;
-                    };
-
-                    # True no-op.
-                    $char eq 'z' and debug "-> No-op\n", last switch;
-
-                    # Comments.
-                    $char eq ';' and do {
-                        debug "-> Comments\n";
-                        # Let's skip all those comments during the tick.
-                        my $o;
-                        for ( $torus->move_ip_forward($ip) ;
-                              ( $o = $torus->get_value( $ip->curx, $ip->cury ) ) != ord(";") ; ) {
-                            debug "-> Skipping ".chr($o)."\n";
-                            $torus->move_ip_forward($ip);
-                        }
-                        last switch;
-                    };
-
-                    # Trampoline. Skip next instruction.
-                    $char eq '#' and do {
-                        debug "-> Trampoline! (skipping next instruction)\n";
-                        $torus->move_ip_forward($ip);
-                        last switch;
-                    };
-
-                    # Jump to.
-                    $char eq 'j' and do {
-                        my $count = $ip->spop;
-                        debug "-> Skipping $count instructions\n";
-                        $count == 0 and last switch;
-                        $count < 0  and $ip->dir_reverse; # We can move backward.
-                        $torus->move_ip_forward($ip) for (1..abs($count));
-                        $count < 0  and $torus->move_ip_forward($ip), $ip->dir_reverse;
-                        last switch;
-                    };
-
-                    # Repeat instruction.
-                    $char eq 'k' and do {
-                        $kcounter = $ip->spop;
-                        debug "-> Repeating next instruction $kcounter times.\n";
-                        $torus->move_ip_forward($ip);
-                        $kcounter == 0 and last switch;
-
-                        $kcounter < 0 and # Oops, error.
-                          croak "$file ($x,$y): Attempt to repeat ('k') a negative number of times ($kcounter)";
-
-                        my $val = $torus->get_value( $ip->curx, $ip->cury );
-                        $val > 0 and $val < 256 and chr($val) =~ /([ ;])/ and
-                          croak "$file ($x,$y): Attempt to repeat ('k') a forbidden instruction ('$1')";
-                        $kcounter != 0 and $val > 0 and $val < 256 and chr($val) eq "k" and
-                          croak "$file ($x,$y): Attempt to repeat ('k') a repeat instruction ('k')";
-                        redo ip;
-                    };
-            
-                    # End thread.
-                    $char eq '@' and debug "-> End IP\n", next ip;
-
-                    # Quit program.
-                    $char eq 'q' and do {
-                        debug "-> End program\n";
-                        @new_ip = @ip = ();
-                        $retval = $ip->spop;
-                        last tick;
-                    };
-
-
-                    # -= Stack Manipulation =-
-                    # Pop.
-                    $char eq '$' and do {
-                        debug "-> Popping a value.\n";
-                        $ip->spop;
-                        last switch;
-                    };
-
-                    # Duplicate.
-                    $char eq ':' and do {
-                        my $value = $ip->spop;
-                        debug "-> Duplicating $value\n";
-                        $ip->spush( $value );
-                        $ip->spush( $value );
-                        last switch;
-                    };
-
-                    # Swap.
-                    $char eq '\\' and do {
-                        my $v2 = $ip->spop;
-                        my $v1 = $ip->spop;
-                        debug "-> Swapping $v1 and $v2\n";
-                        $ip->spush( $v2 );
-                        $ip->spush( $v1 );
-                        last switch;
-                    };
-
-                    # Clear stack.
-                    $char eq 'n' and do {
-                        debug "-> Clearing stack\n";
-                        $ip->sclear;
-                        last switch;
-                    };
-
-
-                    # -= Stack stack manipulation =-
-                    # Begin block.
-                    $char eq '{' and do {
-                        debug "-> Begin block\n";
-                        $ip->ss_create( $ip->spop );  # create new TOSS.
-                        $ip->soss_push( $ip->storx ); # Store the current storage
-                        $ip->soss_push( $ip->story ); # offset on SOSS.
-                        # Set the new Storage Offset.
-                        $torus->move_ip_forward($ip);
-                        $ip->storx( $ip->curx );
-                        $ip->story( $ip->cury );
-                        $ip->dir_reverse;
-                        $torus->move_ip_forward($ip);
-                        $ip->dir_reverse;
-                        last switch;
-                    };
-                
-                    # End block.
-                    $char eq '}' and do {
-                        debug "-> End bloc\n";
-                        $ip->ss_count <= 0 and $ip->dir_reverse, last switch;
-                        # Restore Storage offset.
-                        $ip->story( $ip->soss_pop );
-                        $ip->storx( $ip->soss_pop );
-                        # Remove the TOSS.
-                        $ip->ss_remove( $ip->spop );
-                        last switch;
-                    };
-                
-                    # Stack under stack.
-                    $char eq 'u' and do {
-                        debug "-> Transfering values\n";
-                        $ip->ss_count <= 0 and $ip->dir_reverse, last switch;
-                        $ip->ss_transfer( $ip->spop );
-                        last switch;
-                    };
-
-
-                    # -= Funge-space storage =-
-                    # Get instruction.
-                    $char eq 'g' and do {
-                        debug "-> Fetch character\n";
-                        my $y = $ip->spop + $ip->story;
-                        my $x = $ip->spop + $ip->storx;
-                        $ip->spush( $torus->get_value( $x, $y ) );
-                        last switch;
-                    };
-
-                    # Put instruction.
-                    $char eq 'p' and do {
-                        debug "-> Store character\n";
-                        my $y = $ip->spop + $ip->story;
-                        my $x = $ip->spop + $ip->storx;
-                        $torus->set_value( $x, $y, $ip->spop );
-                        last switch;
-                    };
-
-
-                    # -= Standard Input/Output =-
-                    # Numeric output.
-                    $char eq '.' and do {
-                        debug "-> Numeric output\n"; 
-                        print($ip->spop, " ") or $ip->dir_reverse;
-                        last switch;
-                    };
-
-                    # Ascii output.
-                    $char eq ',' and do {
-                        debug "-> Ascii output\n";
-                        print ( chr( $ip->spop) ) or $ip->dir_reverse;
-                        last switch;
-                    };
-
-                    # Numeric input.
-                    $char eq '&' and do {
-                        debug "-> Numeric input\n"; 
-                        my $in = <STDIN>;
-                        if ( $in =~ /(-?\d+)/ ) {
-                            $in = $1;
-                            $in < -2**31  and $in = -2**31;
-                            $in > 2**31-1 and $in = 2**31-1;
-                        } else {
-                            $in = 0;
-                        }
-                        $ip->spush( $in );
-                        last switch;
-                    };
-
-                    # Ascii input.
-                    $char eq '~' and do {
-                        debug "-> Ascii input\n"; 
-                        my $in = $ip->input || <STDIN>;
-                        my $c = substr $in, 0, 1, "";
-                        $ip->spush( ord($c) );
-                        $ip->input( $in );
-                        last switch;
-                    };
-
-                    # File input.
-                    $char eq 'i' and do {
-                        debug "-> Input file\n";
-                        # Fetch arguments.
-                        my $path = $ip->spop_gnirts;
-                        my $flag = $ip->spop; # unused in this interpreter.
-                        my $yin = $ip->spop + $ip->story;
-                        my $xin = $ip->spop + $ip->storx;
-
-                        # Read file.
-                        open F, "<", $path or $ip->dir_reverse, last switch;
-                        my $lines;
-                        {
-                            local $/; # slurp mode.
-                            $lines = <F>;
-                        }
-                        close F or $ip->dir_reverse, last switch;
-
-                        # Store the code and the result vector.
-                        my ($wid, $hei) = $torus->store( $lines, $xin, $yin );
-                        $ip->spush( $wid, $hei, $xin, $yin );
-
-                        last switch;
-                    };
-
-                    # File output.
-                    $char eq 'o' and do {
-                        debug "-> Output file\n";
-                        # Fetch arguments.
-                        my $path = $ip->spop_gnirts;
-                        my $flag = $ip->spop;
-                        my $yin = $ip->spop + $ip->story;
-                        my $xin = $ip->spop + $ip->storx;
-                        my $hei = $ip->spop;
-                        my $wid = $ip->spop;
-                        my $data = $torus->rectangle( $xin, $yin, $wid, $hei );
-
-                        # Treat the data chunk as text file?
-                        if ( $flag & 1 ) {
-                            $data =~ s/ +$//mg;  # blank lines are now void.
-                            $data =~ s/\n+\z/\n/;   # final blank lines are stripped.
-                        }
-
-                        # Write file.
-                        open F, ">", $path or $ip->dir_reverse, last switch;
-                        print F $data;
-                        close F or $ip->dir_reverse, last switch;
-
-                        last switch;
-                    };
-
-
-                    # System execution.
-                    $char eq '=' and do {
-                        debug "-> Executing external command.\n";
-                        my $path = $ip->spop_gnirts;
-                        system( $path );
-                        $ip->spush( $? == -1 ? -1 : $? >> 8 );
-                        last switch;
-                    };
-
-
-                    # -= System information retrieval =-
-                    $char eq 'y' and do {
-                        debug "-> System info retrieval.\n";
-                        my $val = $ip->spop;
-                        my @cells = ();
-
-                        # 1. flags
-                        push @cells, 0x01  # 't' is implemented.
-                                  |  0x02  # 'i' is implemented.
-                                  |  0x04  # 'o' is implemented.
-                                  |  0x08  # '=' is implemented.
-                                  | !0x10; # buffered IO (non getch).
-
-                        # 2. number of bytes per cell.
-                        # 32 bytes Funge: 4 bytes.
-                        push @cells, 4; 
-
-                        # 3. implementation handprint.
-                        my @hand = reverse map { ord } split //, $HANDPRINT.chr(0);
-                        push @cells, \@hand;
-
-                        # 4. version number.
-                        my $ver = $VERSION;
-                        $ver =~ s/\D//g;
-                        push @cells, $ver;
-
-                        # 5. ID code for Operating Paradigm.
-                        push @cells, 1; # C-language system() call behaviour.
-
-                        # 6. Path separator character.
-                        push @cells, ord( $Config{path_sep} );
-
-                        # 7. Number of dimensions.
-                        push @cells, 2;
-
-                        # 8. Unique IP number.
-                        push @cells, $ip->id;
-
-                        # 9. Concurrent Funge (not implemented).
-                        push @cells, 0;
-
-                        # 10. Position of the curent IP.
-                        my @pos = ( $ip->curx, $ip->cury );
-                        push @cells, \@pos;
-
-                        # 11. Delta of the curent IP.
-                        my @delta = ( $ip->dx, $ip->dy );
-                        push @cells, \@delta;
-
-                        # 12. Storage offset of the curent IP.
-                        my @stor = ( $ip->storx, $ip->story );
-                        push @cells, \@stor;
-
-                        # 13. Top-left point.
-                        my @topleft = ( $torus->xmin, $torus->ymin );
-                        push @cells, \@topleft;
-
-                        # 14. Dims of the torus.
-                        my @dims = ( $torus->xmax - $torus->xmin + 1,
-                                     $torus->ymax - $torus->ymin + 1 );
-                        push @cells, \@dims;
-
-                        # 15/16. Current date/time.
-                        my ($s,$m,$h,$dd,$mm,$yy)=localtime;
-                        push @cells, $yy*256*256 + $mm*256 + $dd;
-                        push @cells, $h*256*256 + $m*256 + $s;
-
-                        # 17. Size of stack stack.
-                        push @cells, $ip->ss_count + 1;
-
-                        # 18. Size of each stack in the stack stack.
-                        # !!FIXME!! Funge specs just tell to push onto the
-                        # stack the size of the stacks, but nothing is
-                        # said about how user will retrieve the number of
-                        # stacks.
-                        my @sizes = reverse $ip->ss_sizes;
-                        push @cells, \@sizes;
-                    
-                        # 19. $file + @ARGV.
-                        # !!FIXME!! This may not be accurate, since this
-                        # is a module and the main perl application may
-                        # have already processed the command line.
-                        my $str = join chr(0), $file, @ARGV, chr(0);
-                        my @cmdline = reverse map { ord } split //, $str;
-                        push @cells, \@cmdline;
-                    
-                        # 20. %ENV
-                        # 00EULAV=EMAN0EULAV=EMAN
-                        $str = "";
-                        $str .= "$_=$ENV{$_}".chr(0) foreach sort keys %ENV;
-                        $str .= chr(0);
-                        my @env = reverse map { ord } split //, $str;
-                        push @cells, \@env;
-
-                        # Okay, what to do with those cells.
-                        if ( $val <= 0 ) {
-                            debug "-> Pushing the whole thing.\n";
-                            # Blindly push them onto the stack.
-                            foreach my $cell ( reverse @cells ) {
-                                $ip->spush( ref( $cell ) eq "ARRAY" ?
-                                            @$cell : $cell );
-                            }
-                            
-                        } elsif ( $val <= 20 ) {
-                            debug "-> Pushing a given value ($val).\n";
-                            # Only push the wanted value.
-                            $ip->spush( ref( $cells[$val-1] ) eq "ARRAY" ?
-                                        @{ $cells[$val-1] } : $cells[$val-1] );
-
-                        } else {
-                            debug "-> Picking a value.\n";
-                            # Pick a given value in the stack and push it.
-                            $ip->spush( $ip->svalue($val - 20) );
-                        }
-
-                        last switch;
-                    };
-
-
-                    # -= Concurrent Funge =-
-                    $char eq 't' and do {
-                        debug "-> Spawning new IP.\n";
-                        my $newip = $ip->clone;
-                        $newip->dir_reverse;
-                        $torus->move_ip_forward($newip);
-                        push @new_ip, $newip;
-                        last switch;
-                    };
-            
-
-                    # -= Library semantics =-
-                    # Loading new library.
-                    $char eq '(' and do {
-                        # Fetching fingerprint.
-                        my $count = $ip->spop;
-                        my $fgrprt = 0;
-                        while ( $count-- > 0 ) {
-                            my $val = $ip->spop;
-                            croak "$file ($x,$y) - Attempt to build a fingerprint with a negative number"
-                              if $val < 0;
-                            $fgrprt = $fgrprt * 256 + $val;
-                        }
-
-                        # Transform the fingerprint into a library name.
-                        my $lib = "";
-                        my $finger = $fgrprt;
-                        while ( $finger > 0 ) {
-                            my $c = $finger % 0x100;
-                            $lib .= chr($c);
-                            $finger = int ( $finger / 0x100 );
-                        }
-                        $lib = __PACKAGE__ . "::lib::" . reverse $lib;
-
-
-                        # Checking if library exists.
-                        debug "-> Loading library $lib\n";
-                        eval "require $lib";
-                        if ( $@ ) {
-                            debug sprintf( "-> Unknown extension 0x%x: reversing\n", $fgrprt );
-                            $ip->dir_reverse;
-                        } else {
-                            debug sprintf( "-> Extension %x loaded\n", $fgrprt );
-                            $ip->load( $lib );
-                            $ip->spush( $fgrprt, 1 );
-                        }
-                        last switch;
-                    };
-
-                    # Unloading library.
-                    $char eq ')' and do {
-                        # Fetching fingerprint.
-                        my $count = $ip->spop;
-                        my $fgrprt = 0;
-                        while ( $count-- > 0 ) {
-                            my $val = $ip->spop;
-                            croak "$file ($x,$y) - Attempt to build a fingerprint with a negative number"
-                              if $val < 0;
-                            $fgrprt = $fgrprt * 256 + $val;
-                        }
-
-                        # Transform the fingerprint into a library name.
-                        my $lib = "";
-                        my $finger = $fgrprt;
-                        while ( $finger > 0 ) {
-                            my $c = $finger % 0x100;
-                            $lib .= chr($c);
-                            $finger = int ( $finger / 0x100 );
-                        }
-                        $lib = __PACKAGE__ . "::lib::" . reverse $lib;
-
-                        # Unload the library.
-                        debug "-> Unloading library $lib.\n";
-                        unless ( defined( $ip->unload($lib) ) ) {
-                            # The library wasn't loaded.
-                            $ip->dir_reverse;
-                        }
-                        last switch;
-                    };
-
-                    # Specific semantics.
-                    $char =~ /[A-Z]/ and do {
-                        debug "-> Library semantics.\n";
-
-                        my $found = 0;
-                        foreach my $lib ( @{ $ip->libs } ) {
-                            eval { 
-                                no strict 'refs';
-                                &{$lib."::".$char}($ip, $torus);
-                            };
-                            $found++, last unless $@;
-                        }
-
-                        # Non-overloaded capitals default to reverse.
-                        $ip->dir_reverse unless $found;
-                        last switch;
-                    };
-
-
-                    # -= Errors =-
-                    # Not a regular instruction. Issue a warning & reflect.
-                    carp "$file ($x,$y): Unknown instruction '$char'.";
-                    $ip->dir_reverse;
-                }
-            }
-
-            # Check if we must reexecute the instruction.
-            if ( $kcounter > 1 ) {
-                debug "kcounter > 1: let's redo instruction...\n";
-                $kcounter--;
-                redo ip;
-            }
-
-            # Tick done for this IP, let's move it and push it in the
-            # set of non-terminated IPs.
-            debug "-> Moving IP\n";
-            $torus->move_ip_forward($ip);
-            $kcounter = 1;
-            push @new_ip, $ip;
-        }
-
-        # Copy the new ips.
-        @ip = @new_ip;
+    # Check if we must execute the instruction.
+    if ( $self->kcounter == 0 ) {
+        # We pass in this bloc if and only if the instruction
+        # has been repeated n times with a 'k' instruction.
+        $self->debug( "end of repeat instruction: moving IP\n" );
+        $self->kcounter(-1);
+        $self->move_curip;
+        push @{ $self->newips }, $ip;
+        return;
     }
 
-    # Return value...
-    return $retval;
+    # Fetch values for this IP.
+    my $x  = $ip->curx;
+    my $y  = $ip->cury;
+    my $ord  = $self->torus->get_value( $x, $y );
+    my $char = $ord < 256 ? chr($ord) : " ";
+
+    # Cosmetics.
+    $self->debug( "#".$ip->id.":($x,$y): $char (ord=$ord)  Stack=(@{$ip->toss})\n" );
+
+    # Check if we are in string-mode.
+    if ( $ip->string_mode ) {
+        if ( $char eq '"' ) {
+            # End of string-mode.
+            $self->debug( "leaving string-mode\n" );
+            $ip->string_mode(0);
+
+        } elsif ( $char eq ' ' ) {
+            # A serie of spaces, to be treated as one space.
+            $self->debug( "string-mode: pushing char ' '\n" );
+            $self->move_curip( qr/ / );
+            $ip->spush( $ord );
+
+        } else {
+            # A banal character.
+            $self->debug( "string-mode: pushing char '$char'\n" );
+            $ip->spush( $ord );                 
+        }
+
+    } else {
+        # Not in string-mode.
+        if ( exists $meths{$char} ) {
+            # Regular instruction.
+            my $meth = $meths{$char};
+            $self->$meth;
+
+        } elsif ( $char =~ /[A-Z]/ ) {
+            # Maybe a library semantics.
+            $self->debug( "library semantics\n" );
+
+            my $found = 0;
+            foreach my $lib ( @{ $ip->libs } ) {
+                # Try the loaded libraries in order.
+                eval { 
+                    no strict 'refs';
+                    &{$lib."::".$char}($self);
+                };
+                next if $@; # Uh, this wasn't the good one.
+
+                # We manage to get a library.
+                $found++;
+                $self->debug( "library semantics processed by $lib\n" );
+                last;
+            }
+
+            # Non-overloaded capitals default to reverse.
+            $ip->dir_reverse, $self->debug("no library semantics found: reversing\n") 
+              unless $found;
+
+        } else {
+            # Not a regular instruction: reflect.
+            $ip->dir_reverse;
+        }
+    }
+
+    # Check if we must reexecute the instruction.
+    if ( $char eq 'k' and not $ip->string_mode ) {
+        $self->process_ip;
+        return;
+    }
+        
+    my $kcounter = $self->kcounter;
+    if ( $kcounter > 0 ) {
+        $self->debug( "kcounter=$kcounter: let's redo instruction...\n" );
+        $self->kcounter( $kcounter-1 );
+        $self->process_ip;
+        return;
+    }
+
+    # Tick done for this IP, let's move it and push it in the
+    # set of non-terminated IPs.
+    $self->debug( "IP processed: moving it and storing it\n" );
+    $self->move_curip;
+    $self->kcounter(-1);
+    push @{ $self->newips }, $ip unless $ip->end;
 }
+
+
+=back
+
+
+
+=head1 INSTRUCTION IMPLEMENTATIONS
+
+=head2 Numbers
+
+=over 4
+
+=item op_num_push_number(  )
+
+Push the current number onto the TOSS.
+
+=cut
+sub op_num_push_number {
+    my $self = shift;
+
+    # Fetching char.
+    my $ip  = $self->curip;
+    my $num = hex( chr( $self->torus->get_value( $ip->curx, $ip->cury ) ) );
+
+    # Pushing value.
+    $ip->spush( $num );
+
+    # Cosmetics.
+    $self->debug( "pushing number '$num'\n" );
+}
+@meths{0..9} = ("op_num_push_number") x 10;
+@meths{"a".."f"} = ("op_num_push_number") x 6;
+
+=back
+
+
+
+=head2 Strings
+
+=over 4
+
+=item op_str_enter_string_mode(  )
+
+=cut
+sub op_str_enter_string_mode {
+    my $self = shift;
+
+    # Cosmetics.
+    $self->debug( "entering string mode\n" );
+
+    # Entering string-mode.
+    $self->curip->string_mode(1);
+}
+$meths{'"'} = "op_str_enter_string_mode";
+
+
+=item op_str_fetch_char(  )
+
+=cut
+sub op_str_fetch_char {
+    my $self = shift;
+    my $ip = $self->curip;
+
+    # Moving pointer...
+    $self->move_curip;
+ 
+   # .. then fetch value and push it.
+    my $ord = $self->torus->get_value( $ip->curx, $ip->cury );
+    $ip->spush( $ord );
+
+    # Cosmetics.
+    $self->debug( "pushing value $ord (char='".chr($ord)."')\n" );
+}
+$meths{"'"} = "op_str_fetch_char";
+
+
+=item op_str_store_char(  )
+
+=cut
+sub op_str_store_char {
+    my $self = shift;
+    my $ip = $self->curip;
+
+    # Moving pointer.
+    $self->move_curip;
+
+    # Fetching value.
+    my $val = $ip->spop;
+
+    # Storing value.
+    $self->torus->set_value( $ip->curx, $ip->cury, $val );
+
+    # Cosmetics.
+    $self->debug( "storing value $val (char='".chr($val)."')\n" );
+}
+$meths{'s'} = "op_str_store_char";
+
+=back
+
+
+
+=head2 Mathematical operations
+
+=over 4
+
+=item op_math_addition(  )
+
+=cut
+sub op_math_addition {
+    my $self = shift;
+    my $ip = $self->curip;
+
+    # Fetching values.
+    my $v2 = $ip->spop;
+    my $v1 = $ip->spop;
+    $self->debug( "adding: $v1+$v2\n" );
+    my $res = $v1 + $v2;
+
+    # Checking over/underflow.
+    $res > 2**31-1 and $self->abort( "program overflow while performing addition" );
+    $res < -2**31  and $self->abort( "program underflow while performing addition" );
+
+    # Pushing value.
+    $ip->spush( $res );
+}
+$meths{'+'} = "op_math_addition";
+
+
+=item op_math_substraction(  )
+
+=cut
+sub op_math_substraction {
+    my $self = shift;
+    my $ip = $self->curip;
+
+    # Fetching values.
+    my $v2 = $ip->spop;
+    my $v1 = $ip->spop;
+    $self->debug( "substracting: $v1-$v2\n" );
+    my $res = $v1 - $v2;
+
+    # checking over/underflow.
+    $res > 2**31-1 and $self->abort( "program overflow while performing substraction" );
+    $res < -2**31  and $self->abort( "program underflow while performing substraction" );
+
+    # Pushing value.
+    $ip->spush( $res );
+}
+$meths{'-'} = "op_math_substraction";
+
+
+=item op_math_multiplication(  )
+
+=cut
+sub op_math_multiplication {
+    my $self = shift;
+    my $ip = $self->curip;
+
+    # Fetching values.
+    my $v2 = $ip->spop;
+    my $v1 = $ip->spop;
+    $self->debug( "multiplicating: $v1*$v2\n" );
+    my $res = $v1 * $v2;
+
+    # checking over/underflow.
+    $res > 2**31-1 and $self->abort( "program overflow while performing multiplication" );
+    $res < -2**31  and $self->abort( "program underflow while performing multiplication" );
+
+    # Pushing value.
+    $ip->spush( $res );
+}
+$meths{'*'} = "op_math_multiplication";
+
+
+=item op_math_division(  )
+
+=cut
+sub op_math_division {
+    my $self = shift;
+    my $ip = $self->curip;
+
+    # Fetching values.
+    my $v2 = $ip->spop;
+    my $v1 = $ip->spop;
+    $self->debug( "dividing: $v1/$v2\n" );
+    my $res = $v2 == 0 ? 0 : int($v1 / $v2);
+
+    # Can't do over/underflow with integer division.
+
+    # Pushing value.
+    $ip->spush( $res );
+}
+$meths{'/'} = "op_math_division";
+
+
+=item op_math_remainder(  )
+
+=cut
+sub op_math_remainder {
+    my $self = shift;
+    my $ip = $self->curip;
+
+    # Fetching values.
+    my $v2 = $ip->spop;
+    my $v1 = $ip->spop;
+    $self->debug( "remainder: $v1%$v2\n" );
+    my $res = $v2 == 0 ? 0 : int($v1 % $v2);
+
+    # Can't do over/underflow with integer remainder.
+
+    # Pushing value.
+    $ip->spush( $res );
+}
+$meths{'%'} = "op_math_remainder";
+
+=back
+
+
+
+=head2 Direction changing
+
+=over 4
+
+=item op_dir_go_east(  )
+
+=cut
+sub op_dir_go_east {
+    my $self = shift;
+    $self->debug( "going east\n" );
+    $self->curip->dir_go_east;
+}
+$meths{'>'} = "op_dir_go_east";
+
+
+=item op_dir_go_west(  )
+
+=cut
+sub op_dir_go_west {
+    my $self = shift;
+    $self->debug( "going west\n" );
+    $self->curip->dir_go_west;
+}
+$meths{'<'} = "op_dir_go_west";
+
+
+=item op_dir_go_north(  )
+
+=cut
+sub op_dir_go_north {
+    my $self = shift;
+    $self->debug( "going north\n" );
+    $self->curip->dir_go_north;
+}
+$meths{'^'} = "op_dir_go_north";
+
+
+=item op_dir_go_south(  )
+
+=cut
+sub op_dir_go_south {
+    my $self = shift;
+    $self->debug( "going south\n" );
+    $self->curip->dir_go_south;
+}
+$meths{'v'} = "op_dir_go_south";
+
+
+=item op_dir_go_away(  )
+
+=cut
+sub op_dir_go_away {
+    my $self = shift;
+    $self->debug( "going away!\n" );
+    $self->curip->dir_go_away;
+}
+$meths{'?'} = "op_dir_go_away";
+
+
+=item op_dir_turn_left(  )
+
+Turning left, like a car (the specs speak about a bicycle, but perl
+is _so_ fast that we can speak about cars ;) ).
+
+=cut
+sub op_dir_turn_left {
+    my $self = shift;
+    $self->debug( "turning on the left\n" );
+    $self->curip->dir_turn_left;
+}
+$meths{'['} = "op_dir_turn_left";
+
+
+=item op_dir_turn_right(  )
+
+Turning right, like a car (the specs speak about a bicycle, but perl
+is _so_ fast that we can speak about cars ;) ).
+
+=cut
+sub op_dir_turn_right {
+    my $self = shift;
+    $self->debug( "turning on the right\n" );
+    $self->curip->dir_turn_right;
+}
+$meths{']'} = "op_dir_turn_right";
+
+
+=item op_dir_reverse(  )
+
+=cut
+sub op_dir_reverse {
+    my $self = shift;
+    $self->debug( "180 deg!\n" );
+    $self->curip->dir_reverse;
+}
+$meths{'r'} = "op_dir_reverse";
+
+
+=item op_dir_set_delta(  )
+
+Hmm, the user seems to know where he wants to go. Let's trust him/her.
+
+=cut
+sub op_dir_set_delta {
+    my $self = shift;
+    my $ip = $self->curip;
+    my $new_dy = $ip->spop;
+    my $new_dx = $ip->spop;
+    $self->debug( "setting delta to ($new_dx, $new_dy)\n" );
+    $ip->set_delta( $new_dx, $new_dy );
+}
+$meths{'x'} = "op_dir_set_delta";
+
+=back
+
+
+
+=head2 Decision making
+
+=over 4
+
+=item op_decis_neg(  )
+
+=cut
+sub op_decis_neg {
+    my $self = shift;
+    my $ip = $self->curip;
+
+    # Fetching value.
+    my $val = $ip->spop ? 0 : 1;
+    $ip->spush( $val );
+
+    $self->debug( "logical not: pushing $val\n" );
+}
+$meths{'!'} = "op_decis_neg";
+
+
+=item op_decis_gt(  )
+
+=cut
+sub op_decis_gt {
+    my $self = shift;
+    my $ip = $self->curip;
+
+    # Fetching values.
+    my $v2 = $ip->spop;
+    my $v1 = $ip->spop;
+    $self->debug( "comparing $v1 vs $v2\n" );
+    $ip->spush( ($v1 > $v2) ? 1 : 0 );
+}
+$meths{'`'} = "op_decis_gt";
+
+
+=item op_decis_horiz_if(  )
+
+=cut
+sub op_decis_horiz_if {
+    my $self = shift;
+    my $ip = $self->curip;
+
+$self->debug("FOO\n");
+    # Fetching value.
+    my $val = $ip->spop;
+    $val ? $ip->dir_go_west : $ip->dir_go_east;
+    $self->debug( "horizontal if: going " . $val ? "west\n" : "east\n" );
+}
+$meths{'_'} = "op_decis_horiz_if";
+
+
+=item op_decis_vert_if(  )
+
+=cut
+sub op_decis_vert_if {
+    my $self = shift;
+    my $ip = $self->curip;
+
+    # Fetching value.
+    my $val = $ip->spop;
+    $val ? $ip->dir_go_north : $ip->dir_go_south;
+    $self->debug( "vertical if: going " . $val ? "north\n" : "south\n" );
+}
+$meths{'|'} = "op_decis_vert_if";
+
+
+=item op_decis_cmp(  )
+
+=cut
+sub op_decis_cmp {
+    my $self = shift;
+    my $ip = $self->curip;
+
+    # Fetching value.
+    my $v2 = $ip->spop;
+    my $v1 = $ip->spop;
+    $self->debug( "comparing $v1 with $v2: straight forward!\n"), return if $v1 == $v2;
+
+    $v1 < $v2 ? $ip->dir_turn_left : $ip->dir_turn_right;
+    $self->debug( "comparing $v1 with $v2: turning:" . ($v1 < $v2) ? "left\n" : "right\n" );
+}
+$meths{'w'} = "op_decis_cmp";
+
+=back
+
+
+
+=head2 Flow control
+
+=over 4
+
+=item op_flow_space(  )
+
+A serie of spaces is to be treated as B<one> NO-OP.
+
+=cut
+sub op_flow_space {
+    my $self = shift;
+    $self->move_curip( qr/ / );
+    $self->debug( "slurping serie of spaces\n" );
+}
+$meths{' '} = "op_flow_space";
+
+
+=item op_flow_no_op(  )
+
+=cut
+sub op_flow_no_op {
+    my $self = shift;
+    $self->debug( "no-op\n" );
+}
+$meths{'z'} = "op_flow_no_op";
+
+
+=item op_flow_comments(  )
+
+Bypass comments in one tick.
+
+=cut
+sub op_flow_comments {
+    my $self = shift;
+    $self->move_curip;
+    $self->move_curip( qr/[^;]/ );
+    $self->move_curip;
+    $self->debug( "skipping comments\n" );
+}
+$meths{';'} = "op_flow_comments";
+
+
+=item op_flow_trampoline(  )
+
+=cut
+sub op_flow_trampoline {
+    my $self = shift;
+    $self->move_curip;
+    $self->debug( "trampoline! (skipping next instruction)\n" );
+}
+$meths{'#'} = "op_flow_trampoline";
+
+
+=item op_flow_jump_to(  )
+
+=cut
+sub op_flow_jump_to {
+    my $self = shift;
+    my $ip = $self->curip;
+    my $count = $ip->spop;
+    $self->debug( "skipping $count instructions\n" );
+    $count == 0 and return;
+    $count < 0  and $ip->dir_reverse; # We can move backward.
+    $self->move_curip for (1..abs($count));
+    $count < 0  and $self->move_curip, $ip->dir_reverse;
+}
+$meths{'j'} = "op_flow_jump_to";
+
+
+=item op_flow_repeat(  )
+
+=cut
+sub op_flow_repeat {
+    my $self = shift;
+    my $ip = $self->curip;
+
+    my $kcounter = $ip->spop;
+    $self->kcounter( $kcounter );
+    $self->debug( "repeating next instruction $kcounter times.\n" );
+    $self->move_curip;
+
+    # Nothing to repeat.
+    $kcounter == 0 and return;
+
+    # Ooops, error.
+    $kcounter < 0 and $self->abort( "Attempt to repeat ('k') a negative number of times ($kcounter)" );
+
+    # Fetch instruction to repeat.
+    my $val = $self->torus->get_value( $ip->curx, $ip->cury );
+
+    # Check if we can repeat the instruction.
+    $val > 0 and $val < 256 and chr($val) =~ /([ ;])/ and
+      $self->abort( "Attempt to repeat ('k') a forbidden instruction ('$1')" );
+    $val > 0 and $val < 256 and chr($val) eq "k" and
+      $self->abort( "Attempt to repeat ('k') a repeat instruction ('k')" );
+}
+$meths{'k'} = "op_flow_repeat";
+
+
+=item op_flow_kill_thread(  )
+
+=cut
+sub op_flow_kill_thread {
+    my $self = shift;
+    $self->debug( "end of Instruction Pointer\n" );
+    $self->curip->end(1);
+}
+$meths{'@'} = "op_flow_kill_thread";
+
+
+=item op_flow_quit(  )
+
+=cut
+sub op_flow_quit {
+    my $self = shift;
+    $self->debug( "end program\n" );
+    $self->newips( [] );
+    $self->ips( [] );
+    $self->curip->end(1);
+    $self->retval( $self->curip->spop );
+}
+$meths{'q'} = "op_flow_quit";
+
+=back
+
+
+
+=head2 Stack manipulation
+
+=over 4
+
+=item op_stack_pop(  )
+
+=cut
+sub op_stack_pop {
+    my $self = shift;
+    $self->debug( "popping a value\n" );
+    $self->curip->spop;
+}
+$meths{'$'} = "op_stack_pop";
+
+
+=item op_stack_duplicate(  )
+
+=cut
+sub op_stack_duplicate {
+    my $self = shift;
+    my $ip = $self->curip;
+    my $value = $ip->spop;
+    $self->debug( "duplicating value '$value'\n" );
+    $ip->spush( $value );
+    $ip->spush( $value );
+}
+$meths{':'} = "op_stack_duplicate";
+
+
+=item op_stack_swap(  )
+
+=cut
+sub op_stack_swap {
+    my $self = shift;
+    my $ ip = $self->curip;
+    my $v2 = $ip->spop;
+    my $v1 = $ip->spop;
+    $self->debug( "swapping $v1 and $v2\n" );
+    $ip->spush( $v2 );
+    $ip->spush( $v1 );
+}
+$meths{'\\'} = "op_stack_swap";
+
+
+=item op_stack_clear(  )
+
+=cut
+sub op_stack_clear {
+    my $self = shift;
+    $self->debug( "clearing stack\n" );
+    $self->curip->sclear;
+}
+$meths{'n'} = "op_stack_clear";
+
+=back
+
+
+
+=head2 Stack stack manipulation
+
+=over 4
+
+=item op_block_open(  )
+
+=cut
+sub op_block_open {
+    my $self = shift;
+    my $ip = $self->curip;
+    $self->debug( "block opening\n" );
+
+    # Create new TOSS.
+    $ip->ss_create( $ip->spop );
+
+    # Store current storage offset on SOSS.
+    $ip->soss_push( $ip->storx );
+    $ip->soss_push( $ip->story );
+
+    # Set the new Storage Offset.
+    $self->move_curip;
+    $ip->storx( $ip->curx );
+    $ip->story( $ip->cury );
+    $ip->dir_reverse;
+    $self->move_curip;
+    $ip->dir_reverse;
+}
+$meths{'{'} = "op_block_open";
+
+
+=item op_block_close(  )
+
+=cut
+sub op_block_close {
+    my $self = shift;
+    my $ip = $self->curip;
+
+    # No opened block.
+    $ip->ss_count <= 0 and $ip->dir_reverse, $self->debug("no opened block\n"), return;
+
+    $self->debug( "block closing\n" );
+
+    # Restore Storage offset.
+    $ip->story( $ip->soss_pop );
+    $ip->storx( $ip->soss_pop );
+
+    # Remove the TOSS.
+    $ip->ss_remove( $ip->spop );
+}
+$meths{'}'} = "op_block_close";
+
+
+=item op_bloc_transfer(  )
+
+=cut
+sub op_bloc_transfer {
+    my $self = shift;
+    my $ip = $self->curip;
+
+    $ip->ss_count <= 0 and $ip->dir_reverse, $self->debug("no SOSS available\n"), return;
+
+    # Transfering values.
+    $self->debug( "transfering values\n" );
+    $ip->ss_transfer( $ip->spop );
+}
+$meths{'u'} = "op_bloc_transfer";
+
+=back
+
+
+
+=head2 Funge-space storage
+
+=over 4
+
+=item op_store_get(  )
+
+=cut
+sub op_store_get {
+    my $self = shift;
+    my $ip = $self->curip;
+
+    # Fetching coordinates.
+    my $y = $ip->spop + $ip->story;
+    my $x = $ip->spop + $ip->storx;
+
+    # Fetching char.
+    my $val = $self->torus->get_value( $x, $y );
+    $ip->spush( $val );
+
+    $self->debug( "fetching value at ($x,$y): pushing $val\n" );
+}
+$meths{'g'} = "op_store_get";
+
+
+=item op_store_put(  )
+
+=cut
+sub op_store_put {
+    my $self = shift;
+    my $ip = $self->curip;
+
+    # Fetching coordinates.
+    my $y = $ip->spop + $ip->story;
+    my $x = $ip->spop + $ip->storx;
+
+    # Fetching char.
+    my $val = $ip->spop;
+    $self->torus->set_value( $x, $y, $val );
+
+    $self->debug( "storing value $val at ($x,$y)\n" );
+}
+$meths{'p'} = "op_store_put";
+
+=back
+
+
+
+=head2 Standard Input/Output
+
+=over 4
+
+=item op_stdio_out_num(  )
+
+=cut
+sub op_stdio_out_num {
+    my $self = shift;
+    my $ip = $self->curip;
+
+    # Fetch value and print it.
+    my $val = $ip->spop;
+    $self->debug( "numeric output: $val\n");
+    print( "$val " ) or $ip->dir_reverse;
+}
+$meths{'.'} = "op_stdio_out_num";
+
+
+=item op_stdio_out_ascii(  )
+
+=cut
+sub op_stdio_out_ascii {
+    my $self = shift;
+    my $ip = $self->curip;
+
+    # Fetch value and print it.
+    my $val = $ip->spop;
+    my $chr = chr $val;
+    $self->debug( "ascii output: '$chr' (ord=$val)\n");
+    print( $chr ) or $ip->dir_reverse;
+}
+$meths{','} = "op_stdio_out_ascii";
+
+
+=item op_stdio_in_num(  )
+
+=cut
+sub op_stdio_in_num {
+    my $self = shift;
+    my $in = <STDIN>;
+    if ( $in =~ /(-?\d+)/ ) {
+        $in = $1;
+        $in < -2**31  and $in = -2**31;
+        $in > 2**31-1 and $in = 2**31-1;
+    } else {
+        $in = 0;
+    }
+    $self->curip->spush( $in );
+    $self->debug( "numeric input: pushing $in\n" ); 
+}
+$meths{'&'} = "op_stdio_in_num";
+
+
+=item op_stdio_in_ascii(  )
+
+=cut
+sub op_stdio_in_ascii {
+    my $self = shift;
+    my $ip = $self->curip;
+    my $in = $ip->input || <STDIN>;
+    my $chr = substr $in, 0, 1, "";
+    my $ord = ord $chr;
+    $ip->spush( $ord );
+    $ip->input( $in );
+    $self->debug( "ascii input: pushing '$chr' (ord=$ord)\n" ); 
+}
+$meths{'~'} = "op_stdio_in_ascii";
+
+
+=item op_stdio_in_file(  )
+
+=cut
+sub op_stdio_in_file {
+    my $self = shift;
+    my $ip = $self->curip;
+
+    # Fetch arguments.
+    my $path = $ip->spop_gnirts;
+    my $flag = $ip->spop; # unused in this interpreter.
+    my $yin = $ip->spop + $ip->story;
+    my $xin = $ip->spop + $ip->storx;
+
+    # Read file.
+    $self->debug( "input file '$path' at ($xin,$yin)\n" );
+    open F, "<", $path or $ip->dir_reverse, return;
+    my $lines;
+    {
+        local $/; # slurp mode.
+        $lines = <F>;
+    }
+    close F or $ip->dir_reverse, return;
+
+    # Store the code and the result vector.
+    my ($wid, $hei) = $self->torus->store( $lines, $xin, $yin );
+    $ip->spush( $wid, $hei, $xin, $yin );
+}
+$meths{'i'} = "op_stdio_in_file";
+
+
+=item op_stdio_out_file(  )
+
+=cut
+sub op_stdio_out_file {
+    my $self = shift;
+    my $ip = $self->curip;
+
+    # Fetch arguments.
+    my $path = $ip->spop_gnirts;
+    my $flag = $ip->spop;
+    my $yin = $ip->spop + $ip->story;
+    my $xin = $ip->spop + $ip->storx;
+    my $hei = $ip->spop;
+    my $wid = $ip->spop;
+    my $data = $self->torus->rectangle( $xin, $yin, $wid, $hei );
+
+    # Cosmetics.
+    my $x2 = $xin + $wid;
+    my $y2 = $yin + $hei;
+    $self->debug( "output ($xin,$yin)-($x2,$y2) to '$path'\n" );
+
+    # Treat the data chunk as text file?
+    if ( $flag & 0x1 ) {
+        $data =~ s/ +$//mg;    # blank lines are now void.
+        $data =~ s/\n+\z/\n/;  # final blank lines are stripped.
+    }
+
+    # Write file.
+    open F, ">", $path or $ip->dir_reverse, return;
+    print F $data;
+    close F or $ip->dir_reverse, return;
+}
+$meths{'o'} = "op_stdio_out_file";
+
+
+=item op_stdio_sys_exec(  )
+
+=cut
+sub op_stdio_sys_exec {
+    my $self = shift;
+    my $ip = $self->curip;
+    
+    # Fetching command.
+    my $path = $ip->spop_gnirts;
+    $self->debug( "spawning external command: $path\n" );
+    system( $path );
+    $ip->spush( $? == -1 ? -1 : $? >> 8 );
+}
+$meths{'='} = "op_stdio_sys_exec";
+
+=back
+
+
+
+=head2 System info retrieval
+
+=over 4
+
+=item op_sys_info(  )
+
+=cut
+sub op_sys_info {
+    my $self = shift;
+    my $ip    = $self->curip;
+    my $torus = $self->torus;
+
+    my $val = $ip->spop;
+    my @cells = ();
+
+    # 1. flags
+    push @cells, 0x01  # 't' is implemented.
+              |  0x02  # 'i' is implemented.
+              |  0x04  # 'o' is implemented.
+              |  0x08  # '=' is implemented.
+              | !0x10; # buffered IO (non getch).
+
+    # 2. number of bytes per cell.
+    # 32 bytes Funge: 4 bytes.
+    push @cells, 4; 
+
+    # 3. implementation handprint.
+    my @hand = reverse map { ord } split //, $HANDPRINT.chr(0);
+    push @cells, \@hand;
+
+    # 4. version number.
+    my $ver = $VERSION;
+    $ver =~ s/\D//g;
+    push @cells, $ver;
+
+    # 5. ID code for Operating Paradigm.
+    push @cells, 1;             # C-language system() call behaviour.
+
+    # 6. Path separator character.
+    push @cells, ord( $Config{path_sep} );
+
+    # 7. Number of dimensions.
+    push @cells, 2;
+
+    # 8. Unique IP number.
+    push @cells, $ip->id;
+
+    # 9. Concurrent Funge (not implemented).
+    push @cells, 0;
+
+    # 10. Position of the curent IP.
+    my @pos = ( $ip->curx, $ip->cury );
+    push @cells, \@pos;
+
+    # 11. Delta of the curent IP.
+    my @delta = ( $ip->dx, $ip->dy );
+    push @cells, \@delta;
+
+    # 12. Storage offset of the curent IP.
+    my @stor = ( $ip->storx, $ip->story );
+    push @cells, \@stor;
+
+    # 13. Top-left point.
+    my @topleft = ( $torus->xmin, $torus->ymin );
+    push @cells, \@topleft;
+
+    # 14. Dims of the torus.
+    my @dims = ( $torus->xmax - $torus->xmin + 1,
+                 $torus->ymax - $torus->ymin + 1 );
+    push @cells, \@dims;
+
+    # 15/16. Current date/time.
+    my ($s,$m,$h,$dd,$mm,$yy)=localtime;
+    push @cells, $yy*256*256 + $mm*256 + $dd;
+    push @cells, $h*256*256 + $m*256 + $s;
+
+    # 17. Size of stack stack.
+    push @cells, $ip->ss_count + 1;
+
+    # 18. Size of each stack in the stack stack.
+    # !!FIXME!! Funge specs just tell to push onto the
+    # stack the size of the stacks, but nothing is
+    # said about how user will retrieve the number of
+    # stacks.
+    my @sizes = reverse $ip->ss_sizes;
+    push @cells, \@sizes;
+                    
+    # 19. $file + @ARGV.
+    # !!FIXME!! This may not be accurate, since this
+    # is a module and the main perl application may
+    # have already processed the command line.
+    my $str = join chr(0), $self->file, @ARGV, chr(0);
+    my @cmdline = reverse map { ord } split //, $str;
+    push @cells, \@cmdline;
+                    
+    # 20. %ENV
+    # 00EULAV=EMAN0EULAV=EMAN
+    $str = "";
+    $str .= "$_=$ENV{$_}".chr(0) foreach sort keys %ENV;
+    $str .= chr(0);
+    my @env = reverse map { ord } split //, $str;
+    push @cells, \@env;
+
+    # Okay, what to do with those cells.
+    if ( $val <= 0 ) {
+        # Blindly push them onto the stack.
+        $self->debug( "system info: pushing the whole stuff\n" );
+        foreach my $cell ( reverse @cells ) {
+            $ip->spush( ref( $cell ) eq "ARRAY" ?
+                        @$cell : $cell );
+        }
+
+    } elsif ( $val <= 20 ) {
+        # Only push the wanted value.
+        $self->debug( "system info: pushing the ${val}th value\n" );
+        $ip->spush( ref( $cells[$val-1] ) eq "ARRAY" ?
+                    @{ $cells[$val-1] } : $cells[$val-1] );
+
+    } else {
+        # Pick a given value in the stack and push it.
+        my $offset = $val - 20;
+        my $value  = $ip->svalue($offset);
+        $self->debug( "system info: picking the ${offset}th value from the stack = $value\n" );
+        $ip->spush( $value );
+    }
+}
+$meths{'y'} = "op_sys_info";
+
+=back
+
+
+
+=head2 Concurrent Funge
+
+=over 4
+
+=item op_spawn_ip(  )
+
+=cut
+sub op_spawn_ip {
+    my $self = shift;
+
+    # Cosmetics.
+    $self->debug( "spawning new IP\n" );
+
+    # Cloning and storing new IP.
+    my $newip = $self->curip->clone;
+    $newip->dir_reverse;
+    $self->torus->move_ip_forward($newip);
+    push @{ $self->newips }, $newip;
+}
+$meths{'t'} = "op_spawn_ip";
+
+=back
+
+
+
+=head2 Library semantics
+
+=over 4
+
+=item op_lib_load(  )
+
+=cut
+sub op_lib_load {
+    my $self = shift;
+    my $ip = $self->curip;
+
+    # Fetching fingerprint.
+    my $count = $ip->spop;
+    my $fgrprt = 0;
+    while ( $count-- > 0 ) {
+        my $val = $ip->spop;
+        $self->abort( "Attempt to build a fingerprint with a negative number" )
+          if $val < 0;
+        $fgrprt = $fgrprt * 256 + $val;
+    }
+
+    # Transform the fingerprint into a library name.
+    my $lib = "";
+    my $finger = $fgrprt;
+    while ( $finger > 0 ) {
+        my $c = $finger % 0x100;
+        $lib .= chr($c);
+        $finger = int ( $finger / 0x100 );
+    }
+    $lib = __PACKAGE__ . "::lib::" . reverse $lib;
+
+    # Checking if library exists.
+    eval "require $lib";
+    if ( $@ ) {
+        $self->debug( sprintf("unknown extension $lib (0x%x): reversing\n", $fgrprt) );
+        $ip->dir_reverse;
+    } else {
+        $self->debug( sprintf("extension $lib (0x%x) loaded\n", $fgrprt) );
+        $ip->load( $lib );
+        $ip->spush( $fgrprt, 1 );
+    }
+}
+$meths{'('} = "op_lib_load";
+
+
+=item op_lib_unload(  )
+
+=cut
+sub op_lib_unload {
+    my $self = shift;
+    my $ip = $self->curip;
+
+    # Fetching fingerprint.
+    my $count = $ip->spop;
+    my $fgrprt = 0;
+    while ( $count-- > 0 ) {
+        my $val = $ip->spop;
+        $self->abort( "Attempt to build a fingerprint with a negative number" )
+          if $val < 0;
+        $fgrprt = $fgrprt * 256 + $val;
+    }
+
+    # Transform the fingerprint into a library name.
+    my $lib = "";
+    my $finger = $fgrprt;
+    while ( $finger > 0 ) {
+        my $c = $finger % 0x100;
+        $lib .= chr($c);
+        $finger = int ( $finger / 0x100 );
+    }
+    $lib = __PACKAGE__ . "::lib::" . reverse $lib;
+
+    # Unload the library.
+    if ( defined( $ip->unload($lib) ) ) {
+        $self->debug( sprintf("unloading library $lib (0x%x)\n", $fgrprt) );
+    } else {
+        # The library wasn't loaded.
+        $self->debug( sprintf("library $lib (0x%x) wasn't loaded\n", $fgrprt) );
+        $ip->dir_reverse;
+    }
+}
+$meths{')'} = "op_lib_unload";
+
+=back
+
+=cut
 
 
 1;
@@ -923,15 +1592,6 @@ __END__
 =head1 TODO
 
 =over 4
-
-=item o
-
-Maybe rewrite the core loop in order to take benefits of the
-hash mechanism instead of a giant switch tester.
-
-=item o
-
-Check all the module docs.
 
 =item o
 

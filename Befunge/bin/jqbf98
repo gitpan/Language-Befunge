@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 #
-# $Id$
+# $Id: jqbf98,v 1.1 2002/04/14 13:53:35 jquelin Exp $
 #
 # Copyright (c) 2002 Jerome Quelin <jquelin@cpan.org>
 # All rights reserved.
@@ -29,8 +29,8 @@ Just provide the name of the Befunge script, and there you go!
 
 =cut
 
-read_file( shift );
-exit run_code;
+my $bef = new Language::Befunge( shift );
+exit $bef->run_code;
 
 __END__
 

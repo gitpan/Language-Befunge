@@ -1,4 +1,4 @@
-# $Id: HELO.pm,v 1.1 2002/04/13 09:37:51 jquelin Exp $
+# $Id: HELO.pm,v 1.2 2002/04/14 13:14:16 jquelin Exp $
 #
 # Copyright (c) 2002 Jerome Quelin <jquelin@cpan.org>
 # All rights reserved.
@@ -47,8 +47,8 @@ Store the gnirts "Hello world!\n"0 on the TOSS.
 
 =cut
 sub S {
-    my $ip = shift;
-    $ip->spush( reverse map { ord } split //, "Hello world!\n".chr(0) );
+    my $interp = shift;
+    $interp->curip->spush( reverse map { ord } split //, "Hello world!\n".chr(0) );
 }
 
 

@@ -1,5 +1,5 @@
 #-*- cperl -*-
-# $Id: 10stdio.t,v 1.6 2002/04/11 17:32:28 jquelin Exp $
+# $Id: 10stdio.t,v 1.7 2002/04/14 12:16:48 jquelin Exp $
 #
 
 #----------------------------------#
@@ -17,7 +17,7 @@ my $fh;
 my $tests;
 my $out;
 my $slurp;
-
+my $bef = new Language::Befunge;
 BEGIN { $tests = 0 };
 
 # In order to see what happens...
@@ -42,20 +42,20 @@ sub slurp () {
 
 # Ascii output.
 sel;
-store_code( <<'END_OF_CODE' );
+$bef->store_code( <<'END_OF_CODE' );
 ff+7+,q
 END_OF_CODE
-run_code;
+$bef->run_code;
 $out = slurp;
 ok( $out, "%" );
 BEGIN { $tests += 1 };
 
 # Number output.
 sel;
-store_code( <<'END_OF_CODE' );
+$bef->store_code( <<'END_OF_CODE' );
 f.q
 END_OF_CODE
-run_code;
+$bef->run_code;
 $out = slurp;
 ok( $out, "15 " );
 BEGIN { $tests += 1 };
@@ -65,16 +65,16 @@ BEGIN { $tests += 1 };
 
 # File input.
 sel; # unknown file.
-store_code( <<'END_OF_CODE' );
+$bef->store_code( <<'END_OF_CODE' );
 v q.2 i v# "/dev/a_file_that_probably_does_not_exist"0 <
 >                 ;vector; 3 6   ;flag; 0              ^
         > 1.q
 END_OF_CODE
-run_code;
+$bef->run_code;
 $out = slurp;
 ok( $out, "1 " );
 sel; # existant file.
-store_code( <<'END_OF_CODE' );
+$bef->store_code( <<'END_OF_CODE' );
 v v i "t/hello.bf"0           <
 >     ;vector; 3 6  ;flag; 0  ^
   .
@@ -83,7 +83,7 @@ v v i "t/hello.bf"0           <
   .
   >
 END_OF_CODE
-run_code;
+$bef->run_code;
 $out = slurp;
 ok( $out, "6 3 2 35 hello world!\n" );
 BEGIN { $tests += 2 };
@@ -91,23 +91,23 @@ BEGIN { $tests += 2 };
 
 # File output.
 sel; # unknown file.
-store_code( <<'END_OF_CODE' );
+$bef->store_code( <<'END_OF_CODE' );
 v q.2 o v# "/ved/a_file_that_probably_does_not_exist"0 <
 >          ;size; 4 5   ;offset; 7 8       ;flag; 0    ^
     q.1 <
 END_OF_CODE
-run_code;
+$bef->run_code;
 $out = slurp;
 ok( $out, "1 " );
 sel; # valid file.
-store_code( <<'END_OF_CODE' );
+$bef->store_code( <<'END_OF_CODE' );
 v q o "t/foo.txt"0  0 ;flag;     <
 >     ;size; 4 4   ;offset; 3 2  ^
    foo!
 
    ;-)
 END_OF_CODE
-run_code;
+$bef->run_code;
 $out = slurp;
 ok( $out, "" );
 open FOO, "<t/foo.txt" or die $!;
@@ -118,14 +118,14 @@ open FOO, "<t/foo.txt" or die $!;
 ok( $slurp, "foo!\n    \n;-) \n    \n" );
 unlink "t/foo.txt";
 sel; # flag: text file.
-store_code( <<'END_OF_CODE' );
+$bef->store_code( <<'END_OF_CODE' );
 v q o "t/foo.txt"0  1 ;flag;     <
 >     ;size; 4 4   ;offset; 3 2  ^
    foo!
 
    ;-)
 END_OF_CODE
-run_code;
+$bef->run_code;
 $out = slurp;
 ok( $out, "" );
 open FOO, "<t/foo.txt" or die $!;

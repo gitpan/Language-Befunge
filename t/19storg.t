@@ -1,5 +1,5 @@
 #-*- cperl -*-
-# $Id: 19storg.t,v 1.1 2002/04/11 16:31:00 jquelin Exp $
+# $Id: 19storg.t,v 1.2 2002/04/14 13:08:53 jquelin Exp $
 #
 
 #---------------------------------------#
@@ -16,7 +16,7 @@ my $file;
 my $fh;
 my $tests;
 my $out;
-
+my $bef = new Language::Befunge;
 BEGIN { $tests = 0 };
 
 # In order to see what happens...
@@ -41,55 +41,55 @@ sub slurp () {
 
 # put instruction.
 sel; # New storage offset.
-store_code( <<'END_OF_CODE' );
+$bef->store_code( <<'END_OF_CODE' );
 0      {  01+a*1+a*8+ 11p v
     q.2                   <
          >  1.q  
 END_OF_CODE
-run_code;
+$bef->run_code;
 $out = slurp;
 ok( $out, "1 " );
 sel; # Retrieving old storage offset.
-store_code( <<'END_OF_CODE' );
+$bef->store_code( <<'END_OF_CODE' );
 0      { 22+ 0 } 01+a*1+a*8+ 61p v
  q.2                             <
       >  1.q  
 END_OF_CODE
-run_code;
+$bef->run_code;
 $out = slurp;
 ok( $out, "1 " );
 BEGIN { $tests += 2 };
 
 # get instruction.
 sel; # New storage offset.
-store_code( <<'END_OF_CODE' );
+$bef->store_code( <<'END_OF_CODE' );
 0  ;blah;{  04-0g ,q
 END_OF_CODE
-run_code;
+$bef->run_code;
 $out = slurp;
 ok( $out, "a" );
 sel; # Retrieving old storage offset.
-store_code( <<'END_OF_CODE' );
+$bef->store_code( <<'END_OF_CODE' );
 0  ;blah;  { 22+ 0 } 40g ,q
 END_OF_CODE
-run_code;
+$bef->run_code;
 $out = slurp;
 ok( $out, "b" );
 BEGIN { $tests += 2 };
 
 # Medley.
 sel; # Positive values.
-store_code( <<'END_OF_CODE' );
+$bef->store_code( <<'END_OF_CODE' );
 0  'G14p . 14g ,q
 END_OF_CODE
-run_code;
+$bef->run_code;
 $out = slurp;
 ok( $out, "0 G" );
 sel; # Negative values.
-store_code( <<'END_OF_CODE' );
+$bef->store_code( <<'END_OF_CODE' );
 0  'f01-04- p . 01-04-g ,q
 END_OF_CODE
-run_code;
+$bef->run_code;
 $out = slurp;
 ok( $out, "0 f" );
 BEGIN { $tests += 2 };

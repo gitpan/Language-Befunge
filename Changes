@@ -1,5 +1,9 @@
 Revision history for Perl extension Language::Befunge.
 
+0.30 Sun Apr 14 15:53:19 CEST 2002
+        - Befunge.pm now has an Object Oriented interface.
+        - rewriting tests to take the new interface into account.
+
 0.20 Sat Apr 13 13:08:17 CEST 2002
         - Befunge.pm modified to understand libraries semantics:
           parens (to load/unload) and capital letters.

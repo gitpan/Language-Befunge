@@ -1,5 +1,5 @@
 #-*- cperl -*-
-# $Id: 02befunge.t,v 1.5 2002/04/11 12:49:26 jquelin Exp $
+# $Id: 02befunge.t,v 1.7 2002/04/14 13:21:08 jquelin Exp $
 #
 
 #-----------------------------------#
@@ -12,11 +12,10 @@ use POSIX qw! tmpnam !;
 use Test;
 
 # Vars.
-my $file;
-my $fh;
+my ($file, $fh);
 my $tests;
 my $out;
-
+my $bef = new Language::Befunge;
 BEGIN { $tests = 0 };
 
 # In order to see what happens...
@@ -39,25 +38,34 @@ sub slurp () {
     return $content;
 }
 
-# Basic reading.
+# Basic constructor.
 sel;
-read_file( "t/q.bf" );
-run_code;
+$bef = new Language::Befunge( "t/q.bf" );
+$bef->run_code;
+$out = slurp;
+ok( $out, "" );
+BEGIN { $tests += 1 };
+
+# Basic reading.
+$bef = new Language::Befunge;
+sel;
+$bef->read_file( "t/q.bf" );
+$bef->run_code;
 $out = slurp;
 ok( $out, "" );
 BEGIN { $tests += 1 };
 
 # Reading a non existent file.
-eval { read_file( "/dev/a_file_that_is_not_likely_to_exist" ); };
+eval { $bef->read_file( "/dev/a_file_that_is_not_likely_to_exist" ); };
 ok( $@, qr/line/ );
 BEGIN { $tests += 1 };
 
 # Basic storing.
 sel;
-store_code( <<'END_OF_CODE' );
+$bef->store_code( <<'END_OF_CODE' );
 q
 END_OF_CODE
-run_code;
+$bef->run_code;
 $out = slurp;
 ok( $out, "" );
 BEGIN { $tests += 1 };

@@ -1,5 +1,5 @@
 #-*- cperl -*-
-# $Id: 16string.t,v 1.2 2002/04/11 12:52:44 jquelin Exp $
+# $Id: 16string.t,v 1.3 2002/04/14 13:08:12 jquelin Exp $
 #
 
 #----------------------------------------#
@@ -16,7 +16,7 @@ my $file;
 my $fh;
 my $tests;
 my $out;
-
+my $bef = new Language::Befunge;
 BEGIN { $tests = 0 };
 
 # In order to see what happens...
@@ -41,46 +41,46 @@ sub slurp () {
 
 # String mode.
 sel; # True string mode.
-store_code( <<'END_OF_CODE' );
+$bef->store_code( <<'END_OF_CODE' );
 <q,,,,,,,,,,,,,"hello world!"a
 END_OF_CODE
-run_code;
+$bef->run_code;
 $out = slurp;
 ok( $out, "hello world!\n" );
 sel; # SGML mode.
-store_code( <<'END_OF_CODE' );
+$bef->store_code( <<'END_OF_CODE' );
 <q,,,,,,,,,,,,,"hello   world!"a
 END_OF_CODE
-run_code;
+$bef->run_code;
 $out = slurp;
 ok( $out, "hello world!\n" );
 BEGIN { $tests += 2 };
 
 # Fetch character.
 sel; # normal output.
-store_code( <<'END_OF_CODE' );
+$bef->store_code( <<'END_OF_CODE' );
 <q,,,,,,,,,,,,,h'e'l'l'o' 'w'o'r'l'd'!'a
 END_OF_CODE
-run_code;
+$bef->run_code;
 $out = slurp;
 ok( $out, "hello world!\n" );
 sel; # space doubled.
-store_code( <<'END_OF_CODE' );
+$bef->store_code( <<'END_OF_CODE' );
 <q,,,,,,,,,,,,,,h'e'l'l'o' ' 'w'o'r'l'd'!'a
 END_OF_CODE
-run_code;
+$bef->run_code;
 $out = slurp;
 ok( $out, "hello  world!\n" );
 BEGIN { $tests += 2 };
 
 # Store character.
 sel; # space doubled.
-store_code( <<'END_OF_CODE' );
+$bef->store_code( <<'END_OF_CODE' );
 v       > .q
 >   '4 s  v
         ^ <
 END_OF_CODE
-run_code;
+$bef->run_code;
 $out = slurp;
 ok( $out, "4 " );
 BEGIN { $tests += 1 };

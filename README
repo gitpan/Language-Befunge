@@ -33,6 +33,8 @@ DESCRIPTION
     known as \n) as an End-Of-Line chars. In particular, no warranty is made
     neither for Microsoft systems (\r\n) nor for Macs (\r).
 
+    This module also implements the Concurrent Funge semantics.
+
 
 INSTALLATION
 

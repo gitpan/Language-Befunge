@@ -1,5 +1,5 @@
 #-*- cperl -*-
-# $Id: 03ip.t,v 1.10 2002/04/11 15:23:17 jquelin Exp $
+# $Id: 03ip.t,v 1.11 2002/04/14 12:03:29 jquelin Exp $
 #
 
 #----------------------------------#
@@ -45,8 +45,8 @@ $ip->storx( 16 );
 ok( $ip->storx, 16 );
 $ip->string_mode( 1 );
 ok( $ip->string_mode, 1 );
-$ip->space_pushed( 1 );
-ok( $ip->space_pushed, 1 );
+$ip->end( 1 );
+ok( $ip->end, 1 );
 $ip->input( "gnirts" );
 ok( $ip->input, "gnirts" );
 BEGIN { $tests += 11 };

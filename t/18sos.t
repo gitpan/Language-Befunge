@@ -1,5 +1,5 @@
 #-*- cperl -*-
-# $Id: 18sos.t,v 1.2 2002/04/11 15:44:52 jquelin Exp $
+# $Id: 18sos.t,v 1.3 2002/04/14 13:08:40 jquelin Exp $
 #
 
 #----------------------------------------------#
@@ -16,7 +16,7 @@ my $file;
 my $fh;
 my $tests;
 my $out;
-
+my $bef = new Language::Befunge;
 BEGIN { $tests = 0 };
 
 # In order to see what happens...
@@ -41,7 +41,7 @@ sub slurp () {
 
 # The big fat one.
 sel;
-store_code( <<'END_OF_CODE' );
+$bef->store_code( <<'END_OF_CODE' );
 123 2 { ... 3 { .... 0 { 3 .. 987 01- { . 2 u .. 4 u .. v
 0u... 456 02- u 56 04- u 163 2 } .......   2 01-u 2 } v >
 ..  4 01- u 0 } .. 004 03-u 02- } .. q                >
@@ -97,39 +97,39 @@ $exp .= "7 0 ";
 #   * bef: ( [-2] [1 0 0 4 0 0] ) Storage (0,4)
 #   * aft: ( [1 0] )          Storage (0,0)
 $exp .= "0 1 ";
-run_code;
+$bef->run_code;
 $out = slurp;
 ok( $out, $exp );
 BEGIN { $tests += 1 };
 
 # Checking storage offset.
 sel; # New storage offset.
-store_code( <<'END_OF_CODE' );
+$bef->store_code( <<'END_OF_CODE' );
 0      {  01+a*1+a*8+ 11p v
     q.2                   <
          >  1.q  
 END_OF_CODE
-run_code;
+$bef->run_code;
 $out = slurp;
 ok( $out, "1 " );
 sel; # Retrieving old storage offset.
-store_code( <<'END_OF_CODE' );
+$bef->store_code( <<'END_OF_CODE' );
 0      { 22+ 0 } 01+a*1+a*8+ 61p v
  q.2                             <
       >  1.q  
 END_OF_CODE
-run_code;
+$bef->run_code;
 $out = slurp;
 ok( $out, "1 " );
 BEGIN { $tests += 2 };
 
 # Checking non-valid end-of-block.
 sel; # Retrieving old storage offset.
-store_code( <<'END_OF_CODE' );
+$bef->store_code( <<'END_OF_CODE' );
    #v  } 2.q
     > 1.q
 END_OF_CODE
-run_code;
+$bef->run_code;
 $out = slurp;
 ok( $out, "1 " );
 BEGIN { $tests += 1};

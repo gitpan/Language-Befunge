@@ -1,4 +1,4 @@
-# $Id: IP.pm,v 1.12 2002/04/13 11:09:19 jquelin Exp $
+# $Id: IP.pm,v 1.12 2002/04/13 11:09:19 jquelin Exp jquelin $
 #
 # Copyright (c) 2002 Jerome Quelin <jquelin@cpan.org>
 # All rights reserved.
@@ -38,8 +38,8 @@ our $subs;
 
 BEGIN {
     my @subs = split /\|/, 
-      $subs = 'id|curx|cury|dx|dy|storx|story|string_mode|space_pushed'.
-              '|toss|ss|input|libs';
+      $subs = 'id|curx|cury|dx|dy|storx|story|string_mode'.
+              '|end|toss|ss|input|libs';
     use subs @subs;
 }
 
@@ -67,7 +67,7 @@ sub new {
         storx        => 0,
         story        => 0,
         string_mode  => 0,
-        space_pushed => 0,
+        end          => 0,
         input        => "",
         libs         => [],
       };
@@ -143,10 +143,9 @@ Get or set the input cache.
 
 Get or set the string_mode of the IP.
 
-=head2 space_pushed( [boolean] )
+=head2 end( [boolean] )
 
-Get or set wether a space has been pushed on the stack when
-encountering a serie of spaces in string-mode.
+Get or set wether the IP should be terminated.
 
 =head2 libs(  )
 
