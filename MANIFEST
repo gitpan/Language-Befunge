@@ -21,5 +21,7 @@ t/16string.t
 t/17stack.t
 t/18sos.t
 t/19storg.t
+t/20system.t
+t/exit3.pl
 t/hello.bf
 t/q.bf

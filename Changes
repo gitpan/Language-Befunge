@@ -1,5 +1,12 @@
 Revision history for Perl extension Language::Befunge.
 
+0.09 Fri Apr 12 12:05:03 CEST 2002
+        - Bug fix in y instruction (flags).
+        - Bug fix in y instruction (size of TOSS).
+        - 20th field of y instruction returns ENV sorted by keys.
+        - More debug messages in Befunge.pm
+        - New test 20system.t -> tests exec and info retrieval
+
 0.08 Thu Apr 11 19:34:38 CEST 2002
         - Fixed some bad API calls in Befunge.pm
         - Bug fix in LaheySpace.pm

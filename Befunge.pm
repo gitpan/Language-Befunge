@@ -1,4 +1,4 @@
-# $Id: Befunge.pm,v 1.27 2002/04/11 17:32:15 jquelin Exp $
+# $Id: Befunge.pm,v 1.31 2002/04/12 09:59:44 jquelin Exp $
 #
 # Copyright (c) 2002 Jerome Quelin <jquelin@cpan.org>
 # All rights reserved.
@@ -76,7 +76,7 @@ use Language::Befunge::LaheySpace;
 use base qw(Exporter);
 
 # Public variables of the module.
-our $VERSION   = '0.08';
+our $VERSION   = '0.09';
 our $HANDPRINT = 'JQBF98'; # the handprint of the interpreter.
 our @EXPORT    =  qw! read_file store_code run_code !;
 $| = 1;
@@ -658,23 +658,26 @@ sub run_code {
 
                     # System execution.
                     $char eq '=' and do {
+                        debug "-> Executing external command.\n";
                         my $path = $ip->spop_gnirts;
                         system( $path );
-                        $ip->spush( $? >> 8 );
+                        $ip->spush( $? == -1 ? -1 : $? >> 8 );
                         last switch;
                     };
 
 
                     # -= System information retrieval =-
                     $char eq 'y' and do {
+                        debug "-> System info retrieval.\n";
+                        my $val = $ip->spop;
                         my @cells = ();
 
                         # 1. flags
-                        push @cells, 0x01 # 't' is implemented.
-                          &  0x02 # 'i' is implemented.
-                            &  0x04 # 'o' is implemented.
-                              &  0x08 # '=' is implemented.
-                                & !0x10; # buffered IO (non getch).
+                        push @cells, 0x01  # 't' is implemented.
+                                  |  0x02  # 'i' is implemented.
+                                  |  0x04  # 'o' is implemented.
+                                  |  0x08  # '=' is implemented.
+                                  | !0x10; # buffered IO (non getch).
 
                         # 2. number of bytes per cell.
                         # 32 bytes Funge: 4 bytes.
@@ -752,15 +755,14 @@ sub run_code {
                         # 20. %ENV
                         # 00EULAV=EMAN0EULAV=EMAN
                         $str = "";
-                        $str .= "$_=$ENV{$_}".chr(0) foreach keys %ENV;
+                        $str .= "$_=$ENV{$_}".chr(0) foreach sort keys %ENV;
                         $str .= chr(0);
                         my @env = reverse map { ord } split //, $str;
                         push @cells, \@env;
 
-
                         # Okay, what to do with those cells.
-                        my $val = $ip->spop;
                         if ( $val <= 0 ) {
+                            debug "-> Pushing the whole thing.\n";
                             # Blindly push them onto the stack.
                             foreach my $cell ( reverse @cells ) {
                                 $ip->spush( ref( $cell ) eq "ARRAY" ?
@@ -768,11 +770,13 @@ sub run_code {
                             }
                             
                         } elsif ( $val <= 20 ) {
+                            debug "-> Pushing a given value ($val).\n";
                             # Only push the wanted value.
                             $ip->spush( ref( $cells[$val-1] ) eq "ARRAY" ?
                                         @{ $cells[$val-1] } : $cells[$val-1] );
 
                         } else {
+                            debug "-> Picking a value.\n";
                             # Pick a given value in the stack and push it.
                             $ip->spush( $ip->svalue($val - 20) );
                         }

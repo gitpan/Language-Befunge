@@ -52,7 +52,7 @@ instruction in the interpreter:
 |58     |:  X |Duplicate       |v       |v v      |                                      |
 |59     |;  X |Jump Over/98    |        |         |nothing executed until next semicolon |
 |60     |<  X |Go West         |        |         |delta <- (-1,0)                       |
-|61     |=    |Execute/98/f    |STR     |r        |r = system-execute(STR)               |
+|61     |=  X |Execute/98/f    |STR     |r        |r = system-execute(STR)               |
 |62     |>  X |Go East         |        |         |delta <- (1,0)                        |
 |63     |?  X |Go Away         |        |         |delta <- (1,0)?(-1,0)?(0,1)?(0,-1)    |
 |64     |@  X |Stop            |        |         |halt IP                               |
@@ -87,7 +87,7 @@ instruction in the interpreter:
 |118    |v  X |Go South/2D     |        |         |delta <- (0,1)                        |
 |119    |w  X |Compare/98/2D   |a b     |         |if (a>b) ']' elsif (a<b) '[' else 'z' |
 |120    |x  X |Abs Delta/98    |Va      |         |delta <- Va                           |
-|121    |y    |Get SysInf/98   |c       |en(..e1) |                                      |
+|121    |y  X |Get SysInf/98   |c       |en(..e1) |                                      |
 |122    |z  X |No-OP/98        |        |         |                                      |
 |123    |{  X |Begin Block/98  |en..e1 n|(en..e1) |offset <- pos + delta, etc            |
 |124    ||  X |NorthSouth If/2D|b       |         |delta <- if (b) (0,-1) else (0,1)     |
