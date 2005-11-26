@@ -1,4 +1,4 @@
-# $Id: Befunge.pm,v 1.6 2004/10/28 17:29:33 jquelin Exp $
+# $Id: Befunge.pm,v 1.7 2005/11/26 15:25:19 jquelin Exp $
 #
 # Copyright (c) 2002 Jerome Quelin <jquelin@cpan.org>
 # All rights reserved.
@@ -74,7 +74,7 @@ use Language::Befunge::IP;
 use Language::Befunge::LaheySpace;
 
 # Public variables of the module.
-our $VERSION   = '1.00';
+our $VERSION   = '1.01';
 our $HANDPRINT = 'JQBF98'; # the handprint of the interpreter.
 our $AUTOLOAD;
 our $subs;
@@ -98,7 +98,6 @@ sub new {
       { file     => "STDIN",
         params   => [],
         retval   => 0,
-        kcounter => 0,
         DEBUG    => 0,
         curip    => undef,
         lastip   => undef,
@@ -134,11 +133,6 @@ Get or set the parameters of the script.
 
 Get or set the current return value of the interpreter.
 
-=head2 kcounter( [kcounter] )
-
-Get or set the kcounter (ie, the number of times the next instruction
-will be repeated).
-
 =head2 DEBUG( boolean )
 
 Set wether the interpreter should output debug messages.
@@ -168,7 +162,7 @@ Get the Lahey space object.
 =cut
 BEGIN {
     my @subs = split /\|/, 
-      $subs = 'file|params|retval|kcounter|DEBUG|curip|lastip|ips|newips|torus';
+      $subs = 'file|params|retval|DEBUG|curip|lastip|ips|newips|torus';
     use subs @subs;
 }
 sub AUTOLOAD {
@@ -335,7 +329,6 @@ sub run_code {
 
     # Create the first Instruction Pointer.
     $self->ips( [ new Language::Befunge::IP ] );
-    $self->kcounter(-1);
     $self->retval(0);
 
     # Loop as long as there are IPs.
@@ -372,19 +365,9 @@ Process the current ip.
 
 =cut
 sub process_ip {
-    my $self = shift;
+    my ($self, $continue) = @_;
+    $continue = 1 unless defined $continue;
     my $ip = $self->curip;
-
-    # Check if we must execute the instruction.
-    if ( $self->kcounter == 0 ) {
-        # We pass in this bloc if and only if the instruction
-        # has been repeated n times with a 'k' instruction.
-        $self->debug( "end of repeat instruction: moving IP\n" );
-        $self->kcounter(-1);
-        $self->move_curip;
-        push @{ $self->newips }, $ip;
-        return;
-    }
 
     # Fetch values for this IP.
     my $x  = $ip->curx;
@@ -448,25 +431,12 @@ sub process_ip {
         }
     }
 
-    # Check if we must reexecute the instruction.
-    if ( $char eq 'k' and not $ip->string_mode ) {
-        $self->process_ip;
-        return;
+    if($continue) {
+        # Tick done for this IP, let's move it and push it in the
+        # set of non-terminated IPs.
+        $self->move_curip;
+        push @{ $self->newips }, $ip unless $ip->end;
     }
-        
-    my $kcounter = $self->kcounter;
-    if ( $kcounter > 0 ) {
-        $self->debug( "kcounter=$kcounter: let's redo instruction...\n" );
-        $self->kcounter( $kcounter-1 );
-        $self->process_ip;
-        return;
-    }
-
-    # Tick done for this IP, let's move it and push it in the
-    # set of non-terminated IPs.
-    $self->move_curip;
-    $self->kcounter(-1);
-    push @{ $self->newips }, $ip unless $ip->end;
 }
 
 
@@ -967,7 +937,6 @@ sub op_flow_repeat {
     my $ip = $self->curip;
 
     my $kcounter = $ip->spop;
-    $self->kcounter( $kcounter );
     $self->debug( "repeating next instruction $kcounter times.\n" );
     $self->move_curip;
 
@@ -985,6 +954,8 @@ sub op_flow_repeat {
       $self->abort( "Attempt to repeat ('k') a forbidden instruction ('$1')" );
     $val > 0 and $val < 256 and chr($val) eq "k" and
       $self->abort( "Attempt to repeat ('k') a repeat instruction ('k')" );
+
+    $self->process_ip(0) for (1..$kcounter);
 }
 $meths{'k'} = "op_flow_repeat";
 

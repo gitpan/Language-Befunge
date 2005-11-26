@@ -1,5 +1,9 @@
 Revision history for Perl extension Language::Befunge.
 
+1.01 Sat Nov 26 16:22:23 CET 2005
+        - unrolling k instruction to avoid deep recursion warning
+          (courtesy of Mark Glines)
+
 1.00 Thu Oct 28 19:13:59 CEST 2004
         - i instruction support binary flag (courtesy of Philippe Bruhat)
         - mailing-list available: language-befunge@mongueurs.net
