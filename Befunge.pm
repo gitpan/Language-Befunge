@@ -1,4 +1,4 @@
-# $Id: Befunge.pm,v 1.7 2005/11/26 15:25:19 jquelin Exp $
+# $Id: Befunge.pm,v 1.8 2005/12/02 20:49:53 jquelin Exp $
 #
 # Copyright (c) 2002 Jerome Quelin <jquelin@cpan.org>
 # All rights reserved.
@@ -74,7 +74,7 @@ use Language::Befunge::IP;
 use Language::Befunge::LaheySpace;
 
 # Public variables of the module.
-our $VERSION   = '1.01';
+our $VERSION   = '1.02';
 our $HANDPRINT = 'JQBF98'; # the handprint of the interpreter.
 our $AUTOLOAD;
 our $subs;
@@ -217,7 +217,7 @@ sub move_curip {
     if ( defined $re ) {
         # Moving as long as we did not reach the condition.
         $torus->move_ip_forward($curip) 
-          while ( chr( $torus->get_value( $curip->curx, $curip->cury ) ) =~ $re );
+          while ( $torus->get_char($curip->curx, $curip->cury) =~ $re );
 
         # We moved one char too far.
         $curip->dir_reverse;
@@ -373,7 +373,7 @@ sub process_ip {
     my $x  = $ip->curx;
     my $y  = $ip->cury;
     my $ord  = $self->torus->get_value( $x, $y );
-    my $char = $ord < 256 ? chr($ord) : " ";
+    my $char = $self->torus->get_char( $x, $y );
 
     # Cosmetics.
     $self->debug( "#".$ip->id.":($x,$y): $char (ord=$ord)  Stack=(@{$ip->toss})\n" );
@@ -427,6 +427,7 @@ sub process_ip {
 
         } else {
             # Not a regular instruction: reflect.
+            $self->debug( "the command value $ord (char='$char') is not implemented.\n");
             $ip->dir_reverse;
         }
     }
@@ -506,10 +507,11 @@ sub op_str_fetch_char {
  
    # .. then fetch value and push it.
     my $ord = $self->torus->get_value( $ip->curx, $ip->cury );
+    my $chr = $self->torus->get_char( $ip->curx, $ip->cury );
     $ip->spush( $ord );
 
     # Cosmetics.
-    $self->debug( "pushing value $ord (char='".chr($ord)."')\n" );
+    $self->debug( "pushing value $ord (char='$chr')\n" );
 }
 $meths{"'"} = "op_str_fetch_char";
 
@@ -529,9 +531,10 @@ sub op_str_store_char {
 
     # Storing value.
     $self->torus->set_value( $ip->curx, $ip->cury, $val );
+    my $chr = $self->torus->get_char( $ip->curx, $ip->cury );
 
     # Cosmetics.
-    $self->debug( "storing value $val (char='".chr($val)."')\n" );
+    $self->debug( "storing value $val (char='$chr')\n" );
 }
 $meths{'s'} = "op_str_store_char";
 

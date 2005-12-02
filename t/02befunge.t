@@ -1,5 +1,5 @@
 #-*- cperl -*-
-# $Id: 02befunge.t,v 1.1.1.1 2003/02/22 10:17:10 jquelin Exp $
+# $Id: 02befunge.t,v 1.2 2005/12/02 20:49:53 jquelin Exp $
 #
 
 #-----------------------------------#
@@ -68,6 +68,26 @@ END_OF_CODE
 $bef->run_code;
 $out = slurp;
 ok( $out, "" );
+BEGIN { $tests += 1 };
+
+# Interpreter must treat non-characters as if they were an 'r' instruction.
+sel;
+$bef->store_code( <<'END_OF_CODE' );
+01-b0p#q1.2 q
+END_OF_CODE
+$bef->run_code;
+$out = slurp;
+ok( $out, "1 2 " );
+BEGIN { $tests += 1 };
+
+# Interpreter must treat non-commands as if they were an 'r' instruction.
+sel;
+$bef->store_code( <<'END_OF_CODE' );
+01+b0p#q1.2 q
+END_OF_CODE
+$bef->run_code;
+$out = slurp;
+ok( $out, "1 2 " );
 BEGIN { $tests += 1 };
 
 BEGIN { plan tests => $tests };

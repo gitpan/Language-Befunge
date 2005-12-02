@@ -1,4 +1,4 @@
-# $Id: LaheySpace.pm,v 1.5 2004/10/25 18:06:53 jquelin Exp $
+# $Id: LaheySpace.pm,v 1.6 2005/12/02 20:47:33 jquelin Exp $
 #
 # Copyright (c) 2002-2003 Jerome Quelin <jquelin@cpan.org>
 # All rights reserved.
@@ -151,6 +151,27 @@ sub store_binary {
     splice @{ $self->{torus}[ $y - $self->{ymin} ] }, $x - $self->{xmin}, $maxlen, @chars;
 
     return ($maxlen, 1 );
+}
+
+=head2 get_char( x, y )
+
+
+Return the character stored in the torus at the specified location. If
+the value is not between 0 and 255 (inclusive), get_char will return a
+string that looks like "<np-0x4500>".
+
+B</!\> As in Befunge, code and data share the same playfield, the
+character returned can be either an instruction B<or> raw data.  No
+guarantee is made that the return value is printable.
+
+=cut
+sub get_char {
+	my $self = shift;
+	my ($x,$y) = @_;
+	my $ord = $self->get_value($x,$y);
+	# reject invalid ascii
+	return sprintf("<np-0x%x>",$ord) if ($ord < 0 || $ord > 255);
+	return chr($ord);
 }
 
 =head2 get_value( x, y )
