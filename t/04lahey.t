@@ -339,7 +339,7 @@ $ls->set_value(0,0, -1);
 $ls->set_value(1,0,  0);
 $ls->set_value(2,0,255);
 $ls->set_value(3,0,256);
-ok ( $ls->get_char(0,0), '<np-0xffffffff>' );
+ok ( $ls->get_char(0,0), sprintf("<np-0x%x>", -1) );
 ok ( $ls->get_char(1,0), chr(0) );
 ok ( $ls->get_char(2,0), chr(0xff) );
 ok ( $ls->get_char(3,0), '<np-0x100>' );

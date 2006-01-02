@@ -1,5 +1,8 @@
 Revision history for Perl extension Language::Befunge.
 
+1.03 Mon Jan  2 21:20:07 CET 2006
+        - fixing failed test on 64bits platforms (courtesy of Mark
+          Glines)
 1.02 Fri Dec  2 21:44:48 CET 2005
         - enhanced input checking, dealing correctly with non-ascii
           characters (with the help of Mark Glines)
