@@ -1,5 +1,9 @@
 Revision history for Perl extension Language::Befunge.
 
+1.04 Wed Feb  1 17:38:49 CET 2006
+        - detecting infinite loop on bogus funges in move_curip
+          (courtesy of Mark Glines)
+
 1.03 Mon Jan  2 21:20:07 CET 2006
         - fixing failed test on 64bits platforms (courtesy of Mark
           Glines)

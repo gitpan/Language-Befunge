@@ -1,4 +1,4 @@
-# $Id: Befunge.pm,v 1.8 2005/12/02 20:49:53 jquelin Exp $
+# $Id: Befunge.pm,v 1.9 2006/01/04 17:07:11 jquelin Exp $
 #
 # Copyright (c) 2002 Jerome Quelin <jquelin@cpan.org>
 # All rights reserved.
@@ -74,7 +74,7 @@ use Language::Befunge::IP;
 use Language::Befunge::LaheySpace;
 
 # Public variables of the module.
-our $VERSION   = '1.03';
+our $VERSION   = '1.04';
 our $HANDPRINT = 'JQBF98'; # the handprint of the interpreter.
 our $AUTOLOAD;
 our $subs;
@@ -215,9 +215,13 @@ sub move_curip {
     my $torus = $self->torus;
 
     if ( defined $re ) {
+        my ($origx, $origy) = ($curip->curx, $curip->cury);
         # Moving as long as we did not reach the condition.
-        $torus->move_ip_forward($curip) 
-          while ( $torus->get_char($curip->curx, $curip->cury) =~ $re );
+        while ( $torus->get_char($curip->curx, $curip->cury) =~ $re ) {
+            $torus->move_ip_forward($curip);
+            $self->abort("infinite loop")
+                if ( ($curip->curx == $origx) && ($curip->cury == $origy) );
+        }
 
         # We moved one char too far.
         $curip->dir_reverse;
