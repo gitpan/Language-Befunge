@@ -1,0 +1,61 @@
+not time plan associated - not even an order implied.
+
+
+* infrastructure:
+=================
+
+- migrate cvs repository to svn. mail sent to the admins, in order to
+know if/when the migration can happen. (hmm, svn move :-) ) (no new
+version)
+
+- move files around to be more cpan-compliant. eg, every l::b piece of
+code in lib/Language/Befunge instead of '.'
+needs svn, obviously. (either major or medium)
+
+- move Language::Befunge::libs::* to Language::Befunge::Libs::* (or
+whatever) (medium)
+
+
+* distribution:
+===============
+
+- sign module using Module::Signature (minor)
+
+- include a Module::Builder scheme (minor or medium)
+
+
+* befunge:
+==========
+
+- write a real befunge debugger (medium or major)
+
+- write a graphical befunge debugger (medium or major)
+
+- profile some runs of typical befunge programs to spot the
+bottlenecks.  fix them. (medium or major)
+
+- implement resource limits (laheyspace sandboxing, instruction
+restriction)
+
+
+* laheyspace:
+=============
+
+- write subclasses of Language::Befunge::LaheySpace, for different
+  needs:
+    . speed (major)
+    . multidim (major)
+    . etc
+
+
+* tests:
+========
+
+- reorganize t/ dir with subdirs general/, ops/, modules/ or whatever.
+needs svn. (medium)
+
+- maybe walk through tests and clean them. (medium)
+
+- perform test coverage and fill in the blanks. using Module::Builder
+would help on this one. (medium)
+

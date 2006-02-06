@@ -1,6 +1,4 @@
 Befunge.pm
-Befunge/IP.pm
-Befunge/LaheySpace.pm
 Befunge/bin/jqbf98
 Befunge/doc/bf98-specs.html
 Befunge/doc/instr.txt
@@ -11,11 +9,13 @@ Befunge/examples/hello.bf
 Befunge/examples/palin.bf
 Befunge/examples/tpr00.bf
 Befunge/examples/tpr01.bf
+Befunge/IP.pm
+Befunge/LaheySpace.pm
 Befunge/lib/FOO.pm
 Befunge/lib/HELO.pm
 Changes
-MANIFEST
 Makefile.PL
+MANIFEST
 META.yml
 README
 t/01basic.t
@@ -38,3 +38,4 @@ t/22lib.t
 t/exit3.pl
 t/hello.bf
 t/q.bf
+TODO
