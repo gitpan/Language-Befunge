@@ -1,5 +1,9 @@
 Revision history for Perl extension Language::Befunge.
 
+1.05 Mon Feb  6 19:01:37 CET 2006
+        - fixing wrapping when ip delta is greater than lahey space
+          width or height (courtesy of Mark Glines)
+
 1.04 Wed Feb  1 17:38:49 CET 2006
         - detecting infinite loop on bogus funges in move_curip
           (courtesy of Mark Glines)
