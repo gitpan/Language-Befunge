@@ -1,24 +1,12 @@
----
-name: Language-Befunge
-version: 1.10
-author:
-  - 'Jerome Quelin <jquelin@cpan.org>'
-abstract: a Befunge-98 interpreter
-license: perl
+# http://module-build.sourceforge.net/META-spec.html
+#XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
+name:         Language-Befunge
+version:      1.11
+version_from: Befunge.pm
+installdirs:  site
 requires:
-  Storable: 0
-build_requires:
-  Test::More: 0
-provides:
-  Language::Befunge:
-    file: Befunge.pm
-    version: 1.10
-  Language::Befunge::IP:
-    file: Befunge/IP.pm
-  Language::Befunge::LaheySpace:
-    file: Befunge/LaheySpace.pm
-  Language::Befunge::lib::FOO:
-    file: Befunge/lib/FOO.pm
-  Language::Befunge::lib::HELO:
-    file: Befunge/lib/HELO.pm
-generated_by: Module::Build version 0.2611
+    Storable:                      0
+    Test::More:                    0
+
+distribution_type: module
+generated_by: ExtUtils::MakeMaker version 6.30_01

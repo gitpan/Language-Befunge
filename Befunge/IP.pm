@@ -328,6 +328,7 @@ sub svalue {
     my ($self, $idx) = @_;
 
     $idx = - abs( $idx );
+    return 0 unless exists $self->toss->[$idx];
     return $self->toss->[$idx];
 }
 

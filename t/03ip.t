@@ -53,6 +53,7 @@ BEGIN { $tests += 11 };
 
 # Test stack operations.
 ok( $ip->spop, 0); # empty stack should return a 0.
+ok( $ip->svalue(5), 0); # empty stack should return a 0.
 $ip->spush( 45 );
 ok( $ip->spop, 45);
 $ip->spush( 65, 32, 78, 14, 0, 103, 110, 105, 114, 116, 83 );
@@ -80,7 +81,7 @@ ok( $ip->spop, 7 );
 ok( $ip->spop_gnirts, "foo" );
 $ip->sclear;
 ok( $ip->scount, 0 );
-BEGIN { $tests += 22 };
+BEGIN { $tests += 23 };
 
 # Test stack stack.
 # The following table gives the line number where the

@@ -1,5 +1,9 @@
 Revision history for Perl extension Language::Befunge.
 
+1.11 Tue Feb  7 18:07:03 CET 2006
+        - fixed L::B::IP->svalue returning undef on non-existent stack
+          depth (courtesy of Mark Glines)
+
 1.10 Tue Feb  7 15:05:13 CET 2006
         - included a Module::Builder mechanism (old scheme with
           Makefile.PL is preserved)
