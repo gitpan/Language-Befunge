@@ -1,4 +1,4 @@
-# $Id: LaheySpace.pm,v 1.6 2005/12/02 20:47:33 jquelin Exp $
+# $Id: LaheySpace.pm,v 1.7 2006/02/06 20:19:04 jquelin Exp $
 #
 # Copyright (c) 2002-2003 Jerome Quelin <jquelin@cpan.org>
 # All rights reserved.
@@ -243,11 +243,12 @@ sub move_ip_forward {
     # Lahey-space, and if we need to wrap, we perform a
     # Lahey-space wrapping. That is, the play field is limited to
     # real code, and we do _not_ perform wrapping on all the
-    # addressable space.
-    $x = $self->{xmin} + ($x - $self->{xmax}) - 1 if $x > $self->{xmax};
-    $x = $self->{xmax} - ($x - $self->{xmin}) - 1 if $x < $self->{xmin};
-    $y = $self->{ymin} + ($y - $self->{ymax}) - 1 if $y > $self->{ymax};
-    $y = $self->{ymax} - ($y - $self->{ymin}) - 1 if $y < $self->{ymin};
+    # addressable space.  We use while loops in case the delta is
+    # larger than the torus width.
+    $x = $self->{xmin} + ($x - $self->{xmax}) - 1 while $x > $self->{xmax};
+    $x = $self->{xmax} - ($x - $self->{xmin}) - 1 while $x < $self->{xmin};
+    $y = $self->{ymin} + ($y - $self->{ymax}) - 1 while $y > $self->{ymax};
+    $y = $self->{ymax} - ($y - $self->{ymin}) - 1 while $y < $self->{ymin};
 
     # Store new position.
     $ip->set_pos( $x, $y );

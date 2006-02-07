@@ -21,8 +21,6 @@ whatever) (medium)
 
 - sign module using Module::Signature (minor)
 
-- include a Module::Builder scheme (minor or medium)
-
 
 * befunge:
 ==========

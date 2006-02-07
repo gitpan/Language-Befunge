@@ -1,5 +1,5 @@
 #-*- cperl -*-
-# $Id: 04lahey.t,v 1.4 2006/01/04 17:07:11 jquelin Exp $
+# $Id: 04lahey.t,v 1.5 2006/02/06 20:19:04 jquelin Exp $
 #
 
 #------------------------------------------#
@@ -184,6 +184,13 @@ $ls->move_ip_forward( $ip );
 ok( $ip->curx, 5 );
 $ls->move_ip_forward( $ip ); # wrap xmax
 ok( $ip->curx, 0 );
+$ip->set_pos( 4, 3 );
+$ip->dx( 7 );                # apply delta that overflows torus width
+$ip->dy( 0 );
+$ls->move_ip_forward( $ip );
+ok( $ip->curx, 5 );
+$ls->move_ip_forward( $ip ); # wrap xmax harder
+ok( $ip->curx, 0 );
 $ip->set_pos( 0, 4 );
 $ip->dx( -1 );
 $ip->dy( 0 );
@@ -196,12 +203,19 @@ $ls->move_ip_forward( $ip );
 ok( $ip->cury, 10 );
 $ls->move_ip_forward( $ip ); # wrap ymax
 ok( $ip->cury, 0 );
+$ip->set_pos( 2, 9 );
+$ip->dx( 0 );
+$ip->dy( 12 );               # apply delta that overflows torus height
+$ls->move_ip_forward( $ip );
+ok( $ip->cury, 10 );
+$ls->move_ip_forward( $ip ); # wrap ymax harder
+ok( $ip->cury, 0 );
 $ip->set_pos( 1, 0 );
 $ip->dx( 0 );
 $ip->dy( -1 );
 $ls->move_ip_forward( $ip ); # wrap ymin
 ok( $ip->cury, 10 );
-BEGIN { $tests += 6 }
+BEGIN { $tests += 10 }
 $ls->clear;   # "negative" playfield.
 $ls->set_min(-1, -3);
 $ls->set_max(5, 10);

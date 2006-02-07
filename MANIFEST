@@ -13,9 +13,10 @@ Befunge/IP.pm
 Befunge/LaheySpace.pm
 Befunge/lib/FOO.pm
 Befunge/lib/HELO.pm
+Build.PL
 Changes
 Makefile.PL
-MANIFEST
+MANIFEST			This list of files
 META.yml
 README
 t/01basic.t
