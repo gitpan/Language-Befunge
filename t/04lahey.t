@@ -46,6 +46,13 @@ ok( $ls->{xmax}, 4 );
 ok( $ls->{ymax}, 5 );
 BEGIN{ $tests += 8; }
 
+# out_of_bounds method.
+ok($ls->out_of_bounds(-5, -5), 1);
+ok($ls->out_of_bounds( 5, -5), 1);
+ok($ls->out_of_bounds(-5,  5), 1);
+ok($ls->out_of_bounds( 5,  5), 1);
+ok($ls->out_of_bounds( 0,  0), 0);
+BEGIN{ $tests += 5; }
 
 # Enlarge torus.
 $ls->clear;
@@ -188,9 +195,9 @@ $ip->set_pos( 4, 3 );
 $ip->dx( 7 );                # apply delta that overflows torus width
 $ip->dy( 0 );
 $ls->move_ip_forward( $ip );
-ok( $ip->curx, 5 );
+ok( $ip->curx, 4 );
 $ls->move_ip_forward( $ip ); # wrap xmax harder
-ok( $ip->curx, 0 );
+ok( $ip->curx, 4 );
 $ip->set_pos( 0, 4 );
 $ip->dx( -1 );
 $ip->dy( 0 );
@@ -207,9 +214,9 @@ $ip->set_pos( 2, 9 );
 $ip->dx( 0 );
 $ip->dy( 12 );               # apply delta that overflows torus height
 $ls->move_ip_forward( $ip );
-ok( $ip->cury, 10 );
+ok( $ip->cury, 9 );
 $ls->move_ip_forward( $ip ); # wrap ymax harder
-ok( $ip->cury, 0 );
+ok( $ip->cury, 9 );
 $ip->set_pos( 1, 0 );
 $ip->dx( 0 );
 $ip->dy( -1 );
@@ -251,8 +258,8 @@ $ip->set_pos(0, 0);
 $ip->dx(-2);
 $ip->dy(-3);
 $ls->move_ip_forward( $ip );
-ok( $ip->curx, 6 );
-ok( $ip->cury, 5 );
+ok( $ip->curx, 2 );
+ok( $ip->cury, 3 );
 BEGIN { $tests += 2; }
 
 # Label lookup

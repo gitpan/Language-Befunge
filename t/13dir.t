@@ -228,9 +228,9 @@ ok( $out, "1 " );
 sel; # diagonal/out-of-bounds.
 $bef->store_code( <<'END_OF_CODE' );
 101-x
-       q
-      .
-     1
+   q  
+  .  
+ 1   
 END_OF_CODE
 $bef->run_code;
 $out = slurp;

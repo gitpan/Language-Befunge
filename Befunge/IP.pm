@@ -1,4 +1,4 @@
-# $Id: IP.pm,v 1.2 2003/02/22 10:31:35 jquelin Exp $
+# $Id: IP.pm,v 1.3 2006/02/07 17:11:00 jquelin Exp $
 #
 # Copyright (c) 2002 Jerome Quelin <jquelin@cpan.org>
 # All rights reserved.

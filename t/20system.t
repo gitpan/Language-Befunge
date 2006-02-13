@@ -156,8 +156,11 @@ BEGIN { $tests += 1 };
 
 sel; # 11. delta of IP.
 $bef->store_code( <<'END_OF_CODE' );
-b 21x   .   q
-      y   .
+v .      
+    q    
+>b  21x  
+        y
+          .
 END_OF_CODE
 $bef->run_code;
 $out = slurp;

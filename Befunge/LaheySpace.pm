@@ -222,6 +222,7 @@ sub set_value {
     $self->{torus}[$y-$self->{ymin}][$x-$self->{xmin}] = $val;
 }
 
+
 =head2 move_ip_forward( ip )
 
 Move the given ip forward, according to its delta.
@@ -234,21 +235,28 @@ sub move_ip_forward {
     my $x = $ip->curx;
     my $y = $ip->cury;
 
+    my ($dx, $dy) = ($ip->dx, $ip->dy);
     # Now, let's move the IP.
-    $x += $ip->dx;
-    $y += $ip->dy;
+    $x += $dx;
+    $y += $dy;
 
+    if($self->out_of_bounds($x, $y)) {
+        # Check out-of-bounds. Please note that we're in a
+        # Lahey-space, and if we need to wrap, we perform a
+        # Lahey-space wrapping. Funge98 says we should walk 
+        # our current trajectory in reverse, until we hit the
+        # other side of LaheySpace, and then continue along
+        # the same path.
+        do {
+            $x -= $dx;
+            $y -= $dy;
+        } until($self->out_of_bounds($x, $y));
 
-    # Check out-of-bounds. Please note that we're in a
-    # Lahey-space, and if we need to wrap, we perform a
-    # Lahey-space wrapping. That is, the play field is limited to
-    # real code, and we do _not_ perform wrapping on all the
-    # addressable space.  We use while loops in case the delta is
-    # larger than the torus width.
-    $x = $self->{xmin} + ($x - $self->{xmax}) - 1 while $x > $self->{xmax};
-    $x = $self->{xmax} - ($x - $self->{xmin}) - 1 while $x < $self->{xmin};
-    $y = $self->{ymin} + ($y - $self->{ymax}) - 1 while $y > $self->{ymax};
-    $y = $self->{ymax} - ($y - $self->{ymin}) - 1 while $y < $self->{ymin};
+        # Now that we've hit the wall, walk back into the
+        # valid code range.
+        $x += $dx;
+        $y += $dy;
+    }
 
     # Store new position.
     $ip->set_pos( $x, $y );
@@ -403,6 +411,21 @@ sub enlarge_y {
         push @{ $self->{torus} }, [ (32) x ($self->{xmax} - $self->{xmin} + 1 ) ] for 1..$delta;
         $self->{ymax} += $delta;
     }
+}
+
+
+=head2 out_of_bounds( x, y )
+
+Return true if a location is out of bounds.
+
+=cut
+sub out_of_bounds {
+    my ($self, $x, $y) = @_;
+    return 1 if $x > $self->{xmax};
+    return 1 if $x < $self->{xmin};
+    return 1 if $y > $self->{ymax};
+    return 1 if $y < $self->{ymin};
+    return 0;
 }
 
 
