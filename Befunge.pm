@@ -1,4 +1,4 @@
-# $Id: Befunge.pm,v 1.14 2006/02/07 17:10:59 jquelin Exp $
+# $Id: Befunge.pm,v 1.15 2006/02/14 15:44:47 jquelin Exp $
 #
 # Copyright (c) 2002 Jerome Quelin <jquelin@cpan.org>
 # All rights reserved.
@@ -73,10 +73,10 @@ use Language::Befunge::IP;
 use Language::Befunge::LaheySpace;
 
 # Public variables of the module.
-our $VERSION   = '1.20';
+our $VERSION   = '2.00';
 our $HANDPRINT = 'JQBF98'; # the handprint of the interpreter.
 our $AUTOLOAD;
-our $subs;
+our $attrs;
 our %meths;
 $| = 1;
 
@@ -160,8 +160,9 @@ Get the Lahey space object.
 
 =cut
 BEGIN {
-    my @subs = split /\|/, 
-      $subs = 'file|params|retval|DEBUG|curip|lastip|ips|newips|torus';
+    my @attrs = qw[ file params retval DEBUG curip lastip ips newips torus ];
+    $attrs    = join "|", @attrs;
+    my @subs  = map { ( "get_$_", "set_$_" ) } @attrs;
     use subs @subs;
 }
 sub AUTOLOAD {
@@ -170,17 +171,26 @@ sub AUTOLOAD {
 
     # Fetch the attribute name
     $AUTOLOAD =~ /.*::(\w+)/;
-    my $attr = $1;
+    my $sub = $1;
     # Must be one of the registered subs (compile once)
-    if( $attr =~ /$subs/o ) {
+    if( $sub =~ /^get_($attrs)/o ) {
         no strict 'refs';
-
+        my $attr = $1;
         # Create the method (but don't pollute other namespaces)
         *{$AUTOLOAD} = sub {
             my $self = shift;
-            @_ ? $self->{$attr} = shift : $self->{$attr};
+            return $self->{$attr};
         };
-
+        # Now do it
+        goto &{$AUTOLOAD};
+    } elsif ( $sub =~ /^set_($attrs)/o ) {
+        no strict 'refs';
+        my $attr = $1;
+        # Create the method (but don't pollute other namespaces)
+        *{$AUTOLOAD} = sub {
+            my $self = shift;
+            $self->{$attr} = shift;
+        };
         # Now do it
         goto &{$AUTOLOAD};
     }
@@ -210,8 +220,8 @@ point on the C<r>.
 =cut
 sub move_curip {
     my ($self, $re) = @_;
-    my $curip = $self->curip;
-    my $torus = $self->torus;
+    my $curip = $self->get_curip;
+    my $torus = $self->get_torus;
 
     if ( defined $re ) {
         my ($origx, $origy) = ($curip->curx, $curip->cury);
@@ -242,9 +252,9 @@ file and coordinate of the offending instruction.
 =cut
 sub abort {
     my $self = shift;
-    my $file = $self->file;
-    my $x = $self->curip->curx;
-    my $y = $self->curip->cury;
+    my $file = $self->get_file;
+    my $x = $self->get_curip->curx;
+    my $y = $self->get_curip->cury;
     croak "$file ($x,$y): ", @_;
 }
 
@@ -256,7 +266,7 @@ Issue a warning if the interpreter has DEBUG enabled.
 =cut
 sub debug {
     my $self = shift;
-    $self->DEBUG or return;
+    $self->get_DEBUG or return;
     warn @_;
 }
 
@@ -288,7 +298,7 @@ sub read_file {
     close BF;
 
     # Store code.
-    $self->file( $file );
+    $self->set_file( $file );
     $self->store_code( $code );
 }
 
@@ -303,8 +313,8 @@ Side effect: clear the previous code.
 sub store_code {
     my ($self, $code) = @_;
     $self->debug( "Storing code\n" );
-    $self->torus->clear;
-    $self->torus->store( $code );
+    $self->get_torus->clear;
+    $self->get_torus->store( $code );
 }
 
 =back
@@ -325,20 +335,20 @@ Return the exit code of the program.
 =cut
 sub run_code {
     my $self = shift;
-    $self->params( [ @_ ] );
+    $self->set_params( [ @_ ] );
 
     # Cosmetics.
-    $self->debug( "\n-= NEW RUN (".$self->file.") =-\n" );
+    $self->debug( "\n-= NEW RUN (".$self->get_file.") =-\n" );
 
     # Create the first Instruction Pointer.
-    $self->ips( [ new Language::Befunge::IP ] );
-    $self->retval(0);
+    $self->set_ips( [ new Language::Befunge::IP ] );
+    $self->set_retval(0);
 
     # Loop as long as there are IPs.
-    $self->next_tick while scalar @{ $self->ips };
+    $self->next_tick while scalar @{ $self->get_ips };
 
     # Return the exit code.
-    return $self->retval;
+    return $self->get_retval;
 }
 
 
@@ -354,11 +364,11 @@ sub next_tick {
     $self->debug( "Tick!\n" );
 
     # Process the set of IPs.
-    $self->newips( [] );
-    $self->process_ip while $self->curip( shift @{ $self->ips } );
+    $self->set_newips( [] );
+    $self->process_ip while $self->set_curip( shift @{ $self->get_ips } );
 
     # Copy the new ips.
-    $self->ips( $self->newips );
+    $self->set_ips( $self->get_newips );
 }
 
 
@@ -370,13 +380,13 @@ Process the current ip.
 sub process_ip {
     my ($self, $continue) = @_;
     $continue = 1 unless defined $continue;
-    my $ip = $self->curip;
+    my $ip = $self->get_curip;
 
     # Fetch values for this IP.
     my $x  = $ip->curx;
     my $y  = $ip->cury;
-    my $ord  = $self->torus->get_value( $x, $y );
-    my $char = $self->torus->get_char( $x, $y );
+    my $ord  = $self->get_torus->get_value( $x, $y );
+    my $char = $self->get_torus->get_char( $x, $y );
 
     # Cosmetics.
     $self->debug( "#".$ip->id.":($x,$y): $char (ord=$ord)  Stack=(@{$ip->toss})\n" );
@@ -439,7 +449,7 @@ sub process_ip {
         # Tick done for this IP, let's move it and push it in the
         # set of non-terminated IPs.
         $self->move_curip;
-        push @{ $self->newips }, $ip unless $ip->end;
+        push @{ $self->get_newips }, $ip unless $ip->end;
     }
 }
 
@@ -463,8 +473,8 @@ sub op_num_push_number {
     my $self = shift;
 
     # Fetching char.
-    my $ip  = $self->curip;
-    my $num = hex( chr( $self->torus->get_value( $ip->curx, $ip->cury ) ) );
+    my $ip  = $self->get_curip;
+    my $num = hex( chr( $self->get_torus->get_value( $ip->curx, $ip->cury ) ) );
 
     # Pushing value.
     $ip->spush( $num );
@@ -493,7 +503,7 @@ sub op_str_enter_string_mode {
     $self->debug( "entering string mode\n" );
 
     # Entering string-mode.
-    $self->curip->string_mode(1);
+    $self->get_curip->string_mode(1);
 }
 $meths{'"'} = "op_str_enter_string_mode";
 
@@ -503,14 +513,14 @@ $meths{'"'} = "op_str_enter_string_mode";
 =cut
 sub op_str_fetch_char {
     my $self = shift;
-    my $ip = $self->curip;
+    my $ip = $self->get_curip;
 
     # Moving pointer...
     $self->move_curip;
  
    # .. then fetch value and push it.
-    my $ord = $self->torus->get_value( $ip->curx, $ip->cury );
-    my $chr = $self->torus->get_char( $ip->curx, $ip->cury );
+    my $ord = $self->get_torus->get_value( $ip->curx, $ip->cury );
+    my $chr = $self->get_torus->get_char( $ip->curx, $ip->cury );
     $ip->spush( $ord );
 
     # Cosmetics.
@@ -524,7 +534,7 @@ $meths{"'"} = "op_str_fetch_char";
 =cut
 sub op_str_store_char {
     my $self = shift;
-    my $ip = $self->curip;
+    my $ip = $self->get_curip;
 
     # Moving pointer.
     $self->move_curip;
@@ -533,8 +543,8 @@ sub op_str_store_char {
     my $val = $ip->spop;
 
     # Storing value.
-    $self->torus->set_value( $ip->curx, $ip->cury, $val );
-    my $chr = $self->torus->get_char( $ip->curx, $ip->cury );
+    $self->get_torus->set_value( $ip->curx, $ip->cury, $val );
+    my $chr = $self->get_torus->get_char( $ip->curx, $ip->cury );
 
     # Cosmetics.
     $self->debug( "storing value $val (char='$chr')\n" );
@@ -554,7 +564,7 @@ $meths{'s'} = "op_str_store_char";
 =cut
 sub op_math_addition {
     my $self = shift;
-    my $ip = $self->curip;
+    my $ip = $self->get_curip;
 
     # Fetching values.
     my ($v1, $v2) = $ip->spop_vec;
@@ -576,7 +586,7 @@ $meths{'+'} = "op_math_addition";
 =cut
 sub op_math_substraction {
     my $self = shift;
-    my $ip = $self->curip;
+    my $ip = $self->get_curip;
 
     # Fetching values.
     my ($v1, $v2) = $ip->spop_vec;
@@ -598,7 +608,7 @@ $meths{'-'} = "op_math_substraction";
 =cut
 sub op_math_multiplication {
     my $self = shift;
-    my $ip = $self->curip;
+    my $ip = $self->get_curip;
 
     # Fetching values.
     my ($v1, $v2) = $ip->spop_vec;
@@ -620,7 +630,7 @@ $meths{'*'} = "op_math_multiplication";
 =cut
 sub op_math_division {
     my $self = shift;
-    my $ip = $self->curip;
+    my $ip = $self->get_curip;
 
     # Fetching values.
     my ($v1, $v2) = $ip->spop_vec;
@@ -640,7 +650,7 @@ $meths{'/'} = "op_math_division";
 =cut
 sub op_math_remainder {
     my $self = shift;
-    my $ip = $self->curip;
+    my $ip = $self->get_curip;
 
     # Fetching values.
     my ($v1, $v2) = $ip->spop_vec;
@@ -668,7 +678,7 @@ $meths{'%'} = "op_math_remainder";
 sub op_dir_go_east {
     my $self = shift;
     $self->debug( "going east\n" );
-    $self->curip->dir_go_east;
+    $self->get_curip->dir_go_east;
 }
 $meths{'>'} = "op_dir_go_east";
 
@@ -679,7 +689,7 @@ $meths{'>'} = "op_dir_go_east";
 sub op_dir_go_west {
     my $self = shift;
     $self->debug( "going west\n" );
-    $self->curip->dir_go_west;
+    $self->get_curip->dir_go_west;
 }
 $meths{'<'} = "op_dir_go_west";
 
@@ -690,7 +700,7 @@ $meths{'<'} = "op_dir_go_west";
 sub op_dir_go_north {
     my $self = shift;
     $self->debug( "going north\n" );
-    $self->curip->dir_go_north;
+    $self->get_curip->dir_go_north;
 }
 $meths{'^'} = "op_dir_go_north";
 
@@ -701,7 +711,7 @@ $meths{'^'} = "op_dir_go_north";
 sub op_dir_go_south {
     my $self = shift;
     $self->debug( "going south\n" );
-    $self->curip->dir_go_south;
+    $self->get_curip->dir_go_south;
 }
 $meths{'v'} = "op_dir_go_south";
 
@@ -712,7 +722,7 @@ $meths{'v'} = "op_dir_go_south";
 sub op_dir_go_away {
     my $self = shift;
     $self->debug( "going away!\n" );
-    $self->curip->dir_go_away;
+    $self->get_curip->dir_go_away;
 }
 $meths{'?'} = "op_dir_go_away";
 
@@ -726,7 +736,7 @@ is _so_ fast that we can speak about cars ;) ).
 sub op_dir_turn_left {
     my $self = shift;
     $self->debug( "turning on the left\n" );
-    $self->curip->dir_turn_left;
+    $self->get_curip->dir_turn_left;
 }
 $meths{'['} = "op_dir_turn_left";
 
@@ -740,7 +750,7 @@ is _so_ fast that we can speak about cars ;) ).
 sub op_dir_turn_right {
     my $self = shift;
     $self->debug( "turning on the right\n" );
-    $self->curip->dir_turn_right;
+    $self->get_curip->dir_turn_right;
 }
 $meths{']'} = "op_dir_turn_right";
 
@@ -751,7 +761,7 @@ $meths{']'} = "op_dir_turn_right";
 sub op_dir_reverse {
     my $self = shift;
     $self->debug( "180 deg!\n" );
-    $self->curip->dir_reverse;
+    $self->get_curip->dir_reverse;
 }
 $meths{'r'} = "op_dir_reverse";
 
@@ -763,7 +773,7 @@ Hmm, the user seems to know where he wants to go. Let's trust him/her.
 =cut
 sub op_dir_set_delta {
     my $self = shift;
-    my $ip = $self->curip;
+    my $ip = $self->get_curip;
     my ($new_dx, $new_dy) = $ip->spop_vec;
     $self->debug( "setting delta to ($new_dx, $new_dy)\n" );
     $ip->set_delta( $new_dx, $new_dy );
@@ -783,7 +793,7 @@ $meths{'x'} = "op_dir_set_delta";
 =cut
 sub op_decis_neg {
     my $self = shift;
-    my $ip = $self->curip;
+    my $ip = $self->get_curip;
 
     # Fetching value.
     my $val = $ip->spop ? 0 : 1;
@@ -799,7 +809,7 @@ $meths{'!'} = "op_decis_neg";
 =cut
 sub op_decis_gt {
     my $self = shift;
-    my $ip = $self->curip;
+    my $ip = $self->get_curip;
 
     # Fetching values.
     my ($v1, $v2) = $ip->spop_vec;
@@ -814,7 +824,7 @@ $meths{'`'} = "op_decis_gt";
 =cut
 sub op_decis_horiz_if {
     my $self = shift;
-    my $ip = $self->curip;
+    my $ip = $self->get_curip;
 
     # Fetching value.
     my $val = $ip->spop;
@@ -829,7 +839,7 @@ $meths{'_'} = "op_decis_horiz_if";
 =cut
 sub op_decis_vert_if {
     my $self = shift;
-    my $ip = $self->curip;
+    my $ip = $self->get_curip;
 
     # Fetching value.
     my $val = $ip->spop;
@@ -844,7 +854,7 @@ $meths{'|'} = "op_decis_vert_if";
 =cut
 sub op_decis_cmp {
     my $self = shift;
-    my $ip = $self->curip;
+    my $ip = $self->get_curip;
 
     # Fetching value.
     my ($v1, $v2) = $ip->spop_vec;
@@ -924,7 +934,7 @@ $meths{'#'} = "op_flow_trampoline";
 =cut
 sub op_flow_jump_to {
     my $self = shift;
-    my $ip = $self->curip;
+    my $ip = $self->get_curip;
     my $count = $ip->spop;
     $self->debug( "skipping $count instructions\n" );
     $count == 0 and return;
@@ -940,7 +950,7 @@ $meths{'j'} = "op_flow_jump_to";
 =cut
 sub op_flow_repeat {
     my $self = shift;
-    my $ip = $self->curip;
+    my $ip = $self->get_curip;
 
     my $kcounter = $ip->spop;
     $self->debug( "repeating next instruction $kcounter times.\n" );
@@ -953,7 +963,7 @@ sub op_flow_repeat {
     $kcounter < 0 and $self->abort( "Attempt to repeat ('k') a negative number of times ($kcounter)" );
 
     # Fetch instruction to repeat.
-    my $val = $self->torus->get_value( $ip->curx, $ip->cury );
+    my $val = $self->get_torus->get_value( $ip->curx, $ip->cury );
 
     # Check if we can repeat the instruction.
     $val > 0 and $val < 256 and chr($val) =~ /([ ;])/ and
@@ -972,8 +982,8 @@ $meths{'k'} = "op_flow_repeat";
 sub op_flow_kill_thread {
     my $self = shift;
     $self->debug( "end of Instruction Pointer\n" );
-    $self->curip->end('@');
-    $self->lastip( $self->curip );
+    $self->get_curip->end('@');
+    $self->set_lastip( $self->get_curip );
 }
 $meths{'@'} = "op_flow_kill_thread";
 
@@ -984,11 +994,11 @@ $meths{'@'} = "op_flow_kill_thread";
 sub op_flow_quit {
     my $self = shift;
     $self->debug( "end program\n" );
-    $self->newips( [] );
-    $self->ips( [] );
-    $self->curip->end('q');
-    $self->retval( $self->curip->spop );
-    $self->lastip( $self->curip );
+    $self->set_newips( [] );
+    $self->set_ips( [] );
+    $self->get_curip->end('q');
+    $self->set_retval( $self->get_curip->spop );
+    $self->set_lastip( $self->get_curip );
 }
 $meths{'q'} = "op_flow_quit";
 
@@ -1006,7 +1016,7 @@ $meths{'q'} = "op_flow_quit";
 sub op_stack_pop {
     my $self = shift;
     $self->debug( "popping a value\n" );
-    $self->curip->spop;
+    $self->get_curip->spop;
 }
 $meths{'$'} = "op_stack_pop";
 
@@ -1016,7 +1026,7 @@ $meths{'$'} = "op_stack_pop";
 =cut
 sub op_stack_duplicate {
     my $self = shift;
-    my $ip = $self->curip;
+    my $ip = $self->get_curip;
     my $value = $ip->spop;
     $self->debug( "duplicating value '$value'\n" );
     $ip->spush( $value );
@@ -1030,7 +1040,7 @@ $meths{':'} = "op_stack_duplicate";
 =cut
 sub op_stack_swap {
     my $self = shift;
-    my $ ip = $self->curip;
+    my $ ip = $self->get_curip;
     my ($v1, $v2) = $ip->spop_vec;
     $self->debug( "swapping $v1 and $v2\n" );
     $ip->spush( $v2 );
@@ -1045,7 +1055,7 @@ $meths{'\\'} = "op_stack_swap";
 sub op_stack_clear {
     my $self = shift;
     $self->debug( "clearing stack\n" );
-    $self->curip->sclear;
+    $self->get_curip->sclear;
 }
 $meths{'n'} = "op_stack_clear";
 
@@ -1062,7 +1072,7 @@ $meths{'n'} = "op_stack_clear";
 =cut
 sub op_block_open {
     my $self = shift;
-    my $ip = $self->curip;
+    my $ip = $self->get_curip;
     $self->debug( "block opening\n" );
 
     # Create new TOSS.
@@ -1088,7 +1098,7 @@ $meths{'{'} = "op_block_open";
 =cut
 sub op_block_close {
     my $self = shift;
-    my $ip = $self->curip;
+    my $ip = $self->get_curip;
 
     # No opened block.
     $ip->ss_count <= 0 and $ip->dir_reverse, $self->debug("no opened block\n"), return;
@@ -1110,7 +1120,7 @@ $meths{'}'} = "op_block_close";
 =cut
 sub op_bloc_transfer {
     my $self = shift;
-    my $ip = $self->curip;
+    my $ip = $self->get_curip;
 
     $ip->ss_count <= 0 and $ip->dir_reverse, $self->debug("no SOSS available\n"), return;
 
@@ -1133,7 +1143,7 @@ $meths{'u'} = "op_bloc_transfer";
 =cut
 sub op_store_get {
     my $self = shift;
-    my $ip = $self->curip;
+    my $ip = $self->get_curip;
 
     # Fetching coordinates.
     my ($x, $y) = $ip->spop_vec;
@@ -1141,7 +1151,7 @@ sub op_store_get {
     $y += $ip->story;
 
     # Fetching char.
-    my $val = $self->torus->get_value( $x, $y );
+    my $val = $self->get_torus->get_value( $x, $y );
     $ip->spush( $val );
 
     $self->debug( "fetching value at ($x,$y): pushing $val\n" );
@@ -1154,7 +1164,7 @@ $meths{'g'} = "op_store_get";
 =cut
 sub op_store_put {
     my $self = shift;
-    my $ip = $self->curip;
+    my $ip = $self->get_curip;
 
     # Fetching coordinates.
     my ($x, $y) = $ip->spop_vec;
@@ -1163,7 +1173,7 @@ sub op_store_put {
 
     # Fetching char.
     my $val = $ip->spop;
-    $self->torus->set_value( $x, $y, $val );
+    $self->get_torus->set_value( $x, $y, $val );
 
     $self->debug( "storing value $val at ($x,$y)\n" );
 }
@@ -1182,7 +1192,7 @@ $meths{'p'} = "op_store_put";
 =cut
 sub op_stdio_out_num {
     my $self = shift;
-    my $ip = $self->curip;
+    my $ip = $self->get_curip;
 
     # Fetch value and print it.
     my $val = $ip->spop;
@@ -1197,7 +1207,7 @@ $meths{'.'} = "op_stdio_out_num";
 =cut
 sub op_stdio_out_ascii {
     my $self = shift;
-    my $ip = $self->curip;
+    my $ip = $self->get_curip;
 
     # Fetch value and print it.
     my $val = $ip->spop;
@@ -1213,7 +1223,7 @@ $meths{','} = "op_stdio_out_ascii";
 =cut
 sub op_stdio_in_num {
     my $self = shift;
-    my $ip = $self->curip;
+    my $ip = $self->get_curip;
     my ($in, $nb);
     while ( not defined($nb) ) {
         $in = $ip->input || <STDIN> while not $in;
@@ -1237,7 +1247,7 @@ $meths{'&'} = "op_stdio_in_num";
 =cut
 sub op_stdio_in_ascii {
     my $self = shift;
-    my $ip = $self->curip;
+    my $ip = $self->get_curip;
     my $in;
     $in = $ip->input || <STDIN> while not $in;
     my $chr = substr $in, 0, 1, "";
@@ -1254,7 +1264,7 @@ $meths{'~'} = "op_stdio_in_ascii";
 =cut
 sub op_stdio_in_file {
     my $self = shift;
-    my $ip = $self->curip;
+    my $ip = $self->get_curip;
 
     # Fetch arguments.
     my $path = $ip->spop_gnirts;
@@ -1275,8 +1285,8 @@ sub op_stdio_in_file {
 
     # Store the code and the result vector.
     my ($wid, $hei) = $flag % 2
-        ? ( $self->torus->store_binary( $lines, $xin, $yin ) )
-        : ( $self->torus->store( $lines, $xin, $yin ) );
+        ? ( $self->get_torus->store_binary( $lines, $xin, $yin ) )
+        : ( $self->get_torus->store( $lines, $xin, $yin ) );
     $ip->spush( $wid, $hei, $xin, $yin );
 }
 $meths{'i'} = "op_stdio_in_file";
@@ -1287,7 +1297,7 @@ $meths{'i'} = "op_stdio_in_file";
 =cut
 sub op_stdio_out_file {
     my $self = shift;
-    my $ip = $self->curip;
+    my $ip = $self->get_curip;
 
     # Fetch arguments.
     my $path = $ip->spop_gnirts;
@@ -1296,7 +1306,7 @@ sub op_stdio_out_file {
     $xin += $ip->storx;
     $yin += $ip->story;
     my ($hei, $wid) = $ip->spop_vec;
-    my $data = $self->torus->rectangle( $xin, $yin, $wid, $hei );
+    my $data = $self->get_torus->rectangle( $xin, $yin, $wid, $hei );
 
     # Cosmetics.
     my $x2 = $xin + $wid;
@@ -1322,7 +1332,7 @@ $meths{'o'} = "op_stdio_out_file";
 =cut
 sub op_stdio_sys_exec {
     my $self = shift;
-    my $ip = $self->curip;
+    my $ip = $self->get_curip;
     
     # Fetching command.
     my $path = $ip->spop_gnirts;
@@ -1345,8 +1355,8 @@ $meths{'='} = "op_stdio_sys_exec";
 =cut
 sub op_sys_info {
     my $self = shift;
-    my $ip    = $self->curip;
-    my $torus = $self->torus;
+    my $ip    = $self->get_curip;
+    my $torus = $self->get_torus;
 
     my $val = $ip->spop;
     my @cells = ();
@@ -1424,7 +1434,7 @@ sub op_sys_info {
     push @cells, \@sizes;
                     
     # 19. $file + params.
-    my $str = join chr(0), $self->file, @{$self->params}, chr(0);
+    my $str = join chr(0), $self->get_file, @{$self->get_params}, chr(0);
     my @cmdline = reverse map { ord } split //, $str;
     push @cells, \@cmdline;
                     
@@ -1479,10 +1489,10 @@ sub op_spawn_ip {
     $self->debug( "spawning new IP\n" );
 
     # Cloning and storing new IP.
-    my $newip = $self->curip->clone;
+    my $newip = $self->get_curip->clone;
     $newip->dir_reverse;
-    $self->torus->move_ip_forward($newip);
-    push @{ $self->newips }, $newip;
+    $self->get_torus->move_ip_forward($newip);
+    push @{ $self->get_newips }, $newip;
 }
 $meths{'t'} = "op_spawn_ip";
 
@@ -1499,7 +1509,7 @@ $meths{'t'} = "op_spawn_ip";
 =cut
 sub op_lib_load {
     my $self = shift;
-    my $ip = $self->curip;
+    my $ip = $self->get_curip;
 
     # Fetching fingerprint.
     my $count = $ip->spop;
@@ -1541,7 +1551,7 @@ $meths{'('} = "op_lib_load";
 =cut
 sub op_lib_unload {
     my $self = shift;
-    my $ip = $self->curip;
+    my $ip = $self->get_curip;
 
     # Fetching fingerprint.
     my $count = $ip->spop;

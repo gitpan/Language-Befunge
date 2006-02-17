@@ -1,4 +1,4 @@
-# $Id: LaheySpace.pm,v 1.7 2006/02/06 20:19:04 jquelin Exp $
+# $Id: LaheySpace.pm,v 1.8 2006/02/14 15:44:47 jquelin Exp $
 #
 # Copyright (c) 2002-2003 Jerome Quelin <jquelin@cpan.org>
 # All rights reserved.

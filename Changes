@@ -1,5 +1,11 @@
 Revision history for Perl extension Language::Befunge.
 
+2.00 Fri Feb 17 14:48:54 CET 2006
+        - splitted accessors for L::B in get_* and set_*, for a 20%
+          speedup. note: this will break your code if you're running
+          your own inner-loop!
+        - beginning of L::B 2.x, an optimization serie
+
 1.20 Mon Feb 13 18:08:28 CET 2006
         - fixed wrapping in L::B::LaheySpace::move_ip_forward to
           comply with LaheySpace specs (courtesy of Mark Glines)

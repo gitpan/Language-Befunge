@@ -34,7 +34,7 @@ my %opts;
 Getopt::Long::Configure('no_auto_abbrev', 'bundling', 'ignore_case', 'no_pass_through');
 GetOptions( \%opts, "verbose|v") or die;
 my $bef = new Language::Befunge( shift );
-$bef->DEBUG( $opts{verbose} );
+$bef->set_DEBUG( $opts{verbose} );
 exit $bef->run_code( @ARGV );
 
 __END__

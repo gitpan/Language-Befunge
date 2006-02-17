@@ -55,7 +55,7 @@ Store the gnirts "Hello world!\n"0 on the TOSS.
 =cut
 sub S {
     my (undef, $interp) = @_;
-    $interp->curip->spush( reverse map { ord } split //, "Hello world!\n".chr(0) );
+    $interp->get_curip->spush( reverse map { ord } split //, "Hello world!\n".chr(0) );
 }
 
 

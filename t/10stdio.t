@@ -97,7 +97,7 @@ v qiv# "t/hello.bf"0        <
 END_OF_CODE
 $bef->run_code;
 $out = slurp;
-ok( $bef->torus->rectangle(6, 9, 71, 1),
+ok( $bef->get_torus->rectangle(6, 9, 71, 1),
     qq{v q  ,,,,,,,,,,,,,"hello world!"a <\n>                                 ^} . "\n" );
 ok( $out, "" );
 BEGIN { $tests += 2 };
