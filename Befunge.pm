@@ -1,4 +1,4 @@
-# $Id: Befunge.pm,v 1.15 2006/02/14 15:44:47 jquelin Exp $
+# $Id: Befunge.pm,v 1.16 2006/02/17 13:53:05 jquelin Exp $
 #
 # Copyright (c) 2002 Jerome Quelin <jquelin@cpan.org>
 # All rights reserved.
@@ -62,23 +62,22 @@ is made neither for Microsoft systems (\r\n) nor for Macs (\r).
 This module also implements the Concurrent Funge semantics.
 
 =cut
-
 use strict;
 use warnings;
 
-# Modules we relied upon.
+# Modules we rely upon.
 use Carp;     # This module can't explode :o)
 use Config;   # For the 'y' instruction.
 use Language::Befunge::IP;
 use Language::Befunge::LaheySpace;
 
 # Public variables of the module.
-our $VERSION   = '2.00';
+our $VERSION   = '2.01';
 our $HANDPRINT = 'JQBF98'; # the handprint of the interpreter.
 our $AUTOLOAD;
-our $attrs;
 our %meths;
 $| = 1;
+
 
 =head1 CONSTRUCTOR
 
@@ -118,84 +117,62 @@ sub new {
 
 =head1 ACCESSORS
 
-All the following accessors are autoloaded.
+The following is a list of attributes of a Language::Befunge. For each
+of them, a method C<get_foobar> and C<set_foobar> exists, which does
+what you can imagine - and if you can't, then i wonder why you are
+reading this! :-)
 
-=head2 file( [filename] )
+=over 4
 
-Get or set the filename of the script.
+=item file:
 
-=head2 params( [arrayref] )
+the script filename (a string)
 
-Get or set the parameters of the script.
+=item params:
 
-=head2 retval( [retval] )
+the parameters of the script (an array reference)
 
-Get or set the current return value of the interpreter.
+=item retval:
 
-=head2 DEBUG( boolean )
+the current return value of the interpreter (an integer)
 
-Set wether the interpreter should output debug messages.
+=item DEBUG:
 
-=head2 curip( [IPref] )
+wether the interpreter should output debug messages (a boolean)
 
-Get or set the current Instruction Pointer processed.
+=item curip:
 
-=head2 lastip( [IPref] )
+the current Instruction Pointer processed (a L::B::IP object)
 
-Get or set the last Instruction Pointer (when C<@> or C<q>
-instructions are encountered).
+=item lastip:
 
-=head2 ips( [arrayref] )
+the last Instruction Pointer, when C<@> or C<q> instructions are
+encountered (a L::B::IP object)
 
-Get or set the current set of IPs travelling in the Lahey space.
+=item ips:
 
-=head2 newips( [arrayref] )
+the current set of IPs travelling in the Lahey space (an array
+reference)
 
-Get or set the set of IPs that B<will> travel in the Lahey space
-B<after> the current tick.
+=item newips:
 
-=head2 torus(  )
+the set of IPs that B<will> travel in the Lahey space B<after> the
+current tick (an array reference)
 
-Get the Lahey space object.
+=item torus:
+
+the current Lahey space (a L::B::LaheySpace object)
+
+=back
 
 =cut
 BEGIN {
     my @attrs = qw[ file params retval DEBUG curip lastip ips newips torus ];
-    $attrs    = join "|", @attrs;
-    my @subs  = map { ( "get_$_", "set_$_" ) } @attrs;
-    use subs @subs;
-}
-sub AUTOLOAD {
-    # We don't DESTROY.
-    return if $AUTOLOAD =~ /::DESTROY/;
-
-    # Fetch the attribute name
-    $AUTOLOAD =~ /.*::(\w+)/;
-    my $sub = $1;
-    # Must be one of the registered subs (compile once)
-    if( $sub =~ /^get_($attrs)/o ) {
-        no strict 'refs';
-        my $attr = $1;
-        # Create the method (but don't pollute other namespaces)
-        *{$AUTOLOAD} = sub {
-            my $self = shift;
-            return $self->{$attr};
-        };
-        # Now do it
-        goto &{$AUTOLOAD};
-    } elsif ( $sub =~ /^set_($attrs)/o ) {
-        no strict 'refs';
-        my $attr = $1;
-        # Create the method (but don't pollute other namespaces)
-        *{$AUTOLOAD} = sub {
-            my $self = shift;
-            $self->{$attr} = shift;
-        };
-        # Now do it
-        goto &{$AUTOLOAD};
+    foreach my $attr ( @attrs ) {
+        my $code = qq[ sub get_$attr { return \$_[0]->{$attr} } ];
+        $code .= qq[ sub set_$attr { \$_[0]->{$attr} = \$_[1] } ];
+        eval $code;
     }
-    # Should we really die here?
-    croak "Undefined method $AUTOLOAD";
 }
 
 

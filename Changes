@@ -1,7 +1,11 @@
 Revision history for Perl extension Language::Befunge.
 
+2.01 Fri Feb 17 15:15:43 CET 2006
+        - rewritten accessors generation, for another speedup
+        - adapted the documentation
+        
 2.00 Fri Feb 17 14:48:54 CET 2006
-        - splitted accessors for L::B in get_* and set_*, for a 20%
+        - splitted accessors for L::B in get_* and set_*, for a small
           speedup. note: this will break your code if you're running
           your own inner-loop!
         - beginning of L::B 2.x, an optimization serie
