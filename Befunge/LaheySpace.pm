@@ -1,4 +1,4 @@
-# $Id: LaheySpace.pm,v 1.8 2006/02/14 15:44:47 jquelin Exp $
+# $Id: LaheySpace.pm,v 1.9 2006/02/17 14:53:49 jquelin Exp $
 #
 # Copyright (c) 2002-2003 Jerome Quelin <jquelin@cpan.org>
 # All rights reserved.
@@ -28,6 +28,7 @@ Language::Befunge::LaheySpace - a LaheySpace representation.
 # Modules we rely upon.
 use strict;
 use warnings;
+use integer;
 use Carp;     # This module can't explode :o)
 
 

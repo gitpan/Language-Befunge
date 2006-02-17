@@ -1,4 +1,4 @@
-# $Id: IP.pm,v 1.3 2006/02/07 17:11:00 jquelin Exp $
+# $Id: IP.pm,v 1.4 2006/02/17 14:53:49 jquelin Exp $
 #
 # Copyright (c) 2002 Jerome Quelin <jquelin@cpan.org>
 # All rights reserved.
@@ -27,6 +27,7 @@ more than one IP travelling on the Lahey space.
 =cut
 use strict;
 use warnings;
+use integer;
 
 # Modules we rely upon.
 use Carp;     # This module can't explode :o)
