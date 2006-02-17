@@ -185,81 +185,81 @@ BEGIN { $tests += 3; }
 $ls->clear;   # "positive" playfield.
 $ls->set_max(5, 10);
 $ip->set_pos( 4, 3 );
-$ip->dx( 1 );
-$ip->dy( 0 );
+$ip->set_dx( 1 );
+$ip->set_dy( 0 );
 $ls->move_ip_forward( $ip );
-ok( $ip->curx, 5 );
+ok( $ip->get_curx, 5 );
 $ls->move_ip_forward( $ip ); # wrap xmax
-ok( $ip->curx, 0 );
+ok( $ip->get_curx, 0 );
 $ip->set_pos( 4, 3 );
-$ip->dx( 7 );                # apply delta that overflows torus width
-$ip->dy( 0 );
+$ip->set_dx( 7 );                # apply delta that overflows torus width
+$ip->set_dy( 0 );
 $ls->move_ip_forward( $ip );
-ok( $ip->curx, 4 );
+ok( $ip->get_curx, 4 );
 $ls->move_ip_forward( $ip ); # wrap xmax harder
-ok( $ip->curx, 4 );
+ok( $ip->get_curx, 4 );
 $ip->set_pos( 0, 4 );
-$ip->dx( -1 );
-$ip->dy( 0 );
+$ip->set_dx( -1 );
+$ip->set_dy( 0 );
 $ls->move_ip_forward( $ip ); # wrap xmin
-ok( $ip->curx, 5 );
+ok( $ip->get_curx, 5 );
 $ip->set_pos( 2, 9 );
-$ip->dx( 0 );
-$ip->dy( 1 );
+$ip->set_dx( 0 );
+$ip->set_dy( 1 );
 $ls->move_ip_forward( $ip );
-ok( $ip->cury, 10 );
+ok( $ip->get_cury, 10 );
 $ls->move_ip_forward( $ip ); # wrap ymax
-ok( $ip->cury, 0 );
+ok( $ip->get_cury, 0 );
 $ip->set_pos( 2, 9 );
-$ip->dx( 0 );
-$ip->dy( 12 );               # apply delta that overflows torus height
+$ip->set_dx( 0 );
+$ip->set_dy( 12 );               # apply delta that overflows torus height
 $ls->move_ip_forward( $ip );
-ok( $ip->cury, 9 );
+ok( $ip->get_cury, 9 );
 $ls->move_ip_forward( $ip ); # wrap ymax harder
-ok( $ip->cury, 9 );
+ok( $ip->get_cury, 9 );
 $ip->set_pos( 1, 0 );
-$ip->dx( 0 );
-$ip->dy( -1 );
+$ip->set_dx( 0 );
+$ip->set_dy( -1 );
 $ls->move_ip_forward( $ip ); # wrap ymin
-ok( $ip->cury, 10 );
+ok( $ip->get_cury, 10 );
 BEGIN { $tests += 10 }
 $ls->clear;   # "negative" playfield.
 $ls->set_min(-1, -3);
 $ls->set_max(5, 10);
 $ip->set_pos( 4, 3 );
-$ip->dx( 1 );
-$ip->dy( 0 );
+$ip->set_dx( 1 );
+$ip->set_dy( 0 );
 $ls->move_ip_forward( $ip );
-ok( $ip->curx, 5 );
+ok( $ip->get_curx, 5 );
 $ls->move_ip_forward( $ip ); # wrap xmax
-ok( $ip->curx, -1 );
+ok( $ip->get_curx, -1 );
 $ip->set_pos( -1, 4 );
-$ip->dx( -1 );
-$ip->dy( 0 );
+$ip->set_dx( -1 );
+$ip->set_dy( 0 );
 $ls->move_ip_forward( $ip ); # wrap xmin
-ok( $ip->curx, 5 );
+ok( $ip->get_curx, 5 );
 $ip->set_pos( 2, 9 );
-$ip->dx( 0 );
-$ip->dy( 1 );
+$ip->set_dx( 0 );
+$ip->set_dy( 1 );
 $ls->move_ip_forward( $ip );
-ok( $ip->cury, 10 );
+ok( $ip->get_cury, 10 );
 $ls->move_ip_forward( $ip ); # wrap ymax
-ok( $ip->cury, -3 );
+ok( $ip->get_cury, -3 );
 $ip->set_pos( 1, -3 );
-$ip->dx( 0 );
-$ip->dy( -1 );
+$ip->set_dx( 0 );
+$ip->set_dy( -1 );
 $ls->move_ip_forward( $ip ); # wrap ymin
-ok( $ip->cury, 10 );
+ok( $ip->get_cury, 10 );
 BEGIN { $tests += 6; }
 $ls->clear;   # diagonals.
 $ls->set_min(-1, -2);
 $ls->set_max(6, 5);
 $ip->set_pos(0, 0);
-$ip->dx(-2);
-$ip->dy(-3);
+$ip->set_dx(-2);
+$ip->set_dy(-3);
 $ls->move_ip_forward( $ip );
-ok( $ip->curx, 2 );
-ok( $ip->cury, 3 );
+ok( $ip->get_curx, 2 );
+ok( $ip->get_cury, 3 );
 BEGIN { $tests += 2; }
 
 # Label lookup

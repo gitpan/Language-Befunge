@@ -232,10 +232,10 @@ sub move_ip_forward {
     my ($self, $ip) = @_;
 
     # Fetch the current position of the IP.
-    my $x = $ip->curx;
-    my $y = $ip->cury;
+    my $x = $ip->get_curx;
+    my $y = $ip->get_cury;
 
-    my ($dx, $dy) = ($ip->dx, $ip->dy);
+    my ($dx, $dy) = ($ip->get_dx, $ip->get_dy);
     # Now, let's move the IP.
     $x += $dx;
     $y += $dy;

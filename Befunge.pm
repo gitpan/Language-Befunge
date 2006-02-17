@@ -1,4 +1,4 @@
-# $Id: Befunge.pm,v 1.16 2006/02/17 13:53:05 jquelin Exp $
+# $Id: Befunge.pm,v 1.17 2006/02/17 14:20:02 jquelin Exp $
 #
 # Copyright (c) 2002 Jerome Quelin <jquelin@cpan.org>
 # All rights reserved.
@@ -72,9 +72,8 @@ use Language::Befunge::IP;
 use Language::Befunge::LaheySpace;
 
 # Public variables of the module.
-our $VERSION   = '2.01';
+our $VERSION   = '2.02';
 our $HANDPRINT = 'JQBF98'; # the handprint of the interpreter.
-our $AUTOLOAD;
 our %meths;
 $| = 1;
 
@@ -117,10 +116,10 @@ sub new {
 
 =head1 ACCESSORS
 
-The following is a list of attributes of a Language::Befunge. For each
-of them, a method C<get_foobar> and C<set_foobar> exists, which does
-what you can imagine - and if you can't, then i wonder why you are
-reading this! :-)
+The following is a list of attributes of a Language::Befunge
+object. For each of them, a method C<get_foobar> and C<set_foobar>
+exists, which does what you can imagine - and if you can't, then i
+wonder why you are reading this! :-)
 
 =over 4
 
@@ -176,7 +175,6 @@ BEGIN {
 }
 
 
-
 =head1 PUBLIC METHODS
 
 =head2 Utilities
@@ -201,12 +199,12 @@ sub move_curip {
     my $torus = $self->get_torus;
 
     if ( defined $re ) {
-        my ($origx, $origy) = ($curip->curx, $curip->cury);
+        my ($origx, $origy) = ($curip->get_curx, $curip->get_cury);
         # Moving as long as we did not reach the condition.
-        while ( $torus->get_char($curip->curx, $curip->cury) =~ $re ) {
+        while ( $torus->get_char($curip->get_curx, $curip->get_cury) =~ $re ) {
             $torus->move_ip_forward($curip);
             $self->abort("infinite loop")
-                if ( ($curip->curx == $origx) && ($curip->cury == $origy) );
+                if ( ($curip->get_curx == $origx) && ($curip->get_cury == $origy) );
         }
 
         # We moved one char too far.
@@ -230,8 +228,8 @@ file and coordinate of the offending instruction.
 sub abort {
     my $self = shift;
     my $file = $self->get_file;
-    my $x = $self->get_curip->curx;
-    my $y = $self->get_curip->cury;
+    my $x = $self->get_curip->get_curx;
+    my $y = $self->get_curip->get_cury;
     croak "$file ($x,$y): ", @_;
 }
 
@@ -360,20 +358,20 @@ sub process_ip {
     my $ip = $self->get_curip;
 
     # Fetch values for this IP.
-    my $x  = $ip->curx;
-    my $y  = $ip->cury;
+    my $x  = $ip->get_curx;
+    my $y  = $ip->get_cury;
     my $ord  = $self->get_torus->get_value( $x, $y );
     my $char = $self->get_torus->get_char( $x, $y );
 
     # Cosmetics.
-    $self->debug( "#".$ip->id.":($x,$y): $char (ord=$ord)  Stack=(@{$ip->toss})\n" );
+    $self->debug( "#".$ip->get_id.":($x,$y): $char (ord=$ord)  Stack=(@{$ip->get_toss})\n" );
 
     # Check if we are in string-mode.
-    if ( $ip->string_mode ) {
+    if ( $ip->get_string_mode ) {
         if ( $char eq '"' ) {
             # End of string-mode.
             $self->debug( "leaving string-mode\n" );
-            $ip->string_mode(0);
+            $ip->set_string_mode(0);
 
         } elsif ( $char eq ' ' ) {
             # A serie of spaces, to be treated as one space.
@@ -399,7 +397,7 @@ sub process_ip {
             $self->debug( "library semantics\n" );
 
             my $found = 0;
-            foreach my $obj ( @{ $ip->libs } ) {
+            foreach my $obj ( @{ $ip->get_libs } ) {
                 # Try the loaded libraries in order.
                 eval "\$obj->$char(\$self)";
                 next if $@; # Uh, this wasn't the good one.
@@ -426,7 +424,7 @@ sub process_ip {
         # Tick done for this IP, let's move it and push it in the
         # set of non-terminated IPs.
         $self->move_curip;
-        push @{ $self->get_newips }, $ip unless $ip->end;
+        push @{ $self->get_newips }, $ip unless $ip->get_end;
     }
 }
 
@@ -451,7 +449,7 @@ sub op_num_push_number {
 
     # Fetching char.
     my $ip  = $self->get_curip;
-    my $num = hex( chr( $self->get_torus->get_value( $ip->curx, $ip->cury ) ) );
+    my $num = hex( chr( $self->get_torus->get_value( $ip->get_curx, $ip->get_cury ) ) );
 
     # Pushing value.
     $ip->spush( $num );
@@ -480,7 +478,7 @@ sub op_str_enter_string_mode {
     $self->debug( "entering string mode\n" );
 
     # Entering string-mode.
-    $self->get_curip->string_mode(1);
+    $self->get_curip->set_string_mode(1);
 }
 $meths{'"'} = "op_str_enter_string_mode";
 
@@ -496,8 +494,8 @@ sub op_str_fetch_char {
     $self->move_curip;
  
    # .. then fetch value and push it.
-    my $ord = $self->get_torus->get_value( $ip->curx, $ip->cury );
-    my $chr = $self->get_torus->get_char( $ip->curx, $ip->cury );
+    my $ord = $self->get_torus->get_value( $ip->get_curx, $ip->get_cury );
+    my $chr = $self->get_torus->get_char( $ip->get_curx, $ip->get_cury );
     $ip->spush( $ord );
 
     # Cosmetics.
@@ -520,8 +518,8 @@ sub op_str_store_char {
     my $val = $ip->spop;
 
     # Storing value.
-    $self->get_torus->set_value( $ip->curx, $ip->cury, $val );
-    my $chr = $self->get_torus->get_char( $ip->curx, $ip->cury );
+    $self->get_torus->set_value( $ip->get_curx, $ip->get_cury, $val );
+    my $chr = $self->get_torus->get_char( $ip->get_curx, $ip->get_cury );
 
     # Cosmetics.
     $self->debug( "storing value $val (char='$chr')\n" );
@@ -940,7 +938,7 @@ sub op_flow_repeat {
     $kcounter < 0 and $self->abort( "Attempt to repeat ('k') a negative number of times ($kcounter)" );
 
     # Fetch instruction to repeat.
-    my $val = $self->get_torus->get_value( $ip->curx, $ip->cury );
+    my $val = $self->get_torus->get_value( $ip->get_curx, $ip->get_cury );
 
     # Check if we can repeat the instruction.
     $val > 0 and $val < 256 and chr($val) =~ /([ ;])/ and
@@ -959,7 +957,7 @@ $meths{'k'} = "op_flow_repeat";
 sub op_flow_kill_thread {
     my $self = shift;
     $self->debug( "end of Instruction Pointer\n" );
-    $self->get_curip->end('@');
+    $self->get_curip->set_end('@');
     $self->set_lastip( $self->get_curip );
 }
 $meths{'@'} = "op_flow_kill_thread";
@@ -973,7 +971,7 @@ sub op_flow_quit {
     $self->debug( "end program\n" );
     $self->set_newips( [] );
     $self->set_ips( [] );
-    $self->get_curip->end('q');
+    $self->get_curip->set_end('q');
     $self->set_retval( $self->get_curip->spop );
     $self->set_lastip( $self->get_curip );
 }
@@ -1056,13 +1054,13 @@ sub op_block_open {
     $ip->ss_create( $ip->spop );
 
     # Store current storage offset on SOSS.
-    $ip->soss_push( $ip->storx );
-    $ip->soss_push( $ip->story );
+    $ip->soss_push( $ip->get_storx );
+    $ip->soss_push( $ip->get_story );
 
     # Set the new Storage Offset.
     $self->move_curip;
-    $ip->storx( $ip->curx );
-    $ip->story( $ip->cury );
+    $ip->set_storx( $ip->get_curx );
+    $ip->set_story( $ip->get_cury );
     $ip->dir_reverse;
     $self->move_curip;
     $ip->dir_reverse;
@@ -1083,8 +1081,8 @@ sub op_block_close {
     $self->debug( "block closing\n" );
 
     # Restore Storage offset.
-    $ip->story( $ip->soss_pop );
-    $ip->storx( $ip->soss_pop );
+    $ip->set_story( $ip->soss_pop );
+    $ip->set_storx( $ip->soss_pop );
 
     # Remove the TOSS.
     $ip->ss_remove( $ip->spop );
@@ -1124,8 +1122,8 @@ sub op_store_get {
 
     # Fetching coordinates.
     my ($x, $y) = $ip->spop_vec;
-    $x += $ip->storx;
-    $y += $ip->story;
+    $x += $ip->get_storx;
+    $y += $ip->get_story;
 
     # Fetching char.
     my $val = $self->get_torus->get_value( $x, $y );
@@ -1145,8 +1143,8 @@ sub op_store_put {
 
     # Fetching coordinates.
     my ($x, $y) = $ip->spop_vec;
-    $x += $ip->storx;
-    $y += $ip->story;
+    $x += $ip->get_storx;
+    $y += $ip->get_story;
 
     # Fetching char.
     my $val = $ip->spop;
@@ -1247,8 +1245,8 @@ sub op_stdio_in_file {
     my $path = $ip->spop_gnirts;
     my $flag = $ip->spop;
     my ($xin, $yin) = $ip->spop_vec;
-    $xin += $ip->storx;
-    $yin += $ip->story;
+    $xin += $ip->get_storx;
+    $yin += $ip->get_story;
 
     # Read file.
     $self->debug( "input file '$path' at ($xin,$yin)\n" );
@@ -1280,8 +1278,8 @@ sub op_stdio_out_file {
     my $path = $ip->spop_gnirts;
     my $flag = $ip->spop;
     my ($xin, $yin) = $ip->spop_vec;
-    $xin += $ip->storx;
-    $yin += $ip->story;
+    $xin += $ip->get_storx;
+    $yin += $ip->get_story;
     my ($hei, $wid) = $ip->spop_vec;
     my $data = $self->get_torus->rectangle( $xin, $yin, $wid, $hei );
 
@@ -1368,21 +1366,21 @@ sub op_sys_info {
     push @cells, 2;
 
     # 8. Unique IP number.
-    push @cells, $ip->id;
+    push @cells, $ip->get_id;
 
     # 9. Concurrent Funge (not implemented).
     push @cells, 0;
 
     # 10. Position of the curent IP.
-    my @pos = ( $ip->curx, $ip->cury );
+    my @pos = ( $ip->get_curx, $ip->get_cury );
     push @cells, \@pos;
 
     # 11. Delta of the curent IP.
-    my @delta = ( $ip->dx, $ip->dy );
+    my @delta = ( $ip->get_dx, $ip->get_dy );
     push @cells, \@delta;
 
     # 12. Storage offset of the curent IP.
-    my @stor = ( $ip->storx, $ip->story );
+    my @stor = ( $ip->get_storx, $ip->get_story );
     push @cells, \@stor;
 
     # 13. Top-left point.

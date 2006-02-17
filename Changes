@@ -1,5 +1,9 @@
 Revision history for Perl extension Language::Befunge.
 
+2.02 Fri Feb 17 15:36:08 CET 2006
+        - rewritten accessors for L::B::IP, using same technik as L::B
+        - doc updated
+
 2.01 Fri Feb 17 15:15:43 CET 2006
         - rewritten accessors generation, for another speedup
         - adapted the documentation

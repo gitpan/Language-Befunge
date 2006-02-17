@@ -25,27 +25,12 @@ We need a class, since this is a concurrent Befunge, so we can have
 more than one IP travelling on the Lahey space.
 
 =cut
-
-# A little anal retention ;-)
 use strict;
 use warnings;
 
-# Modules we relied upon.
+# Modules we rely upon.
 use Carp;     # This module can't explode :o)
 use Storable qw(dclone);
-
-# Variables of the module.
-our $AUTOLOAD;
-our $subs;
-
-BEGIN {
-    my @subs = split /\|/, 
-      $subs = 'id|curx|cury|dx|dy|storx|story|data|string_mode'.
-              '|end|toss|ss|input|libs';
-    use subs @subs;
-}
-
-# Private variables of the module.
 
 
 =head1 CONSTRUCTOR
@@ -75,7 +60,7 @@ sub new {
         libs         => [],
       };
     bless $self, $class;
-    $self->id( $self->get_new_id );
+    $self->set_id( $self->get_new_id );
     return $self;
 }
 
@@ -88,12 +73,88 @@ delta, etc. Change its unique ID.
 sub clone {
     my $self = shift;
     my $clone = dclone( $self );
-    $clone->id( $self->get_new_id );
+    $clone->set_id( $self->get_new_id );
     return $clone;
 }
 
 
 =head1 ACCESSORS
+
+=head2 Attributes
+
+The following is a list of attributes of a Language::Befunge::IP
+object. For each of them, a method C<get_foobar> and C<set_foobar>
+exists.
+
+=over 4
+
+=item id:
+
+the unique ID of the IP (an integer)
+
+=item curx:
+
+the current x-coordinate of the IP (an integer)
+
+=item cury:
+
+the current y-coordinate of the IP (an integer)
+
+=item dx:
+
+the horizontal offset of the IP (an integer)
+
+=item dy:
+
+the vertical offset of the IP (an integer)
+
+=item storx:
+
+the x-coordinate of the storage offset of the IP (an integer)
+
+=item story:
+
+the y-coordinate of the storage offset of the IP (an integer)
+
+=item data:
+
+the library private storage space (a hash reference)
+
+=item input:
+
+the input cache (a string)
+
+=item string_mode:
+
+the string_mode of the IP (a boolean)
+
+=item end:
+
+wether the IP should be terminated (a boolean)
+
+=item libs:
+
+the current stack of loaded libraries (an array reference)
+
+=item ss:
+
+the stack of stack of the IP (an array reference)
+
+=item toss:
+
+the current stack (er, TOSS) of the IP (an array reference)
+
+=cut
+BEGIN {
+    my @attrs = qw[ curx cury data dx dy end id input libs
+                    ss storx story string_mode toss ];
+    foreach my $attr ( @attrs ) {
+        my $code = qq[ sub get_$attr { return \$_[0]->{$attr} } ];
+        $code .= qq[ sub set_$attr { \$_[0]->{$attr} = \$_[1] } ];
+        eval $code;
+    }
+}
+
 
 =head2 set_pos( x, y )
 
@@ -102,94 +163,11 @@ Set the current position of the IP to the corresponding location.
 =cut
 sub set_pos {
     my ($self, $x, $y) = @_;
-    $self->curx( $x );
-    $self->cury( $y );
+    $self->set_curx( $x );
+    $self->set_cury( $y );
 }
 
 =pod
-
-All the following accessors are autoloaded.
-
-=head2 id( [id] )
-
-Get or set the unique ID of the IP.
-
-=head2 curx( [x] )
-
-Get or set the current x-coordinate of the IP.
-
-=head2 cury( [y] )
-
-Get or set the current y-coordinate of the IP.
-
-=head2 dx( [dx] )
-
-Get or set the horizontal offset of the IP.
-
-=head2 dy( [dy] )
-
-Get or set the vertical offset of the IP.
-
-=head2 storx( [x] )
-
-Get or set the x-coordinate of the storage offset of the IP.
-
-=head2 story( [y] )
-
-Get or set the y-coordinate of the storage offset of the IP.
-
-=head2 data(  )
-
-Get the library private storage space.
-
-=head2 input( [string] )
-
-Get or set the input cache.
-
-=head2 string_mode( [boolean] )
-
-Get or set the string_mode of the IP.
-
-=head2 end( [boolean] )
-
-Get or set wether the IP should be terminated.
-
-=head2 libs(  )
-
-Access the current stack of loaded libraries.
-
-=head2 ss(  )
-
-Get the stack of stack of the IP.
-
-=head2 toss(  )
-
-Access the current stack (er, TOSS) of the IP.
-
-=cut
-sub AUTOLOAD {
-    # We don't DESTROY.
-    return if $AUTOLOAD =~ /::DESTROY/;
-
-    # Fetch the attribute name
-    $AUTOLOAD =~ /.*::(\w+)/;
-    my $attr = $1;
-    # Must be one of the registered subs (compile once)
-    if( $attr =~ /$subs/o ) {
-        no strict 'refs';
-
-        # Create the method (but don't pollute other namespaces)
-        *{$AUTOLOAD} = sub {
-            my $self = shift;
-            @_ ? $self->{$attr} = shift : $self->{$attr};
-        };
-
-        # Now do it
-        goto &{$AUTOLOAD};
-    }
-    # Should we really die here?
-    croak "Undefined method $AUTOLOAD";
-}
 
 =head2 soss(  )
 
@@ -199,8 +177,8 @@ Get or set the SOSS.
 sub soss {
     my $self = shift;
     # Remember, the Stack Stack is up->bottom.
-    @_ and $self->ss->[0] = shift;
-    return $self->ss->[0];
+    @_ and $self->get_ss->[0] = shift;
+    return $self->get_ss->[0];
 }
 
 
@@ -223,7 +201,7 @@ Return the number of elements in the stack.
 =cut
 sub scount {
     my $self = shift;
-    return scalar @{ $self->toss };
+    return scalar @{ $self->get_toss };
 }
 
 =item spush( value )
@@ -233,7 +211,7 @@ Push a value on top of the stack.
 =cut
 sub spush {
     my $self = shift;
-    push @{ $self->toss }, @_;
+    push @{ $self->get_toss }, @_;
 }
 
 =item spush_vec( x, y )
@@ -272,7 +250,7 @@ the method acts as if it popped a 0.
 =cut
 sub spop {
     my $self = shift;
-    my $val = pop @{ $self->toss };
+    my $val = pop @{ $self->get_toss };
     defined $val or $val = 0;
     return $val;
 }
@@ -298,7 +276,7 @@ sub spop_gnirts {
     my $self = shift;
     my ($val, $str);
     do {
-        $val = pop @{ $self->toss };
+        $val = pop @{ $self->get_toss };
         defined $val or $val = 0;
         $str .= chr($val);
     } while( $val != 0 );
@@ -313,7 +291,7 @@ Clear the stack.
 =cut
 sub sclear {
     my $self = shift;
-    $self->toss( [] );
+    $self->set_toss( [] );
 }
 
 =item svalue( offset )
@@ -328,8 +306,8 @@ sub svalue {
     my ($self, $idx) = @_;
 
     $idx = - abs( $idx );
-    return 0 unless exists $self->toss->[$idx];
-    return $self->toss->[$idx];
+    return 0 unless exists $self->get_toss->[$idx];
+    return $self->get_toss->[$idx];
 }
 
 =back
@@ -350,7 +328,7 @@ not include the TOSS itself.
 =cut
 sub ss_count {
     my $self = shift;
-    return scalar( @{ $self->ss } );
+    return scalar( @{ $self->get_ss } );
 }
 
 =item ss_create( count )
@@ -379,10 +357,10 @@ sub ss_create {
             my $c = $n - $self->scount;
             if ( $c <= 0 ) {
                 # Transfer elements.
-                @new_toss = splice @{ $self->toss }, -$n;
+                @new_toss = splice @{ $self->get_toss }, -$n;
             } else {
                 # Transfer elems and fill with zeroes.
-                @new_toss = ( (0) x $c, @{ $self->toss } );
+                @new_toss = ( (0) x $c, @{ $self->get_toss } );
                 $self->sclear;
             }
                 
@@ -394,8 +372,8 @@ sub ss_create {
     # the new TOSS.
     # For commodity reasons, the Stack Stack is oriented up->bottom
     # (that is, a push is an unshift, and a pop is a shift).
-    unshift @{ $self->ss }, $self->toss;
-    $self->toss( \@new_toss );
+    unshift @{ $self->get_ss }, $self->get_toss;
+    $self->set_toss( \@new_toss );
 }
 
 =item ss_remove( count )
@@ -409,7 +387,7 @@ sub ss_remove {
 
     # Fetch the TOSS.
     # Remember, the Stack Stack is up->bottom.
-    my $new_toss = shift @{ $self->ss };
+    my $new_toss = shift @{ $self->get_ss };
 
   sw: {
         $n == 0 and last sw;
@@ -426,17 +404,17 @@ sub ss_remove {
             my $c = $n - $self->scount;
             if ( $c <= 0 ) {
                 # Transfer elements.
-                push @$new_toss, splice( @{ $self->toss }, -$n );
+                push @$new_toss, splice( @{ $self->get_toss }, -$n );
             } else {
                 # Transfer elems and fill with zeroes.
-                push @$new_toss, ( (0) x $c, @{ $self->toss } );
+                push @$new_toss, ( (0) x $c, @{ $self->get_toss } );
             }
             last sw;
         };
     }
 
     # Store the new TOSS.
-    $self->toss( $new_toss );
+    $self->set_toss( $new_toss );
 }
 
 =item ss_transfer( count )
@@ -469,9 +447,9 @@ sub ss_transfer {
         my $c = $n - $self->scount;
         my @elems;
         if ( $c <= 0 ) {
-            @elems = splice @{ $self->toss }, -$n;
+            @elems = splice @{ $self->get_toss }, -$n;
         } else { 
-            @elems = ( (0) x $c, @{ $self->toss } );
+            @elems = ( (0) x $c, @{ $self->get_toss } );
             $self->sclear;
         }
         $self->soss_push( reverse @elems );
@@ -492,7 +470,7 @@ sub ss_sizes {
 
     # Store the size of each stack.
     foreach my $i ( 1..$self->ss_count ) {
-        push @sizes, scalar @{ $self->ss->[$i-1] };
+        push @sizes, scalar @{ $self->get_ss->[$i-1] };
     }
 
     return @sizes;
@@ -557,8 +535,8 @@ according to the provided values.
 =cut
 sub set_delta {
     my ($self, $dx, $dy) = @_;
-    $self->dx( $dx );
-    $self->dy( $dy );
+    $self->set_dx( $dx );
+    $self->set_dy( $dy );
 }
 
 =item dir_go_east(  )
@@ -621,8 +599,8 @@ delta of the IP which encounters this instruction.
 =cut
 sub dir_turn_left {
     my $self = shift;
-    my $old_dx = $self->dx;
-    my $old_dy = $self->dy;
+    my $old_dx = $self->get_dx;
+    my $old_dy = $self->get_dy;
     $self->set_delta( 0 + $old_dy, 0 + $old_dx * -1);
 }
 
@@ -634,8 +612,8 @@ delta of the IP which encounters this instruction.
 =cut
 sub dir_turn_right {
     my $self = shift;
-    my $old_dx = $self->dx;
-    my $old_dy = $self->dy;
+    my $old_dx = $self->get_dx;
+    my $old_dy = $self->get_dy;
     $self->set_delta( 0 + $old_dy * -1, 0 + $old_dx );
 }
 
@@ -647,7 +625,7 @@ is, multiply the IP's delta by -1.
 =cut
 sub dir_reverse {
     my $self = shift;
-    $self->set_delta( 0 + $self->dx * -1, 0 + $self->dy * -1 );
+    $self->set_delta( 0 + $self->get_dx * -1, 0 + $self->get_dy * -1 );
 }
 
 =back
@@ -664,7 +642,7 @@ Load the given library semantics. The parameter is an extension object
 =cut
 sub load {
     my ($self, $lib) = @_;
-    unshift @{ $self->libs }, $lib;
+    unshift @{ $self->get_libs }, $lib;
 }
 
 =item unload( lib )
@@ -684,11 +662,11 @@ sub unload {
     my ($self, $lib) = @_;
     
     my $offset = -1;
-    foreach my $i ( 0..$#{$self->libs} ) {
-        $offset = $i, last if ref($self->libs->[$i]) eq $lib;
+    foreach my $i ( 0..$#{$self->get_libs} ) {
+        $offset = $i, last if ref($self->get_libs->[$i]) eq $lib;
     }
     $offset == -1 and return undef;
-    splice @{ $self->libs }, $offset, 1;
+    splice @{ $self->get_libs }, $offset, 1;
     return $lib;
 }
 
