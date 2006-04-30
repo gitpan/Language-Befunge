@@ -1,5 +1,5 @@
 #-*- cperl -*-
-# $Id: 02befunge.t,v 1.2 2005/12/02 20:49:53 jquelin Exp $
+# $Id: 02befunge.t,v 1.3 2006/04/30 13:54:21 jquelin Exp $
 #
 
 #-----------------------------------#
@@ -15,7 +15,7 @@ use Test;
 my ($file, $fh);
 my $tests;
 my $out;
-my $bef = new Language::Befunge;
+my $bef = Language::Befunge->new;
 BEGIN { $tests = 0 };
 
 # In order to see what happens...
@@ -40,14 +40,14 @@ sub slurp () {
 
 # Basic constructor.
 sel;
-$bef = new Language::Befunge( "t/q.bf" );
+$bef = Language::Befunge->new( "t/q.bf" );
 $bef->run_code;
 $out = slurp;
 ok( $out, "" );
 BEGIN { $tests += 1 };
 
 # Basic reading.
-$bef = new Language::Befunge;
+$bef = Language::Befunge->new;
 sel;
 $bef->read_file( "t/q.bf" );
 $bef->run_code;

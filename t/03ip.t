@@ -1,5 +1,5 @@
 #-*- cperl -*-
-# $Id: 03ip.t,v 1.3 2006/02/17 14:53:49 jquelin Exp $
+# $Id: 03ip.t,v 1.5 2006/04/30 13:54:21 jquelin Exp $
 #
 
 #----------------------------------#
@@ -14,17 +14,17 @@ my $tests;
 BEGIN { $tests = 0 };
 
 # Constructor.
-my $ip = new Language::Befunge::IP;
+my $ip = Language::Befunge::IP->new;
 ok( ref($ip), "Language::Befunge::IP");
 BEGIN { $tests += 1 };
 
 # Unique ids.
 ok( $ip->get_id, 0 );
-$ip = new Language::Befunge::IP;
+$ip = Language::Befunge::IP->new;
 ok( $ip->get_id, 1 );
-$ip = new Language::Befunge::IP;
+$ip = Language::Befunge::IP->new;
 ok( $ip->get_id, 2 );
-ok( Language::Befunge::IP::get_new_id, 3 );
+ok( Language::Befunge::IP::_get_new_id, 3 );
 BEGIN { $tests += 4 };
 
 # Test accessors.
@@ -284,7 +284,7 @@ ok( $ip->get_dy, -3 );
 BEGIN { $tests += 8 };
 
 # Test cloning.
-$ip = new Language::Befunge::IP;
+$ip = Language::Befunge::IP->new;
 $ip->spush( 1, 5, 6 );
 my $clone = $ip->clone;
 ok( $ip->get_id != $clone->get_id, 1 );

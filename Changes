@@ -1,5 +1,12 @@
 Revision history for Perl extension Language::Befunge.
 
+2.04 Sun Apr 30 15:47:16 CEST 2006
+        - removed cargo-cult proto in constructors
+        - removed OO indirect notations
+        - renamed private methods to begin with _
+        - migrated 04lahey.t to Test::More
+        - ran coverage on the test-suite: 93.6%
+
 2.03 Fri Feb 17 17:04:49 CET 2006
         - use-ing integer for faster computations
 

@@ -1,4 +1,4 @@
-# $Id: IP.pm,v 1.4 2006/02/17 14:53:49 jquelin Exp $
+# $Id: IP.pm,v 1.7 2006/04/30 13:54:20 jquelin Exp $
 #
 # Copyright (c) 2002 Jerome Quelin <jquelin@cpan.org>
 # All rights reserved.
@@ -42,8 +42,7 @@ Create a new Instruction Pointer.
 
 =cut
 sub new {
-    my $proto = shift;
-    my $class = ref($proto) || $proto;
+    my ($class) = @_;
     my $self  = 
       { id           => 0,  
         toss         => [],
@@ -61,7 +60,7 @@ sub new {
         libs         => [],
       };
     bless $self, $class;
-    $self->set_id( $self->get_new_id );
+    $self->set_id( $self->_get_new_id );
     return $self;
 }
 
@@ -74,7 +73,7 @@ delta, etc. Change its unique ID.
 sub clone {
     my $self = shift;
     my $clone = dclone( $self );
-    $clone->set_id( $self->get_new_id );
+    $clone->set_id( $self->_get_new_id );
     return $clone;
 }
 
@@ -690,13 +689,13 @@ sub extdata {
 
 =head1 PRIVATE METHODS
 
-=head2 get_new_id(  )
+=head2 _get_new_id(  )
 
 Forge a new IP id, that will distinct it from the other IPs of the program.
 
 =cut
 my $id = 0;
-sub get_new_id {
+sub _get_new_id {
     return $id++;
 }
 

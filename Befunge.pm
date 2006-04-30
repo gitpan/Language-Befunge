@@ -1,4 +1,4 @@
-# $Id: Befunge.pm,v 1.18 2006/02/17 14:53:49 jquelin Exp $
+# $Id: Befunge.pm,v 1.20 2006/04/30 13:54:20 jquelin Exp $
 #
 # Copyright (c) 2002 Jerome Quelin <jquelin@cpan.org>
 # All rights reserved.
@@ -18,11 +18,11 @@ Language::Befunge - a Befunge-98 interpreter
 =head1 SYNOPSIS
 
     use Language::Befunge;
-    my $interp = new Language::Befunge( "program.bf" );
+    my $interp = Language::Befunge->new( "program.bf" );
     $interp->run_code( "param", 7, "foo" );
 
     Or, one can write directly:
-    my $interp = new Language::Befunge;
+    my $interp = Language::Befunge->new;
     $interp->store_code( <<'END_OF_CODE' );
     < @,,,,"foo"a
     END_OF_CODE
@@ -72,7 +72,7 @@ use Language::Befunge::IP;
 use Language::Befunge::LaheySpace;
 
 # Public variables of the module.
-our $VERSION   = '2.03';
+our $VERSION   = '2.04';
 our $HANDPRINT = 'JQBF98'; # the handprint of the interpreter.
 our %meths;
 $| = 1;
@@ -89,8 +89,7 @@ topology of the interpreter.
 =cut
 sub new {
     # Create and bless the object.
-    my $proto = shift;
-    my $class = ref($proto) || $proto;
+    my $class = shift;
     my $self  = 
       { file     => "STDIN",
         params   => [],
@@ -100,7 +99,7 @@ sub new {
         lastip   => undef,
         ips      => [],
         newips   => [],
-        torus    => new Language::Befunge::LaheySpace,
+        torus    => Language::Befunge::LaheySpace->new,
       };
     bless $self, $class;
 
@@ -316,7 +315,7 @@ sub run_code {
     $self->debug( "\n-= NEW RUN (".$self->get_file.") =-\n" );
 
     # Create the first Instruction Pointer.
-    $self->set_ips( [ new Language::Befunge::IP ] );
+    $self->set_ips( [ Language::Befunge::IP->new ] );
     $self->set_retval(0);
 
     # Loop as long as there are IPs.

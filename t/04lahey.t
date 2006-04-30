@@ -1,5 +1,5 @@
 #-*- cperl -*-
-# $Id: 04lahey.t,v 1.7 2006/02/17 14:53:49 jquelin Exp $
+# $Id: 04lahey.t,v 1.13 2006/04/30 13:54:21 jquelin Exp $
 #
 
 #------------------------------------------#
@@ -7,90 +7,110 @@
 #------------------------------------------#
 
 use strict;
-use Test;
+use Test::More;
 use Language::Befunge::IP;
 use Language::Befunge::LaheySpace;
 
 my $tests;
-my $ip = new Language::Befunge::IP;
+my $ip = Language::Befunge::IP->new;
 my $href;
 BEGIN { $tests = 0 };
 
-# Constructor.
-my $ls = new Language::Befunge::LaheySpace;
-ok( ref($ls), "Language::Befunge::LaheySpace");
+
+# constructor.
+my $ls = Language::Befunge::LaheySpace->new;
+isa_ok( $ls, "Language::Befunge::LaheySpace");
 BEGIN { $tests += 1 };
 
 
-# Clear method.
+# clear method.
 $ls->clear;
-ok( $ls->{xmin}, 0 );
-ok( $ls->{ymin}, 0 );
-ok( $ls->{xmax}, 0 );
-ok( $ls->{ymax}, 0 );
+is( $ls->{xmin}, 0, "clear resets xmin" );
+is( $ls->{ymin}, 0, "clear resets ymin" );
+is( $ls->{xmax}, 0, "clear resets xmax" );
+is( $ls->{ymax}, 0, "clear resets ymax" );
 BEGIN { $tests += 4; }
 
-# set_min/set_max methods.
+
+# _set_min/_set_max methods.
 $ls->clear;
-$ls->set_min( -2, -3 );
-ok( $ls->{xmin}, -2 );
-ok( $ls->{ymin}, -3 );
-$ls->set_min( -1, -1 ); # Can't shrink.
-ok( $ls->{xmin}, -2 );
-ok( $ls->{ymin}, -3 );
-$ls->set_max( 4, 5 );
-ok( $ls->{xmax}, 4 );
-ok( $ls->{ymax}, 5 );
-$ls->set_min( 2, 3 ); # Can't shrink.
-ok( $ls->{xmax}, 4 );
-ok( $ls->{ymax}, 5 );
+$ls->_set_min( -2, -3 ); # _set_min
+is( $ls->{xmin}, -2, "_set_min sets xmin" );
+is( $ls->{ymin}, -3, "_set_min sets ymin" );
+$ls->_set_min( -1, -1 ); # can't shrink
+is( $ls->{xmin}, -2, "_set_min can't shrink xmin" );
+is( $ls->{ymin}, -3, "_set_min can't shrink ymin" );
+$ls->_set_max( 4, 5 );   # _set_max
+is( $ls->{xmax}, 4, "_set_max sets xmax" );
+is( $ls->{ymax}, 5, "_set_max sets ymax" );
+$ls->_set_max( 2, 3 );   # can't shrink
+is( $ls->{xmax}, 4, "_set_max can't shrink xmax" );
+is( $ls->{ymax}, 5, "_set_max can't shrink ymax" );
 BEGIN{ $tests += 8; }
 
-# out_of_bounds method.
-ok($ls->out_of_bounds(-5, -5), 1);
-ok($ls->out_of_bounds( 5, -5), 1);
-ok($ls->out_of_bounds(-5,  5), 1);
-ok($ls->out_of_bounds( 5,  5), 1);
-ok($ls->out_of_bounds( 0,  0), 0);
+
+# _out_of_bounds method.
+is( $ls->_out_of_bounds(-6,  0), 1, "_out_of_bounds < xmin" );
+is( $ls->_out_of_bounds( 0, -6), 1, "_out_of_bounds < ymin" );
+is( $ls->_out_of_bounds( 0,  6), 1, "_out_of_bounds > xmax" );
+is( $ls->_out_of_bounds( 6,  0), 1, "_out_of_bounds > ymax" );
+is( $ls->_out_of_bounds( 0,  0), 0, "_out_of_bounds in torus" );
 BEGIN{ $tests += 5; }
 
-# Enlarge torus.
+
+# enlarge torus.
 $ls->clear;
-$ls->enlarge_y( 3 );
-ok( $ls->{xmin}, 0 );
-ok( $ls->{ymin}, 0 );
-ok( $ls->{xmax}, 0 );
-ok( $ls->{ymax}, 3 );
-$ls->enlarge_x( 2 );
-ok( $ls->{xmin}, 0 );
-ok( $ls->{ymin}, 0 );
-ok( $ls->{xmax}, 2 );
-ok( $ls->{ymax}, 3 );
-$ls->enlarge_y( -5 );
-ok( $ls->{xmin}, 0 );
-ok( $ls->{ymin}, -5 );
-ok( $ls->{xmax}, 2 );
-ok( $ls->{ymax}, 3 );
-$ls->enlarge_x( -4 );
-ok( $ls->{xmin}, -4 );
-ok( $ls->{ymin}, -5 );
-ok( $ls->{xmax}, 2 );
-ok( $ls->{ymax}, 3 );
+$ls->_enlarge_y( 3 );
+is( $ls->{xmin}, 0, "_enlarge_y >0 does not grow xmin" );
+is( $ls->{ymin}, 0, "_enlarge_y >0 does not grow ymin" );
+is( $ls->{xmax}, 0, "_enlarge_y >0 does not grow xmax" );
+is( $ls->{ymax}, 3, "_enlarge_y >0 does grow ymax" );
+$ls->_enlarge_x( 2 );
+is( $ls->{xmin}, 0, "_enlarge_x >0 does not grow xmin" );
+is( $ls->{ymin}, 0, "_enlarge_x >0 does not grow ymin" );
+is( $ls->{xmax}, 2, "_enlarge_x >0 does grow xmax" );
+is( $ls->{ymax}, 3, "_enlarge_x >0 does not grow ymax" );
+$ls->_enlarge_y( -5 );
+is( $ls->{xmin}, 0,  "_enlarge_y <0 does not grow xmin" );
+is( $ls->{ymin}, -5, "_enlarge_y <0 does grow ymin" );
+is( $ls->{xmax}, 2,  "_enlarge_y <0 does not grow xmax" );
+is( $ls->{ymax}, 3,  "_enlarge_y <0 does not grow ymax" );
+$ls->_enlarge_x( -4 );
+is( $ls->{xmin}, -4, "_enlarge_x <0 does grow xmin" );
+is( $ls->{ymin}, -5, "_enlarge_x <0 does not grow ymin" );
+is( $ls->{xmax}, 2,  "_enlarge_x <0 does not grow xmax" );
+is( $ls->{ymax}, 3,  "_enlarge_x <0 does not grow ymax" );
 BEGIN { $tests += 16; }
 
-# Get/Set value.
+
+# get/set value.
 $ls->clear;
 $ls->set_value( 10, 5, 65 );
-ok( $ls->{xmin}, 0 );
-ok( $ls->{ymin}, 0 );
-ok( $ls->{xmax}, 10 );
-ok( $ls->{ymax}, 5 );
-ok( $ls->get_value( 10, 5 ), 65 );
-ok( $ls->get_value( 1, 1),   32 ); # default to space.
-ok( $ls->get_value( 20, 20), 32 ); # out of bounds.
-BEGIN { $tests += 7; }
+is( $ls->{xmax}, 10, "set_value grows xmax if needed" );
+is( $ls->{ymax}, 5,  "set_value grows ymax if needed" );
+is( $ls->get_value( 10, 5 ), 65, "get_value returns correct value" );
+$ls->set_value( -10, -5, 65 );
+is( $ls->{xmin}, -10, "set_value grows xmin if needed" );
+is( $ls->{ymin}, -5,  "set_value grows ymin if needed" );
+is( $ls->get_value( -10, -5 ), 65, "get_value returns correct value" );
 
-# Store method.
+is( $ls->get_value( 1, 1),   32, "get_value defaults to space" );
+is( $ls->get_value( 20, 20), 32, "get_value out of bounds defaults to space" );
+BEGIN { $tests += 8; }
+
+# input checking: make sure get_char() returns ASCII.
+$ls->set_value(0,0, -1);
+$ls->set_value(1,0,  0);
+$ls->set_value(2,0,255);
+$ls->set_value(3,0,256);
+is( $ls->get_char(0,0), sprintf("<np-0x%x>", -1), "get_char always returns ascii" );
+is( $ls->get_char(1,0), chr(0),       "get_chars always returns ascii" );
+is( $ls->get_char(2,0), chr(0xff),    "get_chars always returns ascii" );
+is( $ls->get_char(3,0), '<np-0x100>', "get_chars always returns ascii" );
+BEGIN { $tests += 4 };
+
+
+# store method.
 $ls->clear;
 $ls->store( <<'EOF' );
 Foo bar baz
@@ -104,13 +124,13 @@ EOF
 #  2
 #  3
 #  4
-ok( $ls->{xmin}, 0 );
-ok( $ls->{ymin}, 0 );
-ok( $ls->{xmax}, 16 );
-ok( $ls->{ymax}, 1 );
-ok( $ls->get_value( 0, 0),  70 );
-ok( $ls->get_value( 12, 0), 32 ); # default to space.
-ok( $ls->get_value( 1, 5),  32 ); # out of bounds.
+is( $ls->{xmin}, 0,  "store does not grow xmin if not needed" );
+is( $ls->{ymin}, 0,  "store does not grow ymax if not needed" );
+is( $ls->{xmax}, 16, "store grows xmax if needed" );
+is( $ls->{ymax}, 1,  "store grows ymax if needed" );
+is( $ls->get_value( 0, 0),  70, "store stores everything" );
+is( $ls->get_value( 12, 0), 32, "store defaults to space" );
+is( $ls->get_value( 1, 5),  32, "store does not store outside of its bounds" );
 BEGIN { $tests += 7; }
 $ls->store( <<'EOF', 4, 1 );
 Foo bar baz
@@ -124,13 +144,13 @@ EOF
 #  2         camel llama buffy
 #  3
 #  4
-ok( $ls->{xmin}, 0 );
-ok( $ls->{ymin}, 0 );
-ok( $ls->{xmax}, 20 );
-ok( $ls->{ymax}, 2 );
-ok( $ls->get_value( 0, 0),  70  ); # old values.
-ok( $ls->get_value( 4, 1),  70  ); # overwritten.
-ok( $ls->get_value( 20, 2), 121 ); # last value.
+is( $ls->{xmin}, 0,  "store does not grow xmin if not needed" );
+is( $ls->{ymin}, 0,  "store does not grow ymin if not needed" );
+is( $ls->{xmax}, 20, "store grows xmax if needed" );
+is( $ls->{ymax}, 2,  "store grows ymax if needed" );
+is( $ls->get_value( 0, 0),  70,  "store respects specified origin" ); # old values.
+is( $ls->get_value( 4, 1),  70,  "store overwrites if needed" );
+is( $ls->get_value( 20, 2), 121, "store stores everything" ); # last value.
 BEGIN { $tests += 7; }
 my ($w, $h) = $ls->store( <<'EOF', -2, -1 );
 Foo bar baz
@@ -144,15 +164,15 @@ EOF
 #  2         camel llama buffy
 #  3
 #  4
-ok( $w, 17 );
-ok( $h, 2 );
-ok( $ls->{xmin}, -2 );
-ok( $ls->{ymin}, -1 );
-ok( $ls->{xmax}, 20 );
-ok( $ls->{ymax}, 2 );
-ok( $ls->get_value( -2, -1), 70  ); # new values.
-ok( $ls->get_value( 0, 0 ),  109 ); # overwritten.
-ok( $ls->get_value( 4, 1 ),  70  ); # old value.
+is( $w, 17, "store returns correct inserted width" );
+is( $h, 2,  "store returns correct inserted height" );
+is( $ls->{xmin}, -2, "store grows xmin if needed" );
+is( $ls->{ymin}, -1, "store grows ymin if needed" );
+is( $ls->{xmax}, 20, "store does not grow xmax if not needed" );
+is( $ls->{ymax}, 2,  "store does not grow ymax if not needed" );
+is( $ls->get_value( -2, -1), 70,  "store stores value in negative indices" );
+is( $ls->get_value( 0, 0 ),  109, "store overwrites if needed" );
+is( $ls->get_value( 4, 1 ),  70,  "store does not overwrite outside its rectangle" );
 BEGIN { $tests += 9; }
 $ls->store( <<'EOF', -2, 0 );
 Foo bar baz
@@ -166,103 +186,108 @@ EOF
 #  2         camel llama buffy
 #  3
 #  4
-ok( $ls->{xmin}, -2 );
-ok( $ls->{ymin}, -1 );
-ok( $ls->{xmax}, 20 );
-ok( $ls->{ymax}, 2 );
-ok( $ls->get_value( -2, 0), 70  ); # new values.
-ok( $ls->get_value( 12, 0 ), 32 ); # overwritten space.
+is( $ls->{xmin}, -2, "store does not grow xmin if not needed" );
+is( $ls->{ymin}, -1, "store does not grow ymin if not needed" );
+is( $ls->{xmax}, 20, "store does not grow xmax if not needed" );
+is( $ls->{ymax}, 2,  "store does not grow ymax if not needed" );
+is( $ls->get_value( -2, 0), 70,  "store overwrites if needed" );
+is( $ls->get_value( 12, 0 ), 32, "store overwrites with spaces if needed" );
 BEGIN { $tests += 6; }
 
-# Rectangle.
-ok( $ls->rectangle(-2,-1,3,2), "Foo\nFoo\n" );
-ok( $ls->rectangle(-3,4,1,1), " \n" );
-ok( $ls->rectangle(19,-2,2,6), "  \n  \n  \n  \nfy\n  \n" );
+
+# rectangle.
+is( $ls->rectangle(-3,4,1,1), " \n", "rectangle returns lines ending with \\n" );
+is( $ls->rectangle(-2,-1,3,2), "Foo\nFoo\n", "rectangle works with multiple lines" );
+is( $ls->rectangle(19,-2,2,6), "  \n  \n  \n  \nfy\n  \n", "rectangle works accross origin" );
 BEGIN { $tests += 3; }
 
 
-# Move IP.
+# move ip.
 $ls->clear;   # "positive" playfield.
-$ls->set_max(5, 10);
+$ls->_set_max(5, 10);
 $ip->set_pos( 4, 3 );
 $ip->set_dx( 1 );
 $ip->set_dy( 0 );
 $ls->move_ip_forward( $ip );
-ok( $ip->get_curx, 5 );
-$ls->move_ip_forward( $ip ); # wrap xmax
-ok( $ip->get_curx, 0 );
+is( $ip->get_curx, 5, "move_ip_forward respects dx" );
+$ls->move_ip_forward( $ip );
+is( $ip->get_curx, 0, "move_ip_forward wraps xmax" );
 $ip->set_pos( 4, 3 );
-$ip->set_dx( 7 );                # apply delta that overflows torus width
+$ip->set_dx( 7 );
 $ip->set_dy( 0 );
 $ls->move_ip_forward( $ip );
-ok( $ip->get_curx, 4 );
+is( $ip->get_curx, 4, "move_ip_forward deals with delta overflowing torus width" );
 $ls->move_ip_forward( $ip ); # wrap xmax harder
-ok( $ip->get_curx, 4 );
+is( $ip->get_curx, 4, "move_ip_forward deals with delta overflowing torus width" );
 $ip->set_pos( 0, 4 );
 $ip->set_dx( -1 );
 $ip->set_dy( 0 );
-$ls->move_ip_forward( $ip ); # wrap xmin
-ok( $ip->get_curx, 5 );
+$ls->move_ip_forward( $ip );
+is( $ip->get_curx, 5, "move_ip_forward wraps xmin" );
+
 $ip->set_pos( 2, 9 );
 $ip->set_dx( 0 );
 $ip->set_dy( 1 );
 $ls->move_ip_forward( $ip );
-ok( $ip->get_cury, 10 );
-$ls->move_ip_forward( $ip ); # wrap ymax
-ok( $ip->get_cury, 0 );
+is( $ip->get_cury, 10, "move_ip_forward respects dy" );
+$ls->move_ip_forward( $ip );
+is( $ip->get_cury, 0,  "move_ip_forward wraps ymax" );
 $ip->set_pos( 2, 9 );
 $ip->set_dx( 0 );
 $ip->set_dy( 12 );               # apply delta that overflows torus height
 $ls->move_ip_forward( $ip );
-ok( $ip->get_cury, 9 );
+is( $ip->get_cury, 9, "move_ip_forward deals with delta overflowing torus heigth" );
 $ls->move_ip_forward( $ip ); # wrap ymax harder
-ok( $ip->get_cury, 9 );
+is( $ip->get_cury, 9, "move_ip_forward deals with delta overflowing torus heigth" );
 $ip->set_pos( 1, 0 );
 $ip->set_dx( 0 );
 $ip->set_dy( -1 );
-$ls->move_ip_forward( $ip ); # wrap ymin
-ok( $ip->get_cury, 10 );
+$ls->move_ip_forward( $ip );
+is( $ip->get_cury, 10, "move_ip_forward wraps ymin" );
 BEGIN { $tests += 10 }
+
 $ls->clear;   # "negative" playfield.
-$ls->set_min(-1, -3);
-$ls->set_max(5, 10);
+$ls->_set_min(-1, -3);
+$ls->_set_max(5, 10);
 $ip->set_pos( 4, 3 );
 $ip->set_dx( 1 );
 $ip->set_dy( 0 );
 $ls->move_ip_forward( $ip );
-ok( $ip->get_curx, 5 );
-$ls->move_ip_forward( $ip ); # wrap xmax
-ok( $ip->get_curx, -1 );
+is( $ip->get_curx, 5, "move_ip_forward respects dx" );
+$ls->move_ip_forward( $ip );
+is( $ip->get_curx, -1, "move_ip_forward wraps xmax" );
 $ip->set_pos( -1, 4 );
 $ip->set_dx( -1 );
 $ip->set_dy( 0 );
-$ls->move_ip_forward( $ip ); # wrap xmin
-ok( $ip->get_curx, 5 );
+$ls->move_ip_forward( $ip );
+is( $ip->get_curx, 5, "move_ip_forward wraps xmin" );
 $ip->set_pos( 2, 9 );
 $ip->set_dx( 0 );
 $ip->set_dy( 1 );
 $ls->move_ip_forward( $ip );
-ok( $ip->get_cury, 10 );
-$ls->move_ip_forward( $ip ); # wrap ymax
-ok( $ip->get_cury, -3 );
+is( $ip->get_cury, 10, "move_ip_forward respects dy" );
+$ls->move_ip_forward( $ip );
+is( $ip->get_cury, -3, "move_ip_forward wraps ymax" );
 $ip->set_pos( 1, -3 );
 $ip->set_dx( 0 );
 $ip->set_dy( -1 );
-$ls->move_ip_forward( $ip ); # wrap ymin
-ok( $ip->get_cury, 10 );
+$ls->move_ip_forward( $ip );
+is( $ip->get_cury, 10, "move_ip_forward wraps ymin" );
 BEGIN { $tests += 6; }
+
 $ls->clear;   # diagonals.
-$ls->set_min(-1, -2);
-$ls->set_max(6, 5);
+$ls->_set_min(-1, -2);
+$ls->_set_max(6, 5);
 $ip->set_pos(0, 0);
 $ip->set_dx(-2);
 $ip->set_dy(-3);
 $ls->move_ip_forward( $ip );
-ok( $ip->get_curx, 2 );
-ok( $ip->get_cury, 3 );
+is( $ip->get_curx, 2, "move_ip_forward deals with diagonals" );
+is( $ip->get_cury, 3, "move_ip_forward deals with diagonals" );
 BEGIN { $tests += 2; }
 
-# Label lookup
+
+# label lookup
 # four directions.
 $ls->clear;
 $ls->store( <<'EOF', -2, -1 );
@@ -282,24 +307,26 @@ $ls->store( <<'EOF', -2, -1 );
       4
 EOF
 $href = $ls->labels_lookup;
-ok( scalar(keys(%$href)), 4 );
-ok( $href->{foo}[0], 10 );
-ok( $href->{foo}[1], 5 );
-ok( $href->{foo}[2], 1 );
-ok( $href->{foo}[3], 0 );
-ok( $href->{bar}[0], -2 );
-ok( $href->{bar}[1], 5 );
-ok( $href->{bar}[2], -1 );
-ok( $href->{bar}[3], 0 );
-ok( $href->{baz}[0], 4 );
-ok( $href->{baz}[1], -1 );
-ok( $href->{baz}[2], 0 );
-ok( $href->{baz}[3], -1 );
-ok( $href->{blah}[0], 4 );
-ok( $href->{blah}[1], 12 );
-ok( $href->{blah}[2], 0 );
-ok( $href->{blah}[3], 1 );
-BEGIN { $tests += 17 };
+isa_ok( $href, "HASH" );
+is( scalar(keys(%$href)), 4, "labels_lookup finds everything" );
+is( $href->{foo}[0], 10,  "labels_lookup finds left-right" );
+is( $href->{foo}[1], 5,   "labels_lookup finds left-right" );
+is( $href->{foo}[2], 1,   "labels_lookup deals with left-right" );
+is( $href->{foo}[3], 0,   "labels_lookup deals with left-right" );
+is( $href->{bar}[0], -2,  "labels_lookup finds right-left" );
+is( $href->{bar}[1], 5,   "labels_lookup finds right-left" );
+is( $href->{bar}[2], -1,  "labels_lookup deals with right-left" );
+is( $href->{bar}[3], 0,   "labels_lookup deals with right-left" );
+is( $href->{baz}[0], 4,   "labels_lookup finds bottom-top" );
+is( $href->{baz}[1], -1,  "labels_lookup finds bottom-top" );
+is( $href->{baz}[2], 0,   "labels_lookup deals with bottom-top" );
+is( $href->{baz}[3], -1,  "labels_lookup deals with bottom-top" );
+is( $href->{blah}[0], 4,  "labels_lookup finds top-bottom" );
+is( $href->{blah}[1], 12, "labels_lookup finds top-bottom" );
+is( $href->{blah}[2], 0,  "labels_lookup deals with top-bottom" );
+is( $href->{blah}[3], 1,  "labels_lookup deals with top-bottom" );
+BEGIN { $tests += 18};
+
 # wrapping...
 $ls->clear;
 $ls->store( <<'EOF', -2, -1 );
@@ -314,24 +341,25 @@ rab:;   a  4      2;
         ;  h
 EOF
 $href = $ls->labels_lookup;
-ok( scalar(keys(%$href)), 4 );
-ok( $href->{foo}[0], -1 );
-ok( $href->{foo}[1], -1 );
-ok( $href->{foo}[2], 1 );
-ok( $href->{foo}[3], 0 );
-ok( $href->{bar}[0], 16 );
-ok( $href->{bar}[1], 0 );
-ok( $href->{bar}[2], -1 );
-ok( $href->{bar}[3], 0 );
-ok( $href->{baz}[0], 6 );
-ok( $href->{baz}[1], 6 );
-ok( $href->{baz}[2], 0 );
-ok( $href->{baz}[3], -1 );
-ok( $href->{blah}[0], 9 );
-ok( $href->{blah}[1], 0 );
-ok( $href->{blah}[2], 0 );
-ok( $href->{blah}[3], 1 );
+is( scalar(keys(%$href)), 4, "labels_lookup finds everything, even wrapping" );
+is( $href->{foo}[0], -1, "labels_lookup finds left-right" );
+is( $href->{foo}[1], -1, "labels_lookup finds left-right" );
+is( $href->{foo}[2], 1,  "labels_lookup deals with left-right" );
+is( $href->{foo}[3], 0,  "labels_lookup deals with left-right" );
+is( $href->{bar}[0], 16, "labels_lookup finds right-left" );
+is( $href->{bar}[1], 0,  "labels_lookup finds right-left" );
+is( $href->{bar}[2], -1, "labels_lookup deals with right-left" );
+is( $href->{bar}[3], 0,  "labels_lookup deals with right-left" );
+is( $href->{baz}[0], 6,  "labels_lookup finds bottom-top" );
+is( $href->{baz}[1], 6,  "labels_lookup finds bottom-top" );
+is( $href->{baz}[2], 0,  "labels_lookup deals with bottom-top" );
+is( $href->{baz}[3], -1, "labels_lookup deals with bottom-top" );
+is( $href->{blah}[0], 9, "labels_lookup finds top-bottom" );
+is( $href->{blah}[1], 0, "labels_lookup finds top-bottom" );
+is( $href->{blah}[2], 0, "labels_lookup deals with top-bottom" );
+is( $href->{blah}[3], 1, "labels_lookup deals with top-bottom" );
 BEGIN { $tests += 17 };
+
 # garbage...
 $ls->clear;
 $ls->store( <<'EOF', -2, -1 );
@@ -339,12 +367,13 @@ $ls->store( <<'EOF', -2, -1 );
      ;not a label;
 EOF
 $href = $ls->labels_lookup;
-ok( scalar(keys(%$href)), 1 );
-ok( $href->{foo}[0], 14 );
-ok( $href->{foo}[1], -1 );
-ok( $href->{foo}[2], 1 );
-ok( $href->{foo}[3], 0 );
+is( scalar(keys(%$href)), 1, "labels_lookup does not looks-alike non-labels" );
+is( $href->{foo}[0], 14, "labels_lookup discards comments" );
+is( $href->{foo}[1], -1, "labels_lookup discards comments" );
+is( $href->{foo}[2], 1,  "labels_lookup discards comments" );
+is( $href->{foo}[3], 0,  "labels_lookup discards comments" );
 BEGIN { $tests += 5 };
+
 # double define...
 $ls->clear;
 $ls->store( <<'EOF', -2, -1 );
@@ -352,18 +381,10 @@ $ls->store( <<'EOF', -2, -1 );
    2;another oof:;
 EOF
 eval { $href = $ls->labels_lookup; };
-ok( $@, qr/^Help! I found two labels 'foo' in the funge space/ );
+like( $@, qr/^Help! I found two labels 'foo' in the funge space/,
+      "labels_lookup chokes on double-defined labels" );
 BEGIN { $tests += 1 };
 
-# input checking: make sure get_char() returns ASCII.
-$ls->set_value(0,0, -1);
-$ls->set_value(1,0,  0);
-$ls->set_value(2,0,255);
-$ls->set_value(3,0,256);
-ok ( $ls->get_char(0,0), sprintf("<np-0x%x>", -1) );
-ok ( $ls->get_char(1,0), chr(0) );
-ok ( $ls->get_char(2,0), chr(0xff) );
-ok ( $ls->get_char(3,0), '<np-0x100>' );
-BEGIN { $tests += 4 };
+
 
 BEGIN { plan tests => $tests };

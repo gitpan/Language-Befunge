@@ -1,5 +1,5 @@
 #-*- cperl -*-
-# $Id: 20system.t,v 1.2 2006/02/14 15:44:47 jquelin Exp $
+# $Id: 20system.t,v 1.3 2006/04/30 13:54:21 jquelin Exp $
 #
 
 #---------------------------------#
@@ -17,7 +17,7 @@ my $file;
 my $fh;
 my $tests;
 my $out;
-my $bef = new Language::Befunge;
+my $bef = Language::Befunge->new;
 BEGIN { $tests = 0 };
 
 # In order to see what happens...

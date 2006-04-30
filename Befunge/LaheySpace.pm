@@ -1,4 +1,4 @@
-# $Id: LaheySpace.pm,v 1.9 2006/02/17 14:53:49 jquelin Exp $
+# $Id: LaheySpace.pm,v 1.12 2006/04/30 13:54:20 jquelin Exp $
 #
 # Copyright (c) 2002-2003 Jerome Quelin <jquelin@cpan.org>
 # All rights reserved.
@@ -41,8 +41,7 @@ Creates a new Lahey Space.
 
 =cut
 sub new {
-    my $proto = shift;
-    my $class = ref($proto) || $proto;
+    my ($class) = @_;
     my $self  = 
       { xmin   => 0, # the upper-left x-coordinate
         ymin   => 0, # the upper-left y-coordinate
@@ -103,8 +102,8 @@ sub store {
     my $maxx = $maxlen + $x - 1 + $self->{xmin};
 
     # Enlarge torus.
-    $self->set_min( $x, $y );
-    $self->set_max( $maxx, $maxy );
+    $self->_set_min( $x, $y );
+    $self->_set_max( $maxx, $maxy );
 
     # Store code.
     foreach my $j ( 0..$#lines  ) {
@@ -144,8 +143,8 @@ sub store_binary {
     my $maxx = $maxlen + $x - 1 + $self->{xmin};
 
     # Enlarge torus.
-    $self->set_min( $x, $y );
-    $self->set_max( $maxx, $maxy );
+    $self->_set_min( $x, $y );
+    $self->_set_max( $maxx, $maxy );
 
     # Store code.
     my @chars = map { ord } split //, $code;
@@ -218,8 +217,8 @@ sub set_value {
     my ($self, $x, $y, $val) = @_;
 
     # Ensure we can set the value.
-    $self->set_min( $x, $y );
-    $self->set_max( $x, $y );
+    $self->_set_min( $x, $y );
+    $self->_set_max( $x, $y );
     $self->{torus}[$y-$self->{ymin}][$x-$self->{xmin}] = $val;
 }
 
@@ -241,7 +240,7 @@ sub move_ip_forward {
     $x += $dx;
     $y += $dy;
 
-    if($self->out_of_bounds($x, $y)) {
+    if($self->_out_of_bounds($x, $y)) {
         # Check out-of-bounds. Please note that we're in a
         # Lahey-space, and if we need to wrap, we perform a
         # Lahey-space wrapping. Funge98 says we should walk 
@@ -251,7 +250,7 @@ sub move_ip_forward {
         do {
             $x -= $dx;
             $y -= $dy;
-        } until($self->out_of_bounds($x, $y));
+        } until($self->_out_of_bounds($x, $y));
 
         # Now that we've hit the wall, walk back into the
         # valid code range.
@@ -273,8 +272,8 @@ sub rectangle {
     my ($self, $x, $y, $w, $h) = @_;
 
     # Ensure we have enough data.
-    $self->set_min( $x, $y );
-    $self->set_max( $x+$w, $y+$h );
+    $self->_set_min( $x, $y );
+    $self->_set_max( $x+$w, $y+$h );
 
     # Fetch the data.
     my $data = "";
@@ -312,7 +311,7 @@ sub labels_lookup {
             next X unless $self->{torus}[$y][$x] == ord(";");
             # Found a semicolon, let's try...
             VEC: foreach my $vec ( [1,0], [-1,0], [0,1], [0,-1] ) {
-                my ($lab, $labx, $laby) = $self->labels_try( $x, $y, @$vec );
+                my ($lab, $labx, $laby) = $self->_labels_try( $x, $y, @$vec );
                 defined($lab) or next VEC;
                 
                 # How exciting, we found a label!
@@ -329,44 +328,44 @@ sub labels_lookup {
 
 =head1 PRIVATE METHODS
 
-=head2 set_min( x, y )
+=head2 _set_min( x, y )
 
 Set the current minimum coordinates. If the supplied values are bigger
 than the actual minimum, then nothing is done.
 
 =cut
-sub set_min {
+sub _set_min {
     my ($self, $x, $y) = @_;
 
     # Check if we need to enlarge the torus.
-    $self->enlarge_y( $y - $self->{ymin} ) if $y < $self->{ymin};
-    $self->enlarge_x( $x - $self->{xmin} ) if $x < $self->{xmin};
+    $self->_enlarge_y( $y - $self->{ymin} ) if $y < $self->{ymin};
+    $self->_enlarge_x( $x - $self->{xmin} ) if $x < $self->{xmin};
 }
 
 
-=head2 set_max( x, y )
+=head2 _set_max( x, y )
 
 Set the current maximum coordinates. If the supplied values are smaller
 than the actual maximum, then nothing is done.
 
 =cut
-sub set_max {
+sub _set_max {
     my ($self, $x, $y) = @_;
 
     # Check if we need to enlarge the torus.
-    $self->enlarge_y( $y - $self->{ymax} ) if $y > $self->{ymax};
-    $self->enlarge_x( $x - $self->{xmax} ) if $x > $self->{xmax};
+    $self->_enlarge_y( $y - $self->{ymax} ) if $y > $self->{ymax};
+    $self->_enlarge_x( $x - $self->{xmax} ) if $x > $self->{xmax};
 }
 
 
-=head2 enlarge_x( dx )
+=head2 _enlarge_x( dx )
 
 Enlarge the torus on its x coordinate. If the delta is positive, add
 columns after the last column; if negative, before the first column;
 if nul, nothing is done.
 
 =cut
-sub enlarge_x {
+sub _enlarge_x {
     my ($self, $delta) = @_;
 
     if ( $delta < 0 ) {
@@ -382,14 +381,14 @@ sub enlarge_x {
 }
 
 
-=head2 enlarge_y( dy )
+=head2 _enlarge_y( dy )
 
 Enlarge the torus on its y coordinate. If the delta is positive, add
 lines after the last one; if negative, before the first line; if nul,
 nothing is done.
 
 =cut
-sub enlarge_y {
+sub _enlarge_y {
     my ($self, $delta) = @_;
 
     if ( scalar @{ $self->{torus} } == 0 ) {
@@ -415,12 +414,12 @@ sub enlarge_y {
 }
 
 
-=head2 out_of_bounds( x, y )
+=head2 _out_of_bounds( x, y )
 
 Return true if a location is out of bounds.
 
 =cut
-sub out_of_bounds {
+sub _out_of_bounds {
     my ($self, $x, $y) = @_;
     return 1 if $x > $self->{xmax};
     return 1 if $x < $self->{xmin};
@@ -430,14 +429,14 @@ sub out_of_bounds {
 }
 
 
-=head2 labels_try( x, y, dx, dy )
+=head2 _labels_try( x, y, dx, dy )
 
 Try in the specified direction if the funge space matches a label
 definition. Return undef if it wasn't a label definition, or the name
 of the label if it was a valid label.
 
 =cut
-sub labels_try {
+sub _labels_try {
     my ($self, $x, $y, $dx, $dy) = @_;
     my $comment = "";
 
