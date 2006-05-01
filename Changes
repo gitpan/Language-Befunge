@@ -1,5 +1,11 @@
 Revision history for Perl extension Language::Befunge.
 
+2.05 Mon May  1 18:34:18 CEST 2006
+        - migrated 03ip.t to Test::More
+        - updated 03ip.t to 100% cover L::B::IP
+        - updated 04lahey.t to 100% cover L::B::LaheySpace
+        - test-suite coverage is now 95.7%
+
 2.04 Sun Apr 30 15:47:16 CEST 2006
         - removed cargo-cult proto in constructors
         - removed OO indirect notations

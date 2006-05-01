@@ -1,4 +1,4 @@
-# $Id: IP.pm,v 1.7 2006/04/30 13:54:20 jquelin Exp $
+# $Id: IP.pm,v 1.8 2006/04/30 17:50:44 jquelin Exp $
 #
 # Copyright (c) 2002 Jerome Quelin <jquelin@cpan.org>
 # All rights reserved.
@@ -346,27 +346,22 @@ sub ss_create {
 
     my @new_toss;
 
-  sw: {
-        $n == 0 and last sw;
-        $n < 0 and do {
-            # Push zeroes.
-            @new_toss = (0) x abs($n);
-            last sw;
-        };
-        $n > 0 and do {
-            my $c = $n - $self->scount;
-            if ( $c <= 0 ) {
-                # Transfer elements.
-                @new_toss = splice @{ $self->get_toss }, -$n;
-            } else {
-                # Transfer elems and fill with zeroes.
-                @new_toss = ( (0) x $c, @{ $self->get_toss } );
-                $self->sclear;
-            }
-                
-            last sw;
-        };
+    if ( $n < 0 ) {
+        # Push zeroes.
+        @new_toss = (0) x abs($n);
+    } elsif ( $n > 0 ) {
+        my $c = $n - $self->scount;
+        if ( $c <= 0 ) {
+            # Transfer elements.
+            @new_toss = splice @{ $self->get_toss }, -$n;
+        } else {
+            # Transfer elems and fill with zeroes.
+            @new_toss = ( (0) x $c, @{ $self->get_toss } );
+            $self->sclear;
+        }
     }
+    # $n == 0: do nothing
+
 
     # Push the former TOSS on the stack stack and copy reference to
     # the new TOSS.
@@ -389,29 +384,25 @@ sub ss_remove {
     # Remember, the Stack Stack is up->bottom.
     my $new_toss = shift @{ $self->get_ss };
 
-  sw: {
-        $n == 0 and last sw;
-        $n < 0 and do {
-            # Remove values.
-            if ( scalar(@$new_toss) >= abs($n) ) {
-                splice @$new_toss, $n;
-            } else {
-                $new_toss = [];
-            }
-            last sw;
-        };
-        $n > 0 and do {
-            my $c = $n - $self->scount;
-            if ( $c <= 0 ) {
-                # Transfer elements.
-                push @$new_toss, splice( @{ $self->get_toss }, -$n );
-            } else {
-                # Transfer elems and fill with zeroes.
-                push @$new_toss, ( (0) x $c, @{ $self->get_toss } );
-            }
-            last sw;
-        };
+    if ( $n < 0 ) {
+        # Remove values.
+        if ( scalar(@$new_toss) >= abs($n) ) {
+            splice @$new_toss, $n;
+        } else {
+            $new_toss = [];
+        }
+    } elsif ( $n > 0 ) {
+        my $c = $n - $self->scount;
+        if ( $c <= 0 ) {
+            # Transfer elements.
+            push @$new_toss, splice( @{ $self->get_toss }, -$n );
+        } else {
+            # Transfer elems and fill with zeroes.
+            push @$new_toss, ( (0) x $c, @{ $self->get_toss } );
+        }
     }
+    # $n == 0: do nothing
+
 
     # Store the new TOSS.
     $self->set_toss( $new_toss );
@@ -682,7 +673,7 @@ to an array or even a hash.
 sub extdata {
     my $self = shift;
     my $lib  = shift;
-    @_ ? $self->data->{$lib} = shift : $self->data->{$lib};
+    @_ ? $self->get_data->{$lib} = shift : $self->get_data->{$lib};
 }
 
 =back

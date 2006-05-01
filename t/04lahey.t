@@ -1,5 +1,5 @@
 #-*- cperl -*-
-# $Id: 04lahey.t,v 1.13 2006/04/30 13:54:21 jquelin Exp $
+# $Id: 04lahey.t,v 1.14 2006/04/30 15:38:46 jquelin Exp $
 #
 
 #------------------------------------------#
@@ -13,7 +13,7 @@ use Language::Befunge::LaheySpace;
 
 my $tests;
 my $ip = Language::Befunge::IP->new;
-my $href;
+my ($w,$h,$href);
 BEGIN { $tests = 0 };
 
 
@@ -94,9 +94,20 @@ is( $ls->{xmin}, -10, "set_value grows xmin if needed" );
 is( $ls->{ymin}, -5,  "set_value grows ymin if needed" );
 is( $ls->get_value( -10, -5 ), 65, "get_value returns correct value" );
 
-is( $ls->get_value( 1, 1),   32, "get_value defaults to space" );
-is( $ls->get_value( 20, 20), 32, "get_value out of bounds defaults to space" );
-BEGIN { $tests += 8; }
+is( $ls->get_value( 1, 1),     32, "get_value defaults to space" );
+is( $ls->get_value( 20, 20),   32, "get_value out of bounds defaults to space" );
+is( $ls->get_value( -20, -20), 32, "get_value out of bounds defaults to space" );
+
+$ls->clear;
+$ls->_enlarge_y(3); # corner cases, should not happen - but anyway.
+is( $ls->get_value( -4, 0), 32, "get_value defaults to space" );
+is( $ls->get_value(  4, 0), 32, "get_value defaults to space" );
+$ls->{ymax} = 20; # corner case, should not happen - but anyway.
+is( $ls->get_value(  0, 10), 32, "get_value defaults to space" );
+$ls->{xmin} = -20; # corner case, should not happen - but anyway.
+is( $ls->get_value(  0, 0), 32, "get_value defaults to space" );
+BEGIN { $tests += 13; }
+
 
 # input checking: make sure get_char() returns ASCII.
 $ls->set_value(0,0, -1);
@@ -152,7 +163,7 @@ is( $ls->get_value( 0, 0),  70,  "store respects specified origin" ); # old valu
 is( $ls->get_value( 4, 1),  70,  "store overwrites if needed" );
 is( $ls->get_value( 20, 2), 121, "store stores everything" ); # last value.
 BEGIN { $tests += 7; }
-my ($w, $h) = $ls->store( <<'EOF', -2, -1 );
+($w, $h) = $ls->store( <<'EOF', -2, -1 );
 Foo bar baz
 camel llama buffy
 EOF
@@ -200,6 +211,77 @@ is( $ls->rectangle(-3,4,1,1), " \n", "rectangle returns lines ending with \\n" )
 is( $ls->rectangle(-2,-1,3,2), "Foo\nFoo\n", "rectangle works with multiple lines" );
 is( $ls->rectangle(19,-2,2,6), "  \n  \n  \n  \nfy\n  \n", "rectangle works accross origin" );
 BEGIN { $tests += 3; }
+
+
+# store_binary method
+$ls->clear;
+($w,$h)=$ls->store_binary( <<'EOF' );
+Foo bar baz
+camel llama buffy
+EOF
+#   5432101234567890123456789012345678901234
+#  2
+#  1
+#  0     Foo bar baz@camel llama buffy
+#  1
+#  2
+is( $ls->{xmin}, 0,  "store_binary does not grow xmin if not needed" );
+is( $ls->{ymin}, 0,  "store_binary does not grow ymax if not needed" );
+is( $ls->{xmax}, 29, "store_binary grows xmax if needed" );
+is( $ls->{ymax}, 0,  "store_binary does not grow ymax if needed" );
+is( $ls->get_value( 0, 0),  70, "store_binary stores everything" );
+is( $ls->get_value( 0, 35), 32, "store_binary does not store outside of its bounds" );
+is( $ls->get_value( 10, 0), 122, "store_binary stores binary" );
+is( $ls->get_value( 11, 0), 10,  "store_binary stores binary" );
+is( $ls->get_value( 12, 0), 99,  "store_binary stores binary" );
+is( $w, 30, "store_binary flattens input" );
+is( $h, 1,  "store_binary flattens input" );
+BEGIN { $tests += 11; }
+$ls->store_binary( <<'EOF', 4, 1 );
+Foo bar baz
+camel llama buffy
+EOF
+#   5432101234567890123456789012345678901234
+#  2
+#  1
+#  0     Foo bar baz@camel llama buffy
+#  1         Foo bar baz@camel llama buffy
+#  2
+is( $ls->{xmin}, 0,  "store_binary does not grow xmin if not needed" );
+is( $ls->{ymin}, 0,  "store_binary does not grow ymin if not needed" );
+is( $ls->{xmax}, 33, "store_binary grows xmax if needed" );
+is( $ls->{ymax}, 1,  "store_binary grows ymax if needed" );
+is( $ls->get_value( 0, 0), 70, "store_binary respects specified origin" ); # old values.
+is( $ls->get_value( 4, 1), 70, "store_binary stores everything" );
+BEGIN { $tests += 6; }
+$ls->store_binary( <<'EOF', -2, -1 );
+Foo bar baz
+camel llama buffy
+EOF
+#   5432101234567890123456789012345678901234
+#  2
+#  1    Foo bar baz@camel llama buffy
+#  0     Foo bar baz@camel llama buffy
+#  1         Foo bar baz@camel llama buffy
+#  2
+is( $ls->{xmin}, -2, "store_binary grows xmin if needed" );
+is( $ls->{ymin}, -1, "store_binary grows ymin if needed" );
+is( $ls->{xmax}, 33, "store_binary does not grow xmax if not needed" );
+is( $ls->{ymax}, 1,  "store_binary does not grow ymax if not needed" );
+is( $ls->get_value( -2, -1), 70,  "store_binary stores value in negative indices" );
+BEGIN { $tests += 5; }
+$ls->store_binary( <<'EOF', 0, 2 );
+Foo bar baz
+camel llama buffy
+EOF
+#   5432101234567890123456789012345678901234
+#  2
+#  1    Foo bar baz@camel llama buffy
+#  0     FoFoo bar baz@camel llama buffy
+#  1         Foo bar baz@camel llama buffy
+#  2
+is( $ls->get_value( 0, 2), 70, "store_binary overwrites if needed" );
+BEGIN { $tests += 1; }
 
 
 # move ip.
