@@ -1,5 +1,5 @@
 #-*- cperl -*-
-# $Id: 22lib.t,v 1.2 2006/04/30 13:54:21 jquelin Exp $
+# $Id: 22lib.t,v 1.3 2006/05/01 18:27:39 jquelin Exp $
 #
 
 #--------------------------------------#
@@ -10,7 +10,7 @@ use strict;
 use Language::Befunge;
 use Config;
 use POSIX qw! tmpnam !;
-use Test;
+use Test::More;
 
 # Vars.
 my $file;
@@ -47,14 +47,16 @@ $bef->store_code( <<'END_OF_CODE' );
 END_OF_CODE
 $bef->run_code;
 $out = slurp;
-ok( $out, "Hello world!\n" );
+is( $out, "Hello world!\n" );
+
 sel; # interact with IP
 $bef->store_code( <<'END_OF_CODE' );
 "OLEH" 4 ( S > :# #, _ q
 END_OF_CODE
 $bef->run_code;
 $out = slurp;
-ok( $out, "Hello world!\n" );
+is( $out, "Hello world!\n" );
+
 sel; # unknown extension
 $bef->store_code( <<'END_OF_CODE' );
 "JAVA" 4 #v( 2. q
@@ -62,8 +64,17 @@ $bef->store_code( <<'END_OF_CODE' );
 END_OF_CODE
 $bef->run_code;
 $out = slurp;
-ok( $out, "1 " );
-BEGIN { $tests += 3 };
+is( $out, "1 " );
+
+sel; # negative fingerprint
+$bef->store_code( <<'END_OF_CODE' );
+f- 1 (
+END_OF_CODE
+eval { $bef->run_code; };
+like( $@, qr/Attempt to build a fingerprint with a negative number/,
+      "loading a library with a negative fingerprint barfs" );
+BEGIN { $tests += 4 };
+
 
 # Overloading.
 sel;
@@ -72,8 +83,9 @@ $bef->store_code( <<'END_OF_CODE' );
 END_OF_CODE
 $bef->run_code;
 $out = slurp;
-ok( $out, "foo" );
+is( $out, "foo" );
 BEGIN { $tests += 1 };
+
 
 # Inheritance.
 sel;
@@ -82,8 +94,9 @@ $bef->store_code( <<'END_OF_CODE' );
 END_OF_CODE
 $bef->run_code;
 $out = slurp;
-ok( $out, "Hello world!\n" );
+is( $out, "Hello world!\n" );
 BEGIN { $tests += 1 };
+
 
 # Unloading.
 sel; # normal unloading.
@@ -92,7 +105,8 @@ $bef->store_code( <<'END_OF_CODE' );
 END_OF_CODE
 $bef->run_code;
 $out = slurp;
-ok( $out, "fooHello world!\n" );
+is( $out, "fooHello world!\n" );
+
 sel; # unloading under stack.
 $bef->store_code( <<'END_OF_CODE' );
 "OLEH" 4 ( "OOF" 3 ( P "OLEH" 4 ) P #v S 2.q
@@ -100,7 +114,8 @@ $bef->store_code( <<'END_OF_CODE' );
 END_OF_CODE
 $bef->run_code;
 $out = slurp;
-ok( $out, "foofoo1 " );
+is( $out, "foofoo1 " );
+
 sel; # unloading non-loaded extension.
 $bef->store_code( <<'END_OF_CODE' );
 "OLEH" 4 ( "JAVA" 4 #v ) 2.q
@@ -108,8 +123,16 @@ $bef->store_code( <<'END_OF_CODE' );
 END_OF_CODE
 $bef->run_code;
 $out = slurp;
-ok( $out, "1 " );
-BEGIN { $tests += 3 };
+is( $out, "1 " );
+
+sel; # negative fingerprint
+$bef->store_code( <<'END_OF_CODE' );
+f- 1 )
+END_OF_CODE
+eval { $bef->run_code; };
+like( $@, qr/Attempt to build a fingerprint with a negative number/,
+      "unloading a library with a negative fingerprint barfs" );
+BEGIN { $tests += 4 };
 
 
 BEGIN { plan tests => $tests };

@@ -1,5 +1,12 @@
 Revision history for Perl extension Language::Befunge.
 
+2.06 Tue May  2 18:02:12 CEST 2006
+        - corrected input error introduced during accessor split
+        - migrated 02befunge.t, 10stdio.t and 22lib.t to Test::More
+        - added tests for generic Befunge.pm test
+        - added tests for output errors
+        - added tests for library semantics
+
 2.05 Mon May  1 18:34:18 CEST 2006
         - migrated 03ip.t to Test::More
         - updated 03ip.t to 100% cover L::B::IP

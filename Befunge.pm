@@ -1,4 +1,4 @@
-# $Id: Befunge.pm,v 1.21 2006/05/01 16:35:22 jquelin Exp $
+# $Id: Befunge.pm,v 1.23 2006/05/01 17:49:44 jquelin Exp $
 #
 # Copyright (c) 2002 Jerome Quelin <jquelin@cpan.org>
 # All rights reserved.
@@ -72,7 +72,7 @@ use Language::Befunge::IP;
 use Language::Befunge::LaheySpace;
 
 # Public variables of the module.
-our $VERSION   = '2.05';
+our $VERSION   = '2.06';
 our $HANDPRINT = 'JQBF98'; # the handprint of the interpreter.
 our %meths;
 $| = 1;
@@ -96,7 +96,6 @@ sub new {
         retval   => 0,
         DEBUG    => 0,
         curip    => undef,
-        lastip   => undef,
         ips      => [],
         newips   => [],
         torus    => Language::Befunge::LaheySpace->new,
@@ -142,11 +141,6 @@ wether the interpreter should output debug messages (a boolean)
 
 the current Instruction Pointer processed (a L::B::IP object)
 
-=item lastip:
-
-the last Instruction Pointer, when C<@> or C<q> instructions are
-encountered (a L::B::IP object)
-
 =item ips:
 
 the current set of IPs travelling in the Lahey space (an array
@@ -165,7 +159,7 @@ the current Lahey space (a L::B::LaheySpace object)
 
 =cut
 BEGIN {
-    my @attrs = qw[ file params retval DEBUG curip lastip ips newips torus ];
+    my @attrs = qw[ file params retval DEBUG curip ips newips torus ];
     foreach my $attr ( @attrs ) {
         my $code = qq[ sub get_$attr { return \$_[0]->{$attr} } ];
         $code .= qq[ sub set_$attr { \$_[0]->{$attr} = \$_[1] } ];
@@ -957,7 +951,6 @@ sub op_flow_kill_thread {
     my $self = shift;
     $self->debug( "end of Instruction Pointer\n" );
     $self->get_curip->set_end('@');
-    $self->set_lastip( $self->get_curip );
 }
 $meths{'@'} = "op_flow_kill_thread";
 
@@ -972,7 +965,6 @@ sub op_flow_quit {
     $self->set_ips( [] );
     $self->get_curip->set_end('q');
     $self->set_retval( $self->get_curip->spop );
-    $self->set_lastip( $self->get_curip );
 }
 $meths{'q'} = "op_flow_quit";
 
@@ -1200,7 +1192,7 @@ sub op_stdio_in_num {
     my $ip = $self->get_curip;
     my ($in, $nb);
     while ( not defined($nb) ) {
-        $in = $ip->input || <STDIN> while not $in;
+        $in = $ip->get_input || <STDIN> while not $in;
         if ( $in =~ s/^.*?(-?\d+)// ) {
             $nb = $1;
             $nb < -2**31  and $nb = -2**31;
@@ -1208,7 +1200,7 @@ sub op_stdio_in_num {
         } else {
             $in = "";
         }
-        $ip->input( $in );
+        $ip->set_input( $in );
     }
     $ip->spush( $nb );
     $self->debug( "numeric input: pushing $nb\n" ); 
@@ -1223,11 +1215,11 @@ sub op_stdio_in_ascii {
     my $self = shift;
     my $ip = $self->get_curip;
     my $in;
-    $in = $ip->input || <STDIN> while not $in;
+    $in = $ip->get_input || <STDIN> while not $in;
     my $chr = substr $in, 0, 1, "";
     my $ord = ord $chr;
     $ip->spush( $ord );
-    $ip->input( $in );
+    $ip->set_input( $in );
     $self->debug( "ascii input: pushing '$chr' (ord=$ord)\n" ); 
 }
 $meths{'~'} = "op_stdio_in_ascii";

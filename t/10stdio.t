@@ -1,5 +1,5 @@
 #-*- cperl -*-
-# $Id: 10stdio.t,v 1.4 2006/04/30 13:54:21 jquelin Exp $
+# $Id: 10stdio.t,v 1.5 2006/05/01 18:29:33 jquelin Exp $
 #
 
 #----------------------------------#
@@ -8,8 +8,9 @@
 
 use strict;
 use Language::Befunge;
+use Language::Befunge::IP;
 use POSIX qw! tmpnam !;
-use Test;
+use Test::More;
 
 # Vars.
 my $file;
@@ -40,30 +41,61 @@ sub slurp () {
     return $content;
 }
 
-# Ascii output.
+# ascii output.
 sel;
 $bef->store_code( <<'END_OF_CODE' );
 ff+7+,q
 END_OF_CODE
 $bef->run_code;
 $out = slurp;
-ok( $out, "%" );
-BEGIN { $tests += 1 };
+is( $out, "%" );
+{
+    # testing output error.
+    local $SIG{__WARN__} = sub{};
+    $file = tmpnam();
+    open OUT, ">$file" or die $!;
+    $fh = select OUT;
+    close OUT;
+    my $ip = Language::Befunge::IP->new;
+    $ip->set_delta(1,0);
+    $ip->spush( 65 );
+    $bef->set_curip($ip);
+    $bef->op_stdio_out_ascii;
+    is( $ip->get_dx, -1, "output error reverse ip delta" );
+}
+BEGIN { $tests += 2 };
 
-# Number output.
+
+# number output.
 sel;
 $bef->store_code( <<'END_OF_CODE' );
 f.q
 END_OF_CODE
 $bef->run_code;
 $out = slurp;
-ok( $out, "15 " );
-BEGIN { $tests += 1 };
+is( $out, "15 " );
+{
+    # testing output error.
+    local $SIG{__WARN__} = sub{};
+    $file = tmpnam();
+    open OUT, ">$file" or die $!;
+    $fh = select OUT;
+    close OUT;
+    my $ip = Language::Befunge::IP->new;
+    $ip->set_delta(1,0);
+    $ip->spush( 65 );
+    $bef->set_curip($ip);
+    $bef->op_stdio_out_num;
+    is( $ip->get_dx, -1, "output error reverse ip delta" );
+}
+BEGIN { $tests += 2 };
+
 
 # Not testing input.
 # If somebody know how to test input automatically...
 
-# File input.
+
+# file input.
 sel; # unknown file.
 $bef->store_code( <<'END_OF_CODE' );
 v q.2 i v# "/dev/a_file_that_probably_does_not_exist"0 <
@@ -72,7 +104,7 @@ v q.2 i v# "/dev/a_file_that_probably_does_not_exist"0 <
 END_OF_CODE
 $bef->run_code;
 $out = slurp;
-ok( $out, "1 " );
+is( $out, "1 " );
 sel; # existant file.
 $bef->store_code( <<'END_OF_CODE' );
 v v i "t/hello.bf"0           <
@@ -85,7 +117,7 @@ v v i "t/hello.bf"0           <
 END_OF_CODE
 $bef->run_code;
 $out = slurp;
-ok( $out, "6 3 2 35 hello world!\n" );
+is( $out, "6 3 2 35 hello world!\n" );
 BEGIN { $tests += 2 };
 
 # binary file input
@@ -97,10 +129,11 @@ v qiv# "t/hello.bf"0        <
 END_OF_CODE
 $bef->run_code;
 $out = slurp;
-ok( $bef->get_torus->rectangle(6, 9, 71, 1),
+is( $bef->get_torus->rectangle(6, 9, 71, 1),
     qq{v q  ,,,,,,,,,,,,,"hello world!"a <\n>                                 ^} . "\n" );
-ok( $out, "" );
+is( $out, "" );
 BEGIN { $tests += 2 };
+
 
 # File output.
 sel; # unknown file.
@@ -111,7 +144,7 @@ v q.2 o v# "/ved/a_file_that_probably_does_not_exist"0 <
 END_OF_CODE
 $bef->run_code;
 $out = slurp;
-ok( $out, "1 " );
+is( $out, "1 " );
 sel; # valid file.
 $bef->store_code( <<'END_OF_CODE' );
 v q o "t/foo.txt"0  0 ;flag;     <
@@ -122,13 +155,13 @@ v q o "t/foo.txt"0  0 ;flag;     <
 END_OF_CODE
 $bef->run_code;
 $out = slurp;
-ok( $out, "" );
+is( $out, "" );
 open FOO, "<t/foo.txt" or die $!;
 {
     local $/;
     $slurp = <FOO>;
 }
-ok( $slurp, "foo!\n    \n;-) \n    \n" );
+is( $slurp, "foo!\n    \n;-) \n    \n" );
 unlink "t/foo.txt";
 sel; # flag: text file.
 $bef->store_code( <<'END_OF_CODE' );
@@ -140,15 +173,17 @@ v q o "t/foo.txt"0  1 ;flag;     <
 END_OF_CODE
 $bef->run_code;
 $out = slurp;
-ok( $out, "" );
+is( $out, "" );
 open FOO, "<t/foo.txt" or die $!;
 {
     local $/;
     $slurp = <FOO>;
 }
-ok( $slurp, "foo!\n\n;-)\n" );
+is( $slurp, "foo!\n\n;-)\n" );
 unlink "t/foo.txt";
 BEGIN { $tests += 5 };
+
+# testing unability to 
 
 
 BEGIN { plan tests => $tests };

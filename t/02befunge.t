@@ -1,5 +1,5 @@
 #-*- cperl -*-
-# $Id: 02befunge.t,v 1.3 2006/04/30 13:54:21 jquelin Exp $
+# $Id: 02befunge.t,v 1.4 2006/05/01 17:23:21 jquelin Exp $
 #
 
 #-----------------------------------#
@@ -9,7 +9,7 @@
 use strict;
 use Language::Befunge;
 use POSIX qw! tmpnam !;
-use Test;
+use Test::More;
 
 # Vars.
 my ($file, $fh);
@@ -43,8 +43,35 @@ sel;
 $bef = Language::Befunge->new( "t/q.bf" );
 $bef->run_code;
 $out = slurp;
-ok( $out, "" );
+is( $out, "" );
 BEGIN { $tests += 1 };
+
+# debug tests.
+{
+    my $warning;
+    local $SIG{__WARN__} = sub { $warning = "@_" };
+    $bef = Language::Befunge->new;
+
+    $warning = "";
+    $bef->debug( "foo\n" );
+    is( $warning, "", "DEBUG is off by default" );
+
+    $warning = "";
+    $bef->set_DEBUG(1);
+    $bef->debug( "bar\n" );
+    is( $warning, "bar\n", "debug warns properly when DEBUG is on" );
+
+    $warning = "";
+    $bef->set_DEBUG(0);
+    $bef->debug( "baz\n" );
+    is( $warning, "",      "debug does not warn when DEBUG is off" );
+}
+BEGIN { $tests += 3 };
+
+
+# useless tests for unused accessor - in order for coverage to be complete.
+$bef->set_torus( );
+
 
 # Basic reading.
 $bef = Language::Befunge->new;
@@ -52,12 +79,12 @@ sel;
 $bef->read_file( "t/q.bf" );
 $bef->run_code;
 $out = slurp;
-ok( $out, "" );
+is( $out, "" );
 BEGIN { $tests += 1 };
 
 # Reading a non existent file.
 eval { $bef->read_file( "/dev/a_file_that_is_not_likely_to_exist" ); };
-ok( $@, qr/line/ );
+like( $@, qr/line/, "reading a non-existent file barfs" );
 BEGIN { $tests += 1 };
 
 # Basic storing.
@@ -67,7 +94,7 @@ q
 END_OF_CODE
 $bef->run_code;
 $out = slurp;
-ok( $out, "" );
+is( $out, "" );
 BEGIN { $tests += 1 };
 
 # Interpreter must treat non-characters as if they were an 'r' instruction.
@@ -77,7 +104,7 @@ $bef->store_code( <<'END_OF_CODE' );
 END_OF_CODE
 $bef->run_code;
 $out = slurp;
-ok( $out, "1 2 " );
+is( $out, "1 2 " );
 BEGIN { $tests += 1 };
 
 # Interpreter must treat non-commands as if they were an 'r' instruction.
@@ -87,7 +114,7 @@ $bef->store_code( <<'END_OF_CODE' );
 END_OF_CODE
 $bef->run_code;
 $out = slurp;
-ok( $out, "1 2 " );
+is( $out, "1 2 " );
 BEGIN { $tests += 1 };
 
 BEGIN { plan tests => $tests };
