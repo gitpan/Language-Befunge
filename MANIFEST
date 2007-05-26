@@ -15,6 +15,7 @@ Befunge/lib/FOO.pm
 Befunge/lib/HELO.pm
 Build.PL
 Changes
+LICENSE
 Makefile.PL
 MANIFEST			This list of files
 META.yml
@@ -36,6 +37,8 @@ t/19storg.t
 t/20system.t
 t/21concur.t
 t/22lib.t
+t/90-pod.t
+t/91-pod-coverage.t
 t/exit3.pl
 t/hello.bf
 t/q.bf

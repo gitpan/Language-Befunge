@@ -8,17 +8,7 @@
 #
 #
 
-#----------------------------------#
-#          Basic include.          #
-#----------------------------------#
-
-use strict;
-use Test;
-use Language::Befunge;
-
-ok(1); # If we made it this far, we're ok.
-
-
-BEGIN { plan tests => 1 };
-
-
+use Test::More;
+eval "use Test::Pod::Coverage 1.04";
+plan skip_all => "Test::Pod::Coverage 1.04 required for testing POD coverage" if $@;
+all_pod_coverage_ok();

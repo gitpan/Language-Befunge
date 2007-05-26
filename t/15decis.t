@@ -1,5 +1,11 @@
-#-*- cperl -*-
-# $Id: 15decis.t,v 1.2 2006/04/30 13:54:21 jquelin Exp $
+#!perl
+#
+# This file is part of Language::Befunge.
+# Copyright (c) 2001-2007 Jerome Quelin, all rights reserved.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the same terms as Perl itself.
+#
 #
 
 #-------------------------------------------------#
@@ -164,7 +170,7 @@ BEGIN { $tests += 4 };
 # Compare (3 branches if).
 sel; # greater.
 $bef->store_code( <<'END_OF_CODE' );
-34     v  
+34     v
  q..1  w  01-..q
        > 0..q
 END_OF_CODE
@@ -173,7 +179,7 @@ $out = slurp;
 ok( $out, "-1 0 " );
 sel; # equal.
 $bef->store_code( <<'END_OF_CODE' );
-33     v  
+33     v
  q..1  w  01-..q
        > 0..q
 END_OF_CODE
@@ -182,7 +188,7 @@ $out = slurp;
 ok( $out, "0 0 " );
 sel; # smaller.
 $bef->store_code( <<'END_OF_CODE' );
-43     v  
+43     v
  q..1  w  01-..q
        > 0..q
 END_OF_CODE

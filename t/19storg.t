@@ -1,5 +1,11 @@
-#-*- cperl -*-
-# $Id: 19storg.t,v 1.2 2006/04/30 13:54:21 jquelin Exp $
+#!perl
+#
+# This file is part of Language::Befunge.
+# Copyright (c) 2001-2007 Jerome Quelin, all rights reserved.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the same terms as Perl itself.
+#
 #
 
 #---------------------------------------#
@@ -44,7 +50,7 @@ sel; # New storage offset.
 $bef->store_code( <<'END_OF_CODE' );
 0      {  01+a*1+a*8+ 11p v
     q.2                   <
-         >  1.q  
+         >  1.q
 END_OF_CODE
 $bef->run_code;
 $out = slurp;
@@ -53,7 +59,7 @@ sel; # Retrieving old storage offset.
 $bef->store_code( <<'END_OF_CODE' );
 0      { 22+ 0 } 01+a*1+a*8+ 61p v
  q.2                             <
-      >  1.q  
+      >  1.q
 END_OF_CODE
 $bef->run_code;
 $out = slurp;

@@ -1,10 +1,10 @@
-# $Id: HELO.pm,v 1.2 2006/02/17 13:53:06 jquelin Exp $
 #
-# Copyright (c) 2002 Jerome Quelin <jquelin@cpan.org>
-# All rights reserved.
+# This file is part of Language::Befunge.
+# Copyright (c) 2001-2007 Jerome Quelin, all rights reserved.
 #
-# This program is free software; you can redistribute it and/or
-# modify it under the same terms as Perl itself.
+# This program is free software; you can redistribute it and/or modify
+# it under the same terms as Perl itself.
+#
 #
 
 package Language::Befunge::lib::HELO;
@@ -63,19 +63,22 @@ sub S {
 __END__
 
 
+=head1 SEE ALSO
+
+L<Language::Befunge>.
+
+
 =head1 AUTHOR
 
 Jerome Quelin, E<lt>jquelin@cpan.orgE<gt>
 
 
-=head1 COPYRIGHT
+=head1 COPYRIGHT & LICENSE
+
+Copyright (c) 2001-2007 Jerome Quelin, all rights reserved.
 
 This program is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.
 
-
-=head1 SEE ALSO
-
-L<Language::Befunge>.
 
 =cut

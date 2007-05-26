@@ -1,7 +1,11 @@
-#!/usr/bin/env perl
+#!perl
 #
-# This script writes the Makefile for Language::Befunge
-# $Id: Makefile.PL,v 1.4 2006/02/07 14:38:53 jquelin Exp $
+# This file is part of Language::Befunge.
+# Copyright (c) 2001-2007 Jerome Quelin, all rights reserved.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the same terms as Perl itself.
+#
 #
 
 use strict;
@@ -36,7 +40,7 @@ EOT
 
     my @tmp;
     foreach my $prg (@programs_to_install) {
-        push @tmp, $prg 
+        push @tmp, $prg
           if prompt("Do you want to install $prg?", 'y') =~ /^y/i;
     }
     @programs_to_install = @tmp;
@@ -47,12 +51,16 @@ EOT
 # Write Makefile.
 WriteMakefile(
     NAME          => 'Language::Befunge',
-    VERSION_FROM  => 'Befunge.pm',
-    EXE_FILES     => [ map "Befunge/bin/$_", @programs_to_install ],
-    PREREQ_PM     => { Storable => 0, 'Test::More' => 0 },
-    clean         => { FILES => '*~ t/*~ Befunge/*~ Befunge/doc/*~ '
-                       . 'Befunge/examples/*~ Befunge/lib/*~'
-                       . 'Befunge/bin/*~ MANIFEST.bak' },
-    ABSTRACT_FROM => 'Befunge.pm',
     AUTHOR        => 'Jerome Quelin, <jquelin@cpan.org>',
+    VERSION_FROM  => 'Befunge.pm',
+    ABSTRACT_FROM => 'Befunge.pm',
+    EXE_FILES     => [ map "Befunge/bin/$_", @programs_to_install ],
+    LICENSE       => 'perl',
+    PREREQ_PM     => { Storable => 0, 'Test::More' => 0 },
+    dist          => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
+    clean         => { FILES => [
+                    'Language-Befunge-*',
+					map { ( '*/' x $_ ) . '*~' } 0..4 ] },
 );
+
+

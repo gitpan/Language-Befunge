@@ -1,5 +1,11 @@
-#-*- cperl -*-
-# $Id: 20system.t,v 1.3 2006/04/30 13:54:21 jquelin Exp $
+#!perl
+#
+# This file is part of Language::Befunge.
+# Copyright (c) 2001-2007 Jerome Quelin, all rights reserved.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the same terms as Perl itself.
+#
 #
 
 #---------------------------------#
@@ -47,7 +53,7 @@ $bef->store_code( <<'END_OF_CODE' );
 END_OF_CODE
 {
     local $SIG{__WARN__} = sub {};
-    $bef->run_code; 
+    $bef->run_code;
 }
 $out = slurp;
 ok( $out, "-1 " );
@@ -156,9 +162,9 @@ BEGIN { $tests += 1 };
 
 sel; # 11. delta of IP.
 $bef->store_code( <<'END_OF_CODE' );
-v .      
-    q    
->b  21x  
+v .
+    q
+>b  21x
         y
           .
 END_OF_CODE

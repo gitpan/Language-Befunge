@@ -1,5 +1,11 @@
-#-*- cperl -*-
-# $Id: 14flow.t,v 1.3 2006/04/30 13:54:21 jquelin Exp $
+#!perl
+#
+# This file is part of Language::Befunge.
+# Copyright (c) 2001-2007 Jerome Quelin, all rights reserved.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the same terms as Perl itself.
+#
 #
 
 #---------------------------------#
@@ -171,8 +177,10 @@ $out = slurp;
 ok( $@, qr/Attempt to repeat \('k'\) a repeat instruction \('k'\)/ );
 sel; # move_curip() short circuits on a dead end
 $bef->store_code( <<'END_OF_CODE' );
-    
+
 END_OF_CODE
+$bef->get_curip->set_curx(0);
+$bef->get_curip->set_cury(0);
 eval {
     local $SIG{ALRM} = sub { die "timeout\n" };
     alarm 10;

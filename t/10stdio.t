@@ -1,5 +1,11 @@
-#-*- cperl -*-
-# $Id: 10stdio.t,v 1.5 2006/05/01 18:29:33 jquelin Exp $
+#!perl
+#
+# This file is part of Language::Befunge.
+# Copyright (c) 2001-2007 Jerome Quelin, all rights reserved.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the same terms as Perl itself.
+#
 #
 
 #----------------------------------#
@@ -183,7 +189,7 @@ is( $slurp, "foo!\n\n;-)\n" );
 unlink "t/foo.txt";
 BEGIN { $tests += 5 };
 
-# testing unability to 
+# testing unability to
 
 
 BEGIN { plan tests => $tests };

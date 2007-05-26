@@ -1,10 +1,10 @@
-# $Id: LaheySpace.pm,v 1.12 2006/04/30 13:54:20 jquelin Exp $
 #
-# Copyright (c) 2002-2003 Jerome Quelin <jquelin@cpan.org>
-# All rights reserved.
+# This file is part of Language::Befunge.
+# Copyright (c) 2001-2007 Jerome Quelin, all rights reserved.
 #
-# This program is free software; you can redistribute it and/or
-# modify it under the same terms as Perl itself.
+# This program is free software; you can redistribute it and/or modify
+# it under the same terms as Perl itself.
+#
 #
 
 package Language::Befunge::LaheySpace;
@@ -42,7 +42,7 @@ Creates a new Lahey Space.
 =cut
 sub new {
     my ($class) = @_;
-    my $self  = 
+    my $self  =
       { xmin   => 0, # the upper-left x-coordinate
         ymin   => 0, # the upper-left y-coordinate
         xmax   => 0, # the bottom-right x-coordinate
@@ -201,7 +201,7 @@ sub get_value {
     }
     return $val;
 }
-    
+
 
 
 =head2 set_value( x, y, value )
@@ -243,7 +243,7 @@ sub move_ip_forward {
     if($self->_out_of_bounds($x, $y)) {
         # Check out-of-bounds. Please note that we're in a
         # Lahey-space, and if we need to wrap, we perform a
-        # Lahey-space wrapping. Funge98 says we should walk 
+        # Lahey-space wrapping. Funge98 says we should walk
         # our current trajectory in reverse, until we hit the
         # other side of LaheySpace, and then continue along
         # the same path.
@@ -278,8 +278,8 @@ sub rectangle {
     # Fetch the data.
     my $data = "";
     foreach my $i ( $y-$self->{ymin} .. $y-$self->{ymin}+$h-1 ) {
-        $data .= join "", 
-          map { chr } 
+        $data .= join "",
+          map { chr }
             ( @{ $self->{torus}[$i] } )[ $x-$self->{xmin} .. $x-$self->{xmin}+$w-1 ];
         $data .= "\n";
     }
@@ -305,7 +305,7 @@ C<Inline::Befunge> (and maybe some exstensions).
 sub labels_lookup {
     my $self = shift;
     my $labels = {};
-    
+
   Y: foreach my $y ( 0 .. $#{$self->{torus}} ) {
       X: foreach my $x ( 0 .. $#{ $self->{torus}[$y] } ) {
             next X unless $self->{torus}[$y][$x] == ord(";");
@@ -313,9 +313,9 @@ sub labels_lookup {
             VEC: foreach my $vec ( [1,0], [-1,0], [0,1], [0,-1] ) {
                 my ($lab, $labx, $laby) = $self->_labels_try( $x, $y, @$vec );
                 defined($lab) or next VEC;
-                
+
                 # How exciting, we found a label!
-                exists $labels->{$lab} 
+                exists $labels->{$lab}
                   and croak "Help! I found two labels '$lab' in the funge space";
                 $labels->{$lab} = [$labx+$self->{xmin}, $laby+$self->{ymin}, @$vec];
             }
@@ -467,19 +467,22 @@ Given the difficulty of writing large befunge programs, this should
 not be noticeable.
 
 
+=head1 SEE ALSO
+
+L<Language::Befunge>.
+
+
 =head1 AUTHOR
 
 Jerome Quelin, E<lt>jquelin@cpan.orgE<gt>
 
 
-=head1 COPYRIGHT
+=head1 COPYRIGHT & LICENSE
+
+Copyright (c) 2001-2007 Jerome Quelin, all rights reserved.
 
 This program is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.
 
-
-=head1 SEE ALSO
-
-L<Language::Befunge>.
 
 =cut

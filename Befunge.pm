@@ -1,10 +1,10 @@
-# $Id: Befunge.pm,v 1.23 2006/05/01 17:49:44 jquelin Exp $
 #
-# Copyright (c) 2002 Jerome Quelin <jquelin@cpan.org>
-# All rights reserved.
+# This file is part of Language::Befunge.
+# Copyright (c) 2001-2007 Jerome Quelin, all rights reserved.
 #
-# This program is free software; you can redistribute it and/or
-# modify it under the same terms as Perl itself.
+# This program is free software; you can redistribute it and/or modify
+# it under the same terms as Perl itself.
+#
 #
 
 package Language::Befunge;
@@ -72,7 +72,7 @@ use Language::Befunge::IP;
 use Language::Befunge::LaheySpace;
 
 # Public variables of the module.
-our $VERSION   = '2.06';
+our $VERSION   = '2.07';
 our $HANDPRINT = 'JQBF98'; # the handprint of the interpreter.
 our %meths;
 $| = 1;
@@ -90,7 +90,7 @@ topology of the interpreter.
 sub new {
     # Create and bless the object.
     my $class = shift;
-    my $self  = 
+    my $self  =
       { file     => "STDIN",
         params   => [],
         retval   => 0,
@@ -121,37 +121,37 @@ wonder why you are reading this! :-)
 
 =over 4
 
-=item file:
+=item get_file() / set_file()
 
 the script filename (a string)
 
-=item params:
+=item get_params() / set_params()
 
 the parameters of the script (an array reference)
 
-=item retval:
+=item get_retval() / set_retval()
 
 the current return value of the interpreter (an integer)
 
-=item DEBUG:
+=item get_DEBUG() / set_DEBUG()
 
 wether the interpreter should output debug messages (a boolean)
 
-=item curip:
+=item get_curip() / set_curip()
 
 the current Instruction Pointer processed (a L::B::IP object)
 
-=item ips:
+=item get_ips() / set_ips()
 
 the current set of IPs travelling in the Lahey space (an array
 reference)
 
-=item newips:
+=item get_newips() / set_newips()
 
 the set of IPs that B<will> travel in the Lahey space B<after> the
 current tick (an array reference)
 
-=item torus:
+=item get_torus() / set_torus()
 
 the current Lahey space (a L::B::LaheySpace object)
 
@@ -375,7 +375,7 @@ sub process_ip {
         } else {
             # A banal character.
             $self->debug( "string-mode: pushing char '$char'\n" );
-            $ip->spush( $ord );                 
+            $ip->spush( $ord );
         }
 
     } else {
@@ -403,7 +403,7 @@ sub process_ip {
             }
 
             # Non-overloaded capitals default to reverse.
-            $ip->dir_reverse, $self->debug("no library semantics found: reversing\n") 
+            $ip->dir_reverse, $self->debug("no library semantics found: reversing\n")
               unless $found;
 
         } else {
@@ -485,7 +485,7 @@ sub op_str_fetch_char {
 
     # Moving pointer...
     $self->move_curip;
- 
+
    # .. then fetch value and push it.
     my $ord = $self->get_torus->get_value( $ip->get_curx, $ip->get_cury );
     my $chr = $self->get_torus->get_char( $ip->get_curx, $ip->get_cury );
@@ -1203,7 +1203,7 @@ sub op_stdio_in_num {
         $ip->set_input( $in );
     }
     $ip->spush( $nb );
-    $self->debug( "numeric input: pushing $nb\n" ); 
+    $self->debug( "numeric input: pushing $nb\n" );
 }
 $meths{'&'} = "op_stdio_in_num";
 
@@ -1220,7 +1220,7 @@ sub op_stdio_in_ascii {
     my $ord = ord $chr;
     $ip->spush( $ord );
     $ip->set_input( $in );
-    $self->debug( "ascii input: pushing '$chr' (ord=$ord)\n" ); 
+    $self->debug( "ascii input: pushing '$chr' (ord=$ord)\n" );
 }
 $meths{'~'} = "op_stdio_in_ascii";
 
@@ -1299,7 +1299,7 @@ $meths{'o'} = "op_stdio_out_file";
 sub op_stdio_sys_exec {
     my $self = shift;
     my $ip = $self->get_curip;
-    
+
     # Fetching command.
     my $path = $ip->spop_gnirts;
     $self->debug( "spawning external command: $path\n" );
@@ -1336,7 +1336,7 @@ sub op_sys_info {
 
     # 2. number of bytes per cell.
     # 32 bytes Funge: 4 bytes.
-    push @cells, 4; 
+    push @cells, 4;
 
     # 3. implementation handprint.
     my @hand = reverse map { ord } split //, $HANDPRINT.chr(0);
@@ -1398,12 +1398,12 @@ sub op_sys_info {
     # stacks.
     my @sizes = reverse $ip->ss_sizes;
     push @cells, \@sizes;
-                    
+
     # 19. $file + params.
     my $str = join chr(0), $self->get_file, @{$self->get_params}, chr(0);
     my @cmdline = reverse map { ord } split //, $str;
     push @cells, \@cmdline;
-                    
+
     # 20. %ENV
     # 00EULAV=EMAN0EULAV=EMAN
     $str = "";
@@ -1602,23 +1602,10 @@ numbers greater than C<0xffffffff>.
 =back
 
 
-=head1 AUTHOR
-
-Jerome Quelin, E<lt>jquelin@cpan.orgE<gt>
-
-Development is discussed on E<lt>language-befunge@mongueurs.netE<gt>
-
-
 =head1 ACKNOWLEDGEMENTS
 
 I would like to thank Chris Pressey, creator of Befunge, who gave a
 whole new dimension to both coding and obfuscating.
-
-
-=head1 COPYRIGHT
-
-This program is free software; you can redistribute it and/or modify
-it under the same terms as Perl itself.
 
 
 =head1 SEE ALSO
@@ -1632,5 +1619,21 @@ it under the same terms as Perl itself.
 =item L<http://dufflebunk.iwarp.com/JSFunge/spec98.html>
 
 =back
+
+
+=head1 AUTHOR
+
+Jerome Quelin, E<lt>jquelin@cpan.orgE<gt>
+
+Development is discussed on E<lt>language-befunge@mongueurs.netE<gt>
+
+
+=head1 COPYRIGHT & LICENSE
+
+Copyright (c) 2001-2007 Jerome Quelin, all rights reserved.
+
+This program is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.
+
 
 =cut

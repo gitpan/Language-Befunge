@@ -1,5 +1,11 @@
-#-*- cperl -*-
-# $Id: 03ip.t,v 1.7 2006/05/01 07:54:26 jquelin Exp $
+#!perl
+#
+# This file is part of Language::Befunge.
+# Copyright (c) 2001-2007 Jerome Quelin, all rights reserved.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the same terms as Perl itself.
+#
 #
 
 #----------------------------------#

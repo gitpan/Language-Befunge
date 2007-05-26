@@ -1,10 +1,10 @@
-# $Id: IP.pm,v 1.8 2006/04/30 17:50:44 jquelin Exp $
 #
-# Copyright (c) 2002 Jerome Quelin <jquelin@cpan.org>
-# All rights reserved.
+# This file is part of Language::Befunge.
+# Copyright (c) 2001-2007 Jerome Quelin, all rights reserved.
 #
-# This program is free software; you can redistribute it and/or
-# modify it under the same terms as Perl itself.
+# This program is free software; you can redistribute it and/or modify
+# it under the same terms as Perl itself.
+#
 #
 
 package Language::Befunge::IP;
@@ -43,8 +43,8 @@ Create a new Instruction Pointer.
 =cut
 sub new {
     my ($class) = @_;
-    my $self  = 
-      { id           => 0,  
+    my $self  =
+      { id           => 0,
         toss         => [],
         ss           => [],
         curx         => 0,
@@ -88,61 +88,63 @@ exists.
 
 =over 4
 
-=item id:
+=item get_id() / set_id()
 
 the unique ID of the IP (an integer)
 
-=item curx:
+=item get_curx() / set_curx()
 
 the current x-coordinate of the IP (an integer)
 
-=item cury:
+=item get_cury() / set_cury()
 
 the current y-coordinate of the IP (an integer)
 
-=item dx:
+=item get_dx() / set_dx()
 
 the horizontal offset of the IP (an integer)
 
-=item dy:
+=item get_dy() / set_dy()
 
 the vertical offset of the IP (an integer)
 
-=item storx:
+=item get_storx() / set_storx()
 
 the x-coordinate of the storage offset of the IP (an integer)
 
-=item story:
+=item get_story() / set_story()
 
 the y-coordinate of the storage offset of the IP (an integer)
 
-=item data:
+=item get_data() / set_data()
 
 the library private storage space (a hash reference)
 
-=item input:
+=item get_input() / set_input()
 
 the input cache (a string)
 
-=item string_mode:
+=item get_string_mode() / set_string_mode()
 
 the string_mode of the IP (a boolean)
 
-=item end:
+=item get_end() / set_end()
 
 wether the IP should be terminated (a boolean)
 
-=item libs:
+=item get_libs() / set_libs()
 
 the current stack of loaded libraries (an array reference)
 
-=item ss:
+=item get_ss() / set_ss()
 
 the stack of stack of the IP (an array reference)
 
-=item toss:
+=item get_toss() / set_toss()
 
 the current stack (er, TOSS) of the IP (an array reference)
+
+=back
 
 =cut
 BEGIN {
@@ -187,7 +189,7 @@ sub soss {
 =head2 Internal stack
 
 In this section, I speak about the stack. In fact, this is the TOSS - that
-is, the Top Of the Stack Stack. 
+is, the Top Of the Stack Stack.
 
 In Befunge-98, standard stack operations occur transparently on the
 TOSS (as if there were only one stack, as in Befunge-93).
@@ -426,7 +428,7 @@ sub ss_transfer {
         my @elems;
         if ( $c <= 0 ) {
             @elems = splice @{ $self->soss }, -$n;
-        } else { 
+        } else {
             @elems = ( (0) x $c, @{ $self->soss } );
             $self->soss_clear;
         }
@@ -439,7 +441,7 @@ sub ss_transfer {
         my @elems;
         if ( $c <= 0 ) {
             @elems = splice @{ $self->get_toss }, -$n;
-        } else { 
+        } else {
             @elems = ( (0) x $c, @{ $self->get_toss } );
             $self->sclear;
         }
@@ -651,7 +653,7 @@ then the IP will follow the semantics of C<BAZ>, then C<BAR>, then
 =cut
 sub unload {
     my ($self, $lib) = @_;
-    
+
     my $offset = -1;
     foreach my $i ( 0..$#{$self->get_libs} ) {
         $offset = $i, last if ref($self->get_libs->[$i]) eq $lib;
@@ -694,19 +696,22 @@ sub _get_new_id {
 __END__
 
 
+=head1 SEE ALSO
+
+L<Language::Befunge>.
+
+
 =head1 AUTHOR
 
 Jerome Quelin, E<lt>jquelin@cpan.orgE<gt>
 
 
-=head1 COPYRIGHT
+=head1 COPYRIGHT & LICENSE
+
+Copyright (c) 2001-2007 Jerome Quelin, all rights reserved.
 
 This program is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.
 
-
-=head1 SEE ALSO
-
-L<Language::Befunge>.
 
 =cut

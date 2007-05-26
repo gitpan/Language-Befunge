@@ -1,7 +1,11 @@
-#!/usr/bin/env perl
+#!perl
 #
-# This script writes the Build utility for Language::Befunge
-# $Id: Build.PL,v 1.1 2006/02/07 14:38:53 jquelin Exp $
+# This file is part of Language::Befunge.
+# Copyright (c) 2001-2007 Jerome Quelin, all rights reserved.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the same terms as Perl itself.
+#
 #
 
 use strict;
@@ -63,7 +67,7 @@ EOT
 
     my @tmp;
     foreach my $prg (@programs_to_install) {
-        push @tmp, $prg 
+        push @tmp, $prg
           if $builder->prompt("Do you want to install $prg?", 'y') =~ /^y/i;
     }
     @programs_to_install = @tmp;

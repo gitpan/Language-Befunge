@@ -1,4 +1,4 @@
-# $Id: library.pod,v 1.1.1.1 2003/02/22 10:17:10 jquelin Exp $
+# $Id: /local/Language-Befunge/branches/kwalitee/Befunge/doc/library.pod 4885 2003-02-22T10:17:10.000000Z jquelin  $
 
 =head1 Befunge-98 Libraries & Extensions
 
