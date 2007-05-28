@@ -72,7 +72,7 @@ use Language::Befunge::IP;
 use Language::Befunge::LaheySpace;
 
 # Public variables of the module.
-our $VERSION   = '2.07';
+our $VERSION   = '2.08';
 our $HANDPRINT = 'JQBF98'; # the handprint of the interpreter.
 our %meths;
 $| = 1;

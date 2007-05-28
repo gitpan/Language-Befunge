@@ -15,6 +15,9 @@ High-level changelog
 Low-level changelog
 ===================
 
+2.08 Mon May 28 19:36:11 CEST 2007
+ - skipping a failing exec test on windows
+
 2.07 Sat May 26 15:05:46 CEST 2007
  - kwalitee release: LICENSE, pod tests, etc.
 

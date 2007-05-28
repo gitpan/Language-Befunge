@@ -1,6 +1,6 @@
 ---
 name: Language-Befunge
-version: 2.07
+version: 2.08
 author:
   - 'Jerome Quelin <jquelin@cpan.org>'
 abstract: a Befunge-98 interpreter
@@ -14,7 +14,7 @@ build_requires:
 provides:
   Language::Befunge:
     file: Befunge.pm
-    version: 2.07
+    version: 2.08
   Language::Befunge::IP:
     file: Befunge/IP.pm
   Language::Befunge::LaheySpace:
