@@ -14,6 +14,7 @@
 
 use strict;
 use Language::Befunge;
+use Language::Befunge::Vector;
 use POSIX qw! tmpnam !;
 use Test;
 
@@ -179,8 +180,7 @@ sel; # move_curip() short circuits on a dead end
 $bef->store_code( <<'END_OF_CODE' );
 
 END_OF_CODE
-$bef->get_curip->set_curx(0);
-$bef->get_curip->set_cury(0);
+$bef->get_curip->set_position( Language::Befunge::Vector->new_zeroes(2) );
 eval {
     local $SIG{ALRM} = sub { die "timeout\n" };
     alarm 10;

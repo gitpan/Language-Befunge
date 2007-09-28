@@ -56,11 +56,11 @@ BEGIN{ $tests += 8; }
 
 
 # _out_of_bounds method.
-is( $ls->_out_of_bounds(-6,  0), 1, "_out_of_bounds < xmin" );
-is( $ls->_out_of_bounds( 0, -6), 1, "_out_of_bounds < ymin" );
-is( $ls->_out_of_bounds( 0,  6), 1, "_out_of_bounds > xmax" );
-is( $ls->_out_of_bounds( 6,  0), 1, "_out_of_bounds > ymax" );
-is( $ls->_out_of_bounds( 0,  0), 0, "_out_of_bounds in torus" );
+is( $ls->_out_of_bounds(Language::Befunge::Vector->new(2,-6,  0)), 1, "_out_of_bounds < xmin" );
+is( $ls->_out_of_bounds(Language::Befunge::Vector->new(2, 0, -6)), 1, "_out_of_bounds < ymin" );
+is( $ls->_out_of_bounds(Language::Befunge::Vector->new(2, 0,  6)), 1, "_out_of_bounds > xmax" );
+is( $ls->_out_of_bounds(Language::Befunge::Vector->new(2, 6,  0)), 1, "_out_of_bounds > ymax" );
+is( $ls->_out_of_bounds(Language::Befunge::Vector->new(2, 0,  0)), 0, "_out_of_bounds in torus" );
 BEGIN{ $tests += 5; }
 
 
@@ -91,39 +91,39 @@ BEGIN { $tests += 16; }
 
 # get/set value.
 $ls->clear;
-$ls->set_value( 10, 5, 65 );
+$ls->set_value(Language::Befunge::Vector->new(2, 10, 5), 65 );
 is( $ls->{xmax}, 10, "set_value grows xmax if needed" );
 is( $ls->{ymax}, 5,  "set_value grows ymax if needed" );
-is( $ls->get_value( 10, 5 ), 65, "get_value returns correct value" );
-$ls->set_value( -10, -5, 65 );
+is( $ls->get_value(Language::Befunge::Vector->new(2,  10, 5 )), 65, "get_value returns correct value" );
+$ls->set_value(Language::Befunge::Vector->new(2,  -10, -5), 65 );
 is( $ls->{xmin}, -10, "set_value grows xmin if needed" );
 is( $ls->{ymin}, -5,  "set_value grows ymin if needed" );
-is( $ls->get_value( -10, -5 ), 65, "get_value returns correct value" );
+is( $ls->get_value(Language::Befunge::Vector->new(2,  -10, -5 )), 65, "get_value returns correct value" );
 
-is( $ls->get_value( 1, 1),     32, "get_value defaults to space" );
-is( $ls->get_value( 20, 20),   32, "get_value out of bounds defaults to space" );
-is( $ls->get_value( -20, -20), 32, "get_value out of bounds defaults to space" );
+is( $ls->get_value(Language::Befunge::Vector->new(2,  1, 1)),     32, "get_value defaults to space" );
+is( $ls->get_value(Language::Befunge::Vector->new(2,  20, 20)),   32, "get_value out of bounds defaults to space" );
+is( $ls->get_value(Language::Befunge::Vector->new(2,  -20, -20)), 32, "get_value out of bounds defaults to space" );
 
 $ls->clear;
 $ls->_enlarge_y(3); # corner cases, should not happen - but anyway.
-is( $ls->get_value( -4, 0), 32, "get_value defaults to space" );
-is( $ls->get_value(  4, 0), 32, "get_value defaults to space" );
+is( $ls->get_value(Language::Befunge::Vector->new(2,  -4, 0)), 32, "get_value defaults to space" );
+is( $ls->get_value(Language::Befunge::Vector->new(2,   4, 0)), 32, "get_value defaults to space" );
 $ls->{ymax} = 20; # corner case, should not happen - but anyway.
-is( $ls->get_value(  0, 10), 32, "get_value defaults to space" );
+is( $ls->get_value(Language::Befunge::Vector->new(2,   0, 10)), 32, "get_value defaults to space" );
 $ls->{xmin} = -20; # corner case, should not happen - but anyway.
-is( $ls->get_value(  0, 0), 32, "get_value defaults to space" );
+is( $ls->get_value(Language::Befunge::Vector->new(2,   0, 0)), 32, "get_value defaults to space" );
 BEGIN { $tests += 13; }
 
 
 # input checking: make sure get_char() returns ASCII.
-$ls->set_value(0,0, -1);
-$ls->set_value(1,0,  0);
-$ls->set_value(2,0,255);
-$ls->set_value(3,0,256);
-is( $ls->get_char(0,0), sprintf("<np-0x%x>", -1), "get_char always returns ascii" );
-is( $ls->get_char(1,0), chr(0),       "get_chars always returns ascii" );
-is( $ls->get_char(2,0), chr(0xff),    "get_chars always returns ascii" );
-is( $ls->get_char(3,0), '<np-0x100>', "get_chars always returns ascii" );
+$ls->set_value(Language::Befunge::Vector->new(2, 0,0), -1);
+$ls->set_value(Language::Befunge::Vector->new(2, 1,0),  0);
+$ls->set_value(Language::Befunge::Vector->new(2, 2,0),255);
+$ls->set_value(Language::Befunge::Vector->new(2, 3,0),256);
+is( $ls->get_char(Language::Befunge::Vector->new(2, 0,0)), sprintf("<np-0x%x>", -1), "get_char always returns ascii" );
+is( $ls->get_char(Language::Befunge::Vector->new(2, 1,0)), chr(0),       "get_chars always returns ascii" );
+is( $ls->get_char(Language::Befunge::Vector->new(2, 2,0)), chr(0xff),    "get_chars always returns ascii" );
+is( $ls->get_char(Language::Befunge::Vector->new(2, 3,0)), '<np-0x100>', "get_chars always returns ascii" );
 BEGIN { $tests += 4 };
 
 
@@ -145,11 +145,11 @@ is( $ls->{xmin}, 0,  "store does not grow xmin if not needed" );
 is( $ls->{ymin}, 0,  "store does not grow ymax if not needed" );
 is( $ls->{xmax}, 16, "store grows xmax if needed" );
 is( $ls->{ymax}, 1,  "store grows ymax if needed" );
-is( $ls->get_value( 0, 0),  70, "store stores everything" );
-is( $ls->get_value( 12, 0), 32, "store defaults to space" );
-is( $ls->get_value( 1, 5),  32, "store does not store outside of its bounds" );
+is( $ls->get_value(Language::Befunge::Vector->new(2,  0, 0)),  70, "store stores everything" );
+is( $ls->get_value(Language::Befunge::Vector->new(2,  12, 0)), 32, "store defaults to space" );
+is( $ls->get_value(Language::Befunge::Vector->new(2,  1, 5)),  32, "store does not store outside of its bounds" );
 BEGIN { $tests += 7; }
-$ls->store( <<'EOF', 4, 1 );
+$ls->store( <<'EOF', Language::Befunge::Vector->new(2, 4, 1) );
 Foo bar baz
 camel llama buffy
 EOF
@@ -165,11 +165,11 @@ is( $ls->{xmin}, 0,  "store does not grow xmin if not needed" );
 is( $ls->{ymin}, 0,  "store does not grow ymin if not needed" );
 is( $ls->{xmax}, 20, "store grows xmax if needed" );
 is( $ls->{ymax}, 2,  "store grows ymax if needed" );
-is( $ls->get_value( 0, 0),  70,  "store respects specified origin" ); # old values.
-is( $ls->get_value( 4, 1),  70,  "store overwrites if needed" );
-is( $ls->get_value( 20, 2), 121, "store stores everything" ); # last value.
+is( $ls->get_value(Language::Befunge::Vector->new(2,  0, 0)),  70,  "store respects specified origin" ); # old values.
+is( $ls->get_value(Language::Befunge::Vector->new(2,  4, 1)),  70,  "store overwrites if needed" );
+is( $ls->get_value(Language::Befunge::Vector->new(2,  20, 2)), 121, "store stores everything" ); # last value.
 BEGIN { $tests += 7; }
-($w, $h) = $ls->store( <<'EOF', -2, -1 );
+($w, $h) = $ls->store( <<'EOF', Language::Befunge::Vector->new(2, -2, -1 ))->get_all_components;
 Foo bar baz
 camel llama buffy
 EOF
@@ -187,11 +187,11 @@ is( $ls->{xmin}, -2, "store grows xmin if needed" );
 is( $ls->{ymin}, -1, "store grows ymin if needed" );
 is( $ls->{xmax}, 20, "store does not grow xmax if not needed" );
 is( $ls->{ymax}, 2,  "store does not grow ymax if not needed" );
-is( $ls->get_value( -2, -1), 70,  "store stores value in negative indices" );
-is( $ls->get_value( 0, 0 ),  109, "store overwrites if needed" );
-is( $ls->get_value( 4, 1 ),  70,  "store does not overwrite outside its rectangle" );
+is( $ls->get_value(Language::Befunge::Vector->new(2,  -2, -1)), 70,  "store stores value in negative indices" );
+is( $ls->get_value(Language::Befunge::Vector->new(2,  0, 0 )),  109, "store overwrites if needed" );
+is( $ls->get_value(Language::Befunge::Vector->new(2,  4, 1 )),  70,  "store does not overwrite outside its rectangle" );
 BEGIN { $tests += 9; }
-$ls->store( <<'EOF', -2, 0 );
+$ls->store( <<'EOF', Language::Befunge::Vector->new(2, -2, 0 ));
 Foo bar baz
 camel llama buffy
 EOF
@@ -207,21 +207,21 @@ is( $ls->{xmin}, -2, "store does not grow xmin if not needed" );
 is( $ls->{ymin}, -1, "store does not grow ymin if not needed" );
 is( $ls->{xmax}, 20, "store does not grow xmax if not needed" );
 is( $ls->{ymax}, 2,  "store does not grow ymax if not needed" );
-is( $ls->get_value( -2, 0), 70,  "store overwrites if needed" );
-is( $ls->get_value( 12, 0 ), 32, "store overwrites with spaces if needed" );
+is( $ls->get_value(Language::Befunge::Vector->new(2,  -2, 0)), 70,  "store overwrites if needed" );
+is( $ls->get_value(Language::Befunge::Vector->new(2,  12, 0 )), 32, "store overwrites with spaces if needed" );
 BEGIN { $tests += 6; }
 
 
 # rectangle.
-is( $ls->rectangle(-3,4,1,1), " \n", "rectangle returns lines ending with \\n" );
-is( $ls->rectangle(-2,-1,3,2), "Foo\nFoo\n", "rectangle works with multiple lines" );
-is( $ls->rectangle(19,-2,2,6), "  \n  \n  \n  \nfy\n  \n", "rectangle works accross origin" );
+is( $ls->rectangle(Language::Befunge::Vector->new(2, -3,4),Language::Befunge::Vector->new(2, 1,1)), " \n", "rectangle returns lines ending with \\n" );
+is( $ls->rectangle(Language::Befunge::Vector->new(2, -2,-1),Language::Befunge::Vector->new(2, 3,2)), "Foo\nFoo\n", "rectangle works with multiple lines" );
+is( $ls->rectangle(Language::Befunge::Vector->new(2, 19,-2),Language::Befunge::Vector->new(2, 2,6)), "  \n  \n  \n  \nfy\n  \n", "rectangle works accross origin" );
 BEGIN { $tests += 3; }
 
 
 # store_binary method
 $ls->clear;
-($w,$h)=$ls->store_binary( <<'EOF' );
+($w,$h)=$ls->store_binary( <<'EOF' )->get_all_components;
 Foo bar baz
 camel llama buffy
 EOF
@@ -235,15 +235,15 @@ is( $ls->{xmin}, 0,  "store_binary does not grow xmin if not needed" );
 is( $ls->{ymin}, 0,  "store_binary does not grow ymax if not needed" );
 is( $ls->{xmax}, 29, "store_binary grows xmax if needed" );
 is( $ls->{ymax}, 0,  "store_binary does not grow ymax if needed" );
-is( $ls->get_value( 0, 0),  70, "store_binary stores everything" );
-is( $ls->get_value( 0, 35), 32, "store_binary does not store outside of its bounds" );
-is( $ls->get_value( 10, 0), 122, "store_binary stores binary" );
-is( $ls->get_value( 11, 0), 10,  "store_binary stores binary" );
-is( $ls->get_value( 12, 0), 99,  "store_binary stores binary" );
+is( $ls->get_value(Language::Befunge::Vector->new(2,  0, 0)),  70, "store_binary stores everything" );
+is( $ls->get_value(Language::Befunge::Vector->new(2,  0, 35)), 32, "store_binary does not store outside of its bounds" );
+is( $ls->get_value(Language::Befunge::Vector->new(2,  10, 0)), 122, "store_binary stores binary" );
+is( $ls->get_value(Language::Befunge::Vector->new(2,  11, 0)), 10,  "store_binary stores binary" );
+is( $ls->get_value(Language::Befunge::Vector->new(2,  12, 0)), 99,  "store_binary stores binary" );
 is( $w, 30, "store_binary flattens input" );
 is( $h, 1,  "store_binary flattens input" );
 BEGIN { $tests += 11; }
-$ls->store_binary( <<'EOF', 4, 1 );
+$ls->store_binary( <<'EOF', Language::Befunge::Vector->new(2, 4, 1 ));
 Foo bar baz
 camel llama buffy
 EOF
@@ -257,10 +257,10 @@ is( $ls->{xmin}, 0,  "store_binary does not grow xmin if not needed" );
 is( $ls->{ymin}, 0,  "store_binary does not grow ymin if not needed" );
 is( $ls->{xmax}, 33, "store_binary grows xmax if needed" );
 is( $ls->{ymax}, 1,  "store_binary grows ymax if needed" );
-is( $ls->get_value( 0, 0), 70, "store_binary respects specified origin" ); # old values.
-is( $ls->get_value( 4, 1), 70, "store_binary stores everything" );
+is( $ls->get_value(Language::Befunge::Vector->new(2,  0, 0)), 70, "store_binary respects specified origin" ); # old values.
+is( $ls->get_value(Language::Befunge::Vector->new(2,  4, 1)), 70, "store_binary stores everything" );
 BEGIN { $tests += 6; }
-$ls->store_binary( <<'EOF', -2, -1 );
+$ls->store_binary( <<'EOF', Language::Befunge::Vector->new(2, -2, -1 ));
 Foo bar baz
 camel llama buffy
 EOF
@@ -274,9 +274,9 @@ is( $ls->{xmin}, -2, "store_binary grows xmin if needed" );
 is( $ls->{ymin}, -1, "store_binary grows ymin if needed" );
 is( $ls->{xmax}, 33, "store_binary does not grow xmax if not needed" );
 is( $ls->{ymax}, 1,  "store_binary does not grow ymax if not needed" );
-is( $ls->get_value( -2, -1), 70,  "store_binary stores value in negative indices" );
+is( $ls->get_value(Language::Befunge::Vector->new(2,  -2, -1)), 70,  "store_binary stores value in negative indices" );
 BEGIN { $tests += 5; }
-$ls->store_binary( <<'EOF', 0, 2 );
+$ls->store_binary( <<'EOF', Language::Befunge::Vector->new(2, 0, 2 ));
 Foo bar baz
 camel llama buffy
 EOF
@@ -286,99 +286,99 @@ EOF
 #  0     FoFoo bar baz@camel llama buffy
 #  1         Foo bar baz@camel llama buffy
 #  2
-is( $ls->get_value( 0, 2), 70, "store_binary overwrites if needed" );
+is( $ls->get_value(Language::Befunge::Vector->new(2,  0, 2)), 70, "store_binary overwrites if needed" );
 BEGIN { $tests += 1; }
 
 
 # move ip.
 $ls->clear;   # "positive" playfield.
 $ls->_set_max(5, 10);
-$ip->set_pos( 4, 3 );
-$ip->set_dx( 1 );
-$ip->set_dy( 0 );
+$ip->set_position(Language::Befunge::Vector->new(2,  4, 3 ));
+$ip->get_delta->set_component(0, 1 );
+$ip->get_delta->set_component(1, 0 );
 $ls->move_ip_forward( $ip );
-is( $ip->get_curx, 5, "move_ip_forward respects dx" );
+is( $ip->get_position->get_component(0), 5, "move_ip_forward respects dx" );
 $ls->move_ip_forward( $ip );
-is( $ip->get_curx, 0, "move_ip_forward wraps xmax" );
-$ip->set_pos( 4, 3 );
-$ip->set_dx( 7 );
-$ip->set_dy( 0 );
+is( $ip->get_position->get_component(0), 0, "move_ip_forward wraps xmax" );
+$ip->set_position(Language::Befunge::Vector->new(2,  4, 3 ));
+$ip->get_delta->set_component(0, 7 );
+$ip->get_delta->set_component(1, 0 );
 $ls->move_ip_forward( $ip );
-is( $ip->get_curx, 4, "move_ip_forward deals with delta overflowing torus width" );
+is( $ip->get_position->get_component(0), 4, "move_ip_forward deals with delta overflowing torus width" );
 $ls->move_ip_forward( $ip ); # wrap xmax harder
-is( $ip->get_curx, 4, "move_ip_forward deals with delta overflowing torus width" );
-$ip->set_pos( 0, 4 );
-$ip->set_dx( -1 );
-$ip->set_dy( 0 );
+is( $ip->get_position->get_component(0), 4, "move_ip_forward deals with delta overflowing torus width" );
+$ip->set_position(Language::Befunge::Vector->new(2,  0, 4 ));
+$ip->get_delta->set_component(0, -1 );
+$ip->get_delta->set_component(1, 0 );
 $ls->move_ip_forward( $ip );
-is( $ip->get_curx, 5, "move_ip_forward wraps xmin" );
+is( $ip->get_position->get_component(0), 5, "move_ip_forward wraps xmin" );
 
-$ip->set_pos( 2, 9 );
-$ip->set_dx( 0 );
-$ip->set_dy( 1 );
+$ip->set_position(Language::Befunge::Vector->new(2,  2, 9 ));
+$ip->get_delta->set_component(0, 0 );
+$ip->get_delta->set_component(1, 1 );
 $ls->move_ip_forward( $ip );
-is( $ip->get_cury, 10, "move_ip_forward respects dy" );
+is( $ip->get_position->get_component(1), 10, "move_ip_forward respects dy" );
 $ls->move_ip_forward( $ip );
-is( $ip->get_cury, 0,  "move_ip_forward wraps ymax" );
-$ip->set_pos( 2, 9 );
-$ip->set_dx( 0 );
-$ip->set_dy( 12 );               # apply delta that overflows torus height
+is( $ip->get_position->get_component(1), 0,  "move_ip_forward wraps ymax" );
+$ip->set_position(Language::Befunge::Vector->new(2,  2, 9 ));
+$ip->get_delta->set_component(0, 0 );
+$ip->get_delta->set_component(1, 12 );               # apply delta that overflows torus height
 $ls->move_ip_forward( $ip );
-is( $ip->get_cury, 9, "move_ip_forward deals with delta overflowing torus heigth" );
+is( $ip->get_position->get_component(1), 9, "move_ip_forward deals with delta overflowing torus heigth" );
 $ls->move_ip_forward( $ip ); # wrap ymax harder
-is( $ip->get_cury, 9, "move_ip_forward deals with delta overflowing torus heigth" );
-$ip->set_pos( 1, 0 );
-$ip->set_dx( 0 );
-$ip->set_dy( -1 );
+is( $ip->get_position->get_component(1), 9, "move_ip_forward deals with delta overflowing torus heigth" );
+$ip->set_position(Language::Befunge::Vector->new(2,  1, 0 ));
+$ip->get_delta->set_component(0, 0 );
+$ip->get_delta->set_component(1, -1 );
 $ls->move_ip_forward( $ip );
-is( $ip->get_cury, 10, "move_ip_forward wraps ymin" );
+is( $ip->get_position->get_component(1), 10, "move_ip_forward wraps ymin" );
 BEGIN { $tests += 10 }
 
 $ls->clear;   # "negative" playfield.
 $ls->_set_min(-1, -3);
 $ls->_set_max(5, 10);
-$ip->set_pos( 4, 3 );
-$ip->set_dx( 1 );
-$ip->set_dy( 0 );
+$ip->set_position(Language::Befunge::Vector->new(2,  4, 3 ));
+$ip->get_delta->set_component(0, 1 );
+$ip->get_delta->set_component(1, 0 );
 $ls->move_ip_forward( $ip );
-is( $ip->get_curx, 5, "move_ip_forward respects dx" );
+is( $ip->get_position->get_component(0), 5, "move_ip_forward respects dx" );
 $ls->move_ip_forward( $ip );
-is( $ip->get_curx, -1, "move_ip_forward wraps xmax" );
-$ip->set_pos( -1, 4 );
-$ip->set_dx( -1 );
-$ip->set_dy( 0 );
+is( $ip->get_position->get_component(0), -1, "move_ip_forward wraps xmax" );
+$ip->set_position(Language::Befunge::Vector->new(2,  -1, 4 ));
+$ip->get_delta->set_component(0, -1 );
+$ip->get_delta->set_component(1, 0 );
 $ls->move_ip_forward( $ip );
-is( $ip->get_curx, 5, "move_ip_forward wraps xmin" );
-$ip->set_pos( 2, 9 );
-$ip->set_dx( 0 );
-$ip->set_dy( 1 );
+is( $ip->get_position->get_component(0), 5, "move_ip_forward wraps xmin" );
+$ip->set_position(Language::Befunge::Vector->new(2,  2, 9 ));
+$ip->get_delta->set_component(0, 0 );
+$ip->get_delta->set_component(1, 1 );
 $ls->move_ip_forward( $ip );
-is( $ip->get_cury, 10, "move_ip_forward respects dy" );
+is( $ip->get_position->get_component(1), 10, "move_ip_forward respects dy" );
 $ls->move_ip_forward( $ip );
-is( $ip->get_cury, -3, "move_ip_forward wraps ymax" );
-$ip->set_pos( 1, -3 );
-$ip->set_dx( 0 );
-$ip->set_dy( -1 );
+is( $ip->get_position->get_component(1), -3, "move_ip_forward wraps ymax" );
+$ip->set_position(Language::Befunge::Vector->new(2,  1, -3 ));
+$ip->get_delta->set_component(0, 0 );
+$ip->get_delta->set_component(1, -1 );
 $ls->move_ip_forward( $ip );
-is( $ip->get_cury, 10, "move_ip_forward wraps ymin" );
+is( $ip->get_position->get_component(1), 10, "move_ip_forward wraps ymin" );
 BEGIN { $tests += 6; }
 
 $ls->clear;   # diagonals.
 $ls->_set_min(-1, -2);
 $ls->_set_max(6, 5);
-$ip->set_pos(0, 0);
-$ip->set_dx(-2);
-$ip->set_dy(-3);
+$ip->set_position(Language::Befunge::Vector->new(2, 0, 0));
+$ip->get_delta->set_component(0,-2);
+$ip->get_delta->set_component(1,-3);
 $ls->move_ip_forward( $ip );
-is( $ip->get_curx, 2, "move_ip_forward deals with diagonals" );
-is( $ip->get_cury, 3, "move_ip_forward deals with diagonals" );
+is( $ip->get_position->get_component(0), 2, "move_ip_forward deals with diagonals" );
+is( $ip->get_position->get_component(1), 3, "move_ip_forward deals with diagonals" );
 BEGIN { $tests += 2; }
 
 
 # label lookup
 # four directions.
 $ls->clear;
-$ls->store( <<'EOF', -2, -1 );
+$ls->store( <<'EOF', Language::Befunge::Vector->new(2, -2, -1 ));
       3
       ;
       z
@@ -417,7 +417,7 @@ BEGIN { $tests += 18};
 
 # wrapping...
 $ls->clear;
-$ls->store( <<'EOF', -2, -1 );
+$ls->store( <<'EOF', Language::Befunge::Vector->new(2, -2, -1 ));
 ;1      z  ;   ;:foo
 rab:;   a  4      2;
         b
@@ -450,7 +450,7 @@ BEGIN { $tests += 17 };
 
 # garbage...
 $ls->clear;
-$ls->store( <<'EOF', -2, -1 );
+$ls->store( <<'EOF', Language::Befunge::Vector->new(2, -2, -1 ));
    ;:foo is foo;1
      ;not a label;
 EOF
@@ -464,7 +464,7 @@ BEGIN { $tests += 5 };
 
 # double define...
 $ls->clear;
-$ls->store( <<'EOF', -2, -1 );
+$ls->store( <<'EOF', Language::Befunge::Vector->new(2, -2, -1 ));
    ;:foo is foo;1
    2;another oof:;
 EOF

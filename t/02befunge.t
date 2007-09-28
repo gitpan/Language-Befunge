@@ -123,4 +123,14 @@ $out = slurp;
 is( $out, "1 2 " );
 BEGIN { $tests += 1 };
 
+# Befunge Interpreter treats High/Low instructions as unknown characters.
+sel;
+$bef->store_code( <<"END_OF_CODE" );
+1#q.2h3.q
+END_OF_CODE
+$bef->run_code;
+$out = slurp;
+is( $out, "1 2 " );
+BEGIN { $tests += 1 };
+
 BEGIN { plan tests => $tests };

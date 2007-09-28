@@ -1,6 +1,6 @@
 ---
 name: Language-Befunge
-version: 2.08
+version: 3.00
 author:
   - 'Jerome Quelin <jquelin@cpan.org>'
 abstract: a Befunge-98 interpreter
@@ -11,19 +11,35 @@ requires:
   Storable: 0
 build_requires:
   Test::More: 0
+recommends:
+  Test::Exception: 0
 provides:
   Language::Befunge:
-    file: Befunge.pm
-    version: 2.08
+    file: lib/Language/Befunge.pm
+    version: 3.00
   Language::Befunge::IP:
-    file: Befunge/IP.pm
+    file: lib/Language/Befunge/IP.pm
+  Language::Befunge::Interpreter:
+    file: lib/Language/Befunge/Interpreter.pm
   Language::Befunge::LaheySpace:
-    file: Befunge/LaheySpace.pm
+    file: lib/Language/Befunge/LaheySpace.pm
+  Language::Befunge::LaheySpace::Generic:
+    file: lib/Language/Befunge/LaheySpace/Generic.pm
+  Language::Befunge::Ops:
+    file: lib/Language/Befunge/Ops.pm
+  Language::Befunge::Ops::Befunge98:
+    file: lib/Language/Befunge/Ops/Befunge98.pm
+  Language::Befunge::Ops::GenericFunge98:
+    file: lib/Language/Befunge/Ops/GenericFunge98.pm
+  Language::Befunge::Ops::Unefunge98:
+    file: lib/Language/Befunge/Ops/Unefunge98.pm
+  Language::Befunge::Vector:
+    file: lib/Language/Befunge/Vector.pm
   Language::Befunge::lib::FOO:
-    file: Befunge/lib/FOO.pm
+    file: lib/Language/Befunge/lib/FOO.pm
   Language::Befunge::lib::HELO:
-    file: Befunge/lib/HELO.pm
-generated_by: Module::Build version 0.2806
+    file: lib/Language/Befunge/lib/HELO.pm
+generated_by: Module::Build version 0.2808
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.2.html
   version: 1.2

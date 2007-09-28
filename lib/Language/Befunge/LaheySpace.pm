@@ -12,11 +12,23 @@ require 5.006;
 
 =head1 NAME
 
-Language::Befunge::LaheySpace - a LaheySpace representation.
+Language::Befunge::LaheySpace - a 2-dimensional LaheySpace representation.
 
 
 =head1 SYNOPSIS
 
+	# create a 2-dimensional LaheySpace.
+	my $torus = Language::Befunge::LaheySpace->new();
+	$torus->clear();
+	$torus->store(<<EOF);
+	12345
+	67890
+	EOF
+
+Note you usually don't need to use this module directly.
+B<Language::Befunge::Interpreter> uses it internally, for 2-dimensional
+storage.  For non-2-dimensional storage, see
+B<Language::Befunge::LaheySpace::Generic>.
 
 
 =head1 DESCRIPTION
@@ -73,18 +85,26 @@ sub clear {
 }
 
 
-=head2 store( code, [x, y] )
+=head2 store( code, [vector] )
 
 Store the given code at the specified coordinates. If the coordinates
 are omitted, then the code is stored at the Origin(0, 0) coordinates.
 
-Return the width and height of the code inserted.
+Return the size of the code inserted, as a vector.
+
+The code is a string, representing a block of Funge code.  Rows are
+separated by newlines.
 
 =cut
 sub store {
-    my ($self, $code, $x, $y) = @_;
-    $x ||= 0;
-    $y ||= 0;
+    my ($self, $code, $v) = @_;
+    my ($x, $y);
+    if(defined $v) {
+    		($x, $y) = $v->get_all_components();
+    } else {
+	    $x = $y = 0;
+	    $v = Language::Befunge::Vector->new(2, $x, $y);
+    }
 
     # The torus is an array of arrays of numbers.
     # Each number is the ordinal value of the character
@@ -113,15 +133,15 @@ sub store {
         splice @{ $self->{torus}[ $j + $y - $self->{ymin} ] }, $x - $self->{xmin}, $maxlen, @chars;
     }
 
-    return ($maxlen, scalar( @lines ) );
+    return (Language::Befunge::Vector->new(2, $maxlen, scalar( @lines ) ));
 }
 
-=head2 store_binary( code, [x, y] )
+=head2 store_binary( code, [vector] )
 
 Store the given code at the specified coordinates. If the coordinates
 are omitted, then the code is stored at the Origin(0, 0) coordinates.
 
-Return the width and height of the code inserted.
+Return the size of the code inserted, as a vector.
 
 This is binary insertion, that is, EOL and FF sequences are stored in
 Funge-space instead of causing the dimension counters to be reset and
@@ -129,9 +149,14 @@ incremented.
 
 =cut
 sub store_binary {
-    my ($self, $code, $x, $y) = @_;
-    $x ||= 0;
-    $y ||= 0;
+    my ($self, $code, $v) = @_;
+    my ($x, $y);
+    if(defined $v) {
+    		($x, $y) = $v->get_all_components();
+    } else {
+	    $x = $y = 0;
+	    $v = Language::Befunge::Vector->new(2, $x, $y);
+    }
 
     # The torus is an array of arrays of numbers.
     # Each number is the ordinal value of the character
@@ -150,10 +175,10 @@ sub store_binary {
     my @chars = map { ord } split //, $code;
     splice @{ $self->{torus}[ $y - $self->{ymin} ] }, $x - $self->{xmin}, $maxlen, @chars;
 
-    return ($maxlen, 1 );
+    return (Language::Befunge::Vector->new(2, $maxlen, 1 ));
 }
 
-=head2 get_char( x, y )
+=head2 get_char( vector )
 
 
 Return the character stored in the torus at the specified location. If
@@ -166,15 +191,14 @@ guarantee is made that the return value is printable.
 
 =cut
 sub get_char {
-	my $self = shift;
-	my ($x,$y) = @_;
-	my $ord = $self->get_value($x,$y);
+	my ($self, $v) = @_;
+	my $ord = $self->get_value($v);
 	# reject invalid ascii
 	return sprintf("<np-0x%x>",$ord) if ($ord < 0 || $ord > 255);
 	return chr($ord);
 }
 
-=head2 get_value( x, y )
+=head2 get_value( vector )
 
 
 Return the number stored in the torus at the specified location. If
@@ -187,7 +211,8 @@ both... Eh, that's Befunge! :o) ).
 
 =cut
 sub get_value {
-    my ($self, $x, $y) = @_;
+    my ($self, $v) = @_;
+    my ($x, $y) = $v->get_all_components;
     my $val = 32;               # Default to space.
 
     if ( $y >= $self->{ymin} and $y <= $self->{ymax} ) {
@@ -203,8 +228,7 @@ sub get_value {
 }
 
 
-
-=head2 set_value( x, y, value )
+=head2 set_value( vector, value )
 
 Write the supplied value in the torus at the specified location.
 
@@ -214,7 +238,8 @@ both... Eh, that's Befunge! :o) ).
 
 =cut
 sub set_value {
-    my ($self, $x, $y, $val) = @_;
+    my ($self, $v, $val) = @_;
+    my ($x, $y) = $v->get_all_components();
 
     # Ensure we can set the value.
     $self->_set_min( $x, $y );
@@ -232,15 +257,13 @@ sub move_ip_forward {
     my ($self, $ip) = @_;
 
     # Fetch the current position of the IP.
-    my $x = $ip->get_curx;
-    my $y = $ip->get_cury;
+    my $v = $ip->get_position;
 
-    my ($dx, $dy) = ($ip->get_dx, $ip->get_dy);
+    my $d = $ip->get_delta;
     # Now, let's move the IP.
-    $x += $dx;
-    $y += $dy;
+    $v += $d;
 
-    if($self->_out_of_bounds($x, $y)) {
+    if($self->_out_of_bounds($v)) {
         # Check out-of-bounds. Please note that we're in a
         # Lahey-space, and if we need to wrap, we perform a
         # Lahey-space wrapping. Funge98 says we should walk
@@ -248,28 +271,29 @@ sub move_ip_forward {
         # other side of LaheySpace, and then continue along
         # the same path.
         do {
-            $x -= $dx;
-            $y -= $dy;
-        } until($self->_out_of_bounds($x, $y));
+            $v -= $d;
+        } until($self->_out_of_bounds($v));
 
         # Now that we've hit the wall, walk back into the
         # valid code range.
-        $x += $dx;
-        $y += $dy;
+        $v += $d;
     }
 
     # Store new position.
-    $ip->set_pos( $x, $y );
+    $ip->set_position( $v );
 }
 
 
-=head2 rectangle( x, y, w, h )
+=head2 rectangle( pos, size )
 
-Return a string containing the data/code in the specified rectangle.
+Return a string containing the data/code in the rectangle defined by
+the supplied vectors.
 
 =cut
 sub rectangle {
-    my ($self, $x, $y, $w, $h) = @_;
+    my ($self, $start, $size) = @_;
+    my ($x, $y) = $start->get_all_components();
+    my ($w, $h) =  $size->get_all_components();
 
     # Ensure we have enough data.
     $self->_set_min( $x, $y );
@@ -414,13 +438,14 @@ sub _enlarge_y {
 }
 
 
-=head2 _out_of_bounds( x, y )
+=head2 _out_of_bounds( vector )
 
 Return true if a location is out of bounds.
 
 =cut
 sub _out_of_bounds {
-    my ($self, $x, $y) = @_;
+    my ($self, $v) = @_;
+    my ($x, $y) = $v->get_all_components();
     return 1 if $x > $self->{xmax};
     return 1 if $x < $self->{xmin};
     return 1 if $y > $self->{ymax};

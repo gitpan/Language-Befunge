@@ -4,14 +4,6 @@ not time plan associated - not even an order implied.
 * infrastructure:
 =================
 
-- migrate cvs repository to svn. mail sent to the admins, in order to
-know if/when the migration can happen. (hmm, svn move :-) ) (no new
-version)
-
-- move files around to be more cpan-compliant. eg, every l::b piece of
-code in lib/Language/Befunge instead of '.'
-needs svn, obviously. (either major or medium)
-
 - move Language::Befunge::libs::* to Language::Befunge::Libs::* (or
 whatever) (medium)
 

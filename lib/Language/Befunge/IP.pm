@@ -30,35 +30,38 @@ use warnings;
 use integer;
 
 # Modules we rely upon.
+use Language::Befunge::Vector;
 use Carp;     # This module can't explode :o)
 use Storable qw(dclone);
 
 
 =head1 CONSTRUCTOR
 
-=head2 new(  )
+=head2 new( [dimensions] )
 
-Create a new Instruction Pointer.
+Create a new Instruction Pointer, which operates in a universe of the given
+number of dimensions.  If dimensions is not specified, it defaults to 2.
 
 =cut
 sub new {
-    my ($class) = @_;
+    my ($class, $dims) = @_;
+    $dims = 2 unless defined $dims;
     my $self  =
       { id           => 0,
+      	dims         => $dims,
         toss         => [],
         ss           => [],
-        curx         => 0,
-        cury         => 0,
-        dx           => 1,
-        dy           => 0,
-        storx        => 0,
-        story        => 0,
+        position     => Language::Befunge::Vector->new_zeroes($dims),
+        delta        => Language::Befunge::Vector->new_zeroes($dims),
+        storage      => Language::Befunge::Vector->new_zeroes($dims),
         string_mode  => 0,
         end          => 0,
         input        => "",
         data         => {},
         libs         => [],
       };
+    # go right by default
+    $self->{delta}->set_component(0, 1);
     bless $self, $class;
     $self->set_id( $self->_get_new_id );
     return $self;
@@ -92,29 +95,22 @@ exists.
 
 the unique ID of the IP (an integer)
 
-=item get_curx() / set_curx()
+=item get_dims()
 
-the current x-coordinate of the IP (an integer)
+the number of dimensions this IP operates in (an integer).  This is
+read-only.
 
-=item get_cury() / set_cury()
+=item get_position() / set_position()
 
-the current y-coordinate of the IP (an integer)
+the current coordinates of the IP (a vector)
 
-=item get_dx() / set_dx()
+=item get_delta() / set_delta()
 
-the horizontal offset of the IP (an integer)
+the offset of the IP (a vector)
 
-=item get_dy() / set_dy()
+=item get_storage() / set_storage()
 
-the vertical offset of the IP (an integer)
-
-=item get_storx() / set_storx()
-
-the x-coordinate of the storage offset of the IP (an integer)
-
-=item get_story() / set_story()
-
-the y-coordinate of the storage offset of the IP (an integer)
+the coordinates of the storage offset of the IP (a vector)
 
 =item get_data() / set_data()
 
@@ -148,8 +144,8 @@ the current stack (er, TOSS) of the IP (an array reference)
 
 =cut
 BEGIN {
-    my @attrs = qw[ curx cury data dx dy end id input libs
-                    ss storx story string_mode toss ];
+    my @attrs = qw[ position data delta end id input libs
+                    ss storage string_mode toss ];
     foreach my $attr ( @attrs ) {
         my $code = qq[ sub get_$attr { return \$_[0]->{$attr} } ];
         $code .= qq[ sub set_$attr { \$_[0]->{$attr} = \$_[1] } ];
@@ -157,17 +153,7 @@ BEGIN {
     }
 }
 
-
-=head2 set_pos( x, y )
-
-Set the current position of the IP to the corresponding location.
-
-=cut
-sub set_pos {
-    my ($self, $x, $y) = @_;
-    $self->set_curx( $x );
-    $self->set_cury( $y );
-}
+sub get_dims { return $_[0]->{dims} };
 
 =pod
 
@@ -216,12 +202,17 @@ sub spush {
     push @{ $self->get_toss }, @_;
 }
 
-=item spush_vec( x, y )
+=item spush_vec( vector )
 
 Push a vector on top of the stack. The x coordinate is pushed first.
 
 =cut
-*Language::Befunge::IP::spush_vec = \&Language::Befunge::IP::spush;
+sub spush_vec {
+	my ($self) = shift;
+	foreach my $v (@_) {
+		$self->spush($v->get_all_components);
+	}
+}
 
 =item spush_args ( arg, ... )
 
@@ -257,16 +248,26 @@ sub spop {
     return $val;
 }
 
+=item spop_mult( <count> )
+
+Pop multiple values from the stack. If the stack becomes empty, the
+remainder of the returned values will be 0.
+
+=cut
+sub spop_mult {
+    my ($self, $count) = @_;
+    my @rv = reverse map { $self->spop() } (1..$count);
+    return @rv;
+}
+
 =item spop_vec(  )
 
-Pop a vector from the stack. Return the tuple -- hi, python fans! --
-(x, y).
+Pop a vector from the stack. Returns a Vector object.
 
 =cut
 sub spop_vec {
     my $self = shift;
-    my ($y, $x) = ($self->spop(), $self->spop());
-    return $x, $y;
+    return Language::Befunge::Vector->new($self->get_dims, $self->spop_mult($self->get_dims));
 }
 
 =item spop_gnirts(  )
@@ -490,6 +491,31 @@ sub soss_push {
     push @{ $self->soss }, @_;
 }
 
+
+=item soss_pop_mult( <count> )
+
+Pop multiple values from the SOSS. If the stack becomes empty, the
+remainder of the returned values will be 0.
+
+=cut
+sub soss_pop_mult {
+    my ($self, $count) = @_;
+    my @rv = reverse map { $self->soss_pop() } (1..$count);
+    return @rv;
+}
+
+=item soss_push_vec( vector )
+
+Push a vector on top of the SOSS.
+
+=cut
+sub soss_push_vec {
+    my $self = shift;
+	foreach my $v (@_) {
+		$self->soss_push($v->get_all_components);
+	}
+}
+
 =item soss_pop(  )
 
 Pop a value from the SOSS. If the stack is empty, no error occurs and
@@ -503,6 +529,17 @@ sub soss_pop {
     return $val;
 }
 
+=item soss_pop_vec(  )
+
+Pop a vector from the SOSS. If the stack is empty, no error occurs
+and the method acts as if it popped a 0.  returns a Vector.
+
+=cut
+sub soss_pop_vec {
+    my $self = shift;
+    return Language::Befunge::Vector->new($self->get_dims, $self->soss_pop_mult($self->get_dims));
+}
+
 =item soss_clear(  )
 
 Clear the SOSS.
@@ -513,24 +550,14 @@ sub soss_clear {
     $self->soss( [] );
 }
 
+
+
 =back
 
 
 =head2 Changing direction
 
 =over 4
-
-=item set_delta( dx, dy )
-
-Implements the C<x> instruction. Set the delta vector of the IP
-according to the provided values.
-
-=cut
-sub set_delta {
-    my ($self, $dx, $dy) = @_;
-    $self->set_dx( $dx );
-    $self->set_dy( $dy );
-}
 
 =item dir_go_east(  )
 
@@ -539,7 +566,8 @@ Implements the C<E<gt>> instruction. Force the IP to travel east.
 =cut
 sub dir_go_east {
     my $self = shift;
-    $self->set_delta( 1, 0);
+    $self->get_delta->zero();
+    $self->get_delta->set_component(0, 1);
 }
 
 =item dir_go_west(  )
@@ -549,39 +577,76 @@ Implements the C<E<lt>> instruction. Force the IP to travel west.
 =cut
 sub dir_go_west {
     my $self = shift;
-    $self->set_delta( -1, 0);
+    $self->get_delta->zero();
+    $self->get_delta->set_component(0, -1);
 }
 
 =item dir_go_north(  )
 
 Implements the C<^> instruction. Force the IP to travel north.
 
+Not valid for Unefunge.
+
 =cut
 sub dir_go_north {
     my $self = shift;
-    $self->set_delta( 0, -1);
+    $self->get_delta->zero();
+    $self->get_delta->set_component(1, -1);
 }
 
 =item dir_go_south(  )
 
 Implements the C<v> instruction. Force the IP to travel south.
 
+Not valid for Unefunge.
+
 =cut
 sub dir_go_south {
     my $self = shift;
-    $self->set_delta( 0, 1);
+    $self->get_delta->zero();
+    $self->get_delta->set_component(1, 1);
+}
+
+=item dir_go_high(  )
+
+Implements the C<h> instruction. Force the IP to travel up.
+
+Not valid for Unefunge or Befunge.
+
+=cut
+sub dir_go_high {
+    my $self = shift;
+    $self->get_delta->zero();
+    $self->get_delta->set_component(2, 1);
+}
+
+=item dir_go_low(  )
+
+Implements the C<l> instruction. Force the IP to travel down.
+
+Not valid for Unefunge or Befunge.
+
+=cut
+sub dir_go_low {
+    my $self = shift;
+    $self->get_delta->zero();
+    $self->get_delta->set_component(2, -1);
 }
 
 =item dir_go_away(  )
 
 Implements the C<?> instruction. Cause the IP to travel in a random
-cardinal direction ( north, south, east or west).
+cardinal direction (in Befunge's case, one of: north, south, east or
+west).
 
 =cut
 sub dir_go_away {
     my $self = shift;
-    my $meth = qw( dir_go_east dir_go_west dir_go_north dir_go_south )[int(rand 4)];
-    $self->$meth();
+    my $nd = $self->get_dims;
+    my $dim = (0..$nd-1)[int(rand $nd)];
+    $self->get_delta->zero();
+    my $value = (-1, 1)[int(rand 2)];
+    $self->get_delta->set_component($dim, $value);
 }
 
 =item dir_turn_left(  )
@@ -589,12 +654,16 @@ sub dir_go_away {
 Implements the C<[> instruction. Rotate by 90 degrees on the left the
 delta of the IP which encounters this instruction.
 
+Not valid for Unefunge.  For Trefunge and greater, only affects the
+X and Y axes.
+
 =cut
 sub dir_turn_left {
     my $self = shift;
-    my $old_dx = $self->get_dx;
-    my $old_dy = $self->get_dy;
-    $self->set_delta( 0 + $old_dy, 0 + $old_dx * -1);
+    my $old_dx = $self->get_delta->get_component(0);
+    my $old_dy = $self->get_delta->get_component(1);
+    $self->get_delta->set_component(0, 0 + $old_dy);
+    $self->get_delta->set_component(1, 0 + $old_dx * -1);
 }
 
 =item dir_turn_right(  )
@@ -602,12 +671,16 @@ sub dir_turn_left {
 Implements the C<]> instruction. Rotate by 90 degrees on the right the
 delta of the IP which encounters this instruction.
 
+Not valid for Unefunge.  For Trefunge and higher dimensions, only
+affects the X and Y axes.
+
 =cut
 sub dir_turn_right {
     my $self = shift;
-    my $old_dx = $self->get_dx;
-    my $old_dy = $self->get_dy;
-    $self->set_delta( 0 + $old_dy * -1, 0 + $old_dx );
+    my $old_dx = $self->get_delta->get_component(0);
+    my $old_dy = $self->get_delta->get_component(1);
+    $self->get_delta->set_component(0, 0 + $old_dy * -1);
+    $self->get_delta->set_component(1, 0 + $old_dx);
 }
 
 =item dir_reverse(  )
@@ -618,7 +691,7 @@ is, multiply the IP's delta by -1.
 =cut
 sub dir_reverse {
     my $self = shift;
-    $self->set_delta( 0 + $self->get_dx * -1, 0 + $self->get_dy * -1 );
+    $self->set_delta($self->get_delta->vector_invert());
 }
 
 =back
