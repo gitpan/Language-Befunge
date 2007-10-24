@@ -1,22 +1,24 @@
 ---
 name: Language-Befunge
-version: 3.00
+version: 3.01
 author:
   - 'Jerome Quelin <jquelin@cpan.org>'
 abstract: a Befunge-98 interpreter
 license: perl
-resources:
-  license: http://dev.perl.org/licenses/
 requires:
   Storable: 0
 build_requires:
   Test::More: 0
 recommends:
   Test::Exception: 0
+generated_by: Module::Build version 0.2808
+meta-spec:
+  url: http://module-build.sourceforge.net/META-spec-v1.2.html
+  version: 1.2
 provides:
   Language::Befunge:
     file: lib/Language/Befunge.pm
-    version: 3.00
+    version: 3.01
   Language::Befunge::IP:
     file: lib/Language/Befunge/IP.pm
   Language::Befunge::Interpreter:
@@ -39,7 +41,5 @@ provides:
     file: lib/Language/Befunge/lib/FOO.pm
   Language::Befunge::lib::HELO:
     file: lib/Language/Befunge/lib/HELO.pm
-generated_by: Module::Build version 0.2808
-meta-spec:
-  url: http://module-build.sourceforge.net/META-spec-v1.2.html
-  version: 1.2
+resources:
+  license: http://dev.perl.org/licenses/

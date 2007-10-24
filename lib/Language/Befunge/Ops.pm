@@ -10,7 +10,11 @@
 package Language::Befunge::Ops;
 require 5.006;
 
+use strict;
+use warnings;
+
 use Config;   # For the 'y' instruction.
+
 
 =head1 NAME
 

@@ -16,6 +16,9 @@ High-level changelog
 Low-level changelog
 ===================
 
+3.01 Wed Oct 24 14:22:24 CEST 2007
+ - fixing stricture
+
 3.00 Fri Sep 28 17:41:27 CEST 2007
  - new LB::Vector class for abstracting dimension (courtesy of Mark Glines)
  - new LB::LaheySpace::Generic, a n-dims laheyspace (courtesy of Mark Glines)

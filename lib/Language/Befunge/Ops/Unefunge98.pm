@@ -10,7 +10,11 @@
 package Language::Befunge::Ops::Unefunge98;
 require 5.006;
 
+use strict;
+use warnings;
+
 use Language::Befunge::Ops;
+
 sub get_ops_map {
     return {
         '0'  => \&Language::Befunge::Ops::num_push_number,
