@@ -16,6 +16,9 @@ High-level changelog
 Low-level changelog
 ===================
 
+3.02 Mon Nov 26 13:02:20 CET 2007
+ - kwalitee/cpants release
+
 3.01 Wed Oct 24 14:22:24 CEST 2007
  - fixing stricture
 

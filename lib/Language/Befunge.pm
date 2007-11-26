@@ -17,7 +17,7 @@ use Carp;
 use Language::Befunge::Interpreter;
 
 # Public variables of the module.
-our $VERSION = '3.01';
+our $VERSION = '3.02';
 $| = 1;
 
 sub new {
@@ -52,8 +52,7 @@ Language::Befunge - a Befunge-98 interpreter
 Enter the realm of topological languages!
 
 This module implements the Funge-98 specifications on a 2D field (also
-called Befunge). In particular, be aware that this is not a Trefunge
-implementation (3D).
+called Befunge). It can also work as a Trefunge implementation (3D).
 
 This Befunge-98 interpreters assumes the stack and Funge-Space cells
 of this implementation are 32 bits signed integers (I hope your os

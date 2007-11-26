@@ -17,9 +17,20 @@ my $builder = Module::Build->new
     license           => 'perl',
     dist_author       => 'Jerome Quelin <jquelin@cpan.org>',
     dist_version_from => 'lib/Language/Befunge.pm',
-    build_requires    => { 'Test::More'      => 0 },
-    requires          => { 'Storable'        => 0 },
-    recommends        => { 'Test::Exception' => 0 },
+    build_requires    => {
+        'Storable'       => 0,
+        'Test::More'     => 0,
+        'perl'           => '5.006',
+    },
+    requires          => {
+        'Storable'        => 0,
+        'perl'           => '5.006',
+    },
+    recommends        => {
+        'Test::Exception'     => 0,
+        'Test::Pod'           => 0,
+        'Test::Pod::Coverage' => 0,
+    },
     script_files      => [ 'bin/jqbf98' ],
     add_to_cleanup    =>
       [ 'Language-Befunge-*', map { ( '*/' x $_ ) . '*~' } 0..4 ]
