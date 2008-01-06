@@ -19,8 +19,6 @@ whatever) (medium)
 
 - write a real befunge debugger (medium or major)
 
-- write a graphical befunge debugger (medium or major)
-
 - profile some runs of typical befunge programs to spot the
 bottlenecks.  fix them. (medium or major)
 
@@ -40,9 +38,6 @@ restriction)
 
 * tests:
 ========
-
-- reorganize t/ dir with subdirs general/, ops/, modules/ or whatever.
-needs svn. (medium)
 
 - maybe walk through tests and clean them. (medium)
 

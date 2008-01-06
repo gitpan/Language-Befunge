@@ -1,7 +1,7 @@
 #!perl
 #
 # This file is part of Language::Befunge.
-# Copyright (c) 2001-2007 Jerome Quelin, all rights reserved.
+# Copyright (c) 2001-2008 Jerome Quelin, all rights reserved.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the same terms as Perl itself.
@@ -25,6 +25,7 @@ WriteMakefile(
     clean         => { FILES => [
                     'Language-Befunge-*',
 					map { ( '*/' x $_ ) . '*~' } 0..4 ] },
+    test          => { TESTS => 't/*.t t/*/*.t' },
 );
 
 

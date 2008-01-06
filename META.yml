@@ -1,6 +1,6 @@
 ---
 name: Language-Befunge
-version: 3.02
+version: 3.03
 author:
   - 'Jerome Quelin <jquelin@cpan.org>'
 abstract: a Befunge-98 interpreter
@@ -21,7 +21,7 @@ recommends:
 provides:
   Language::Befunge:
     file: lib/Language/Befunge.pm
-    version: 3.02
+    version: 3.03
   Language::Befunge::IP:
     file: lib/Language/Befunge/IP.pm
   Language::Befunge::Interpreter:
