@@ -1,6 +1,6 @@
 #
 # This file is part of Language::Befunge.
-# Copyright (c) 2001-2007 Jerome Quelin, all rights reserved.
+# Copyright (c) 2001-2008 Jerome Quelin, all rights reserved.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the same terms as Perl itself.
@@ -8,6 +8,7 @@
 #
 
 package Language::Befunge::Vector;
+
 use strict;
 use warnings;
 use integer;
@@ -28,7 +29,7 @@ use overload
 
 #
 # my $v = new( $dimensions, $x, [$y, ...] )
-
+#
 # Creates a new vector. The first argument is an integer specifying how
 #many dimensions this vector operates in.  The remaining arguments constitute
 #the actual vector data; one integer per dimension.
@@ -178,6 +179,7 @@ sub set_component {
 	$$self{v}[$d] = $data;
 }
 
+
 #
 # get_component( dimension )
 #
@@ -206,15 +208,18 @@ sub get_all_components {
 	return @{$$self{v}};
 }
 
+
 #
 # zero( )
 #
-# Sets the vector back to the origin, all 0's.  See also the constructor, new_from_origin, above.
+# Sets the vector back to the origin, all 0's. See also the constructor,
+# new_from_origin, above.
 #
 sub zero {
 	my ($self) = @_;
 	@{$$self{v}} = map { 0 } (1..$self->get_dims);
 }
+
 
 #
 # bounds_check( begin, end )
@@ -266,6 +271,7 @@ sub vector_equality {
 	return 1;
 }
 
+
 #
 # vector_inequality( v2 )
 #
@@ -280,6 +286,7 @@ sub vector_inequality {
 }
 
 1;
+__END__
 
 =head1 NAME
 
@@ -446,7 +453,7 @@ Development is discussed on E<lt>language-befunge@mongueurs.netE<gt>
 
 =head1 COPYRIGHT & LICENSE
 
-Copyright (c) 2001-2007 Jerome Quelin, all rights reserved.
+Copyright (c) 2001-2008 Jerome Quelin, all rights reserved.
 
 This program is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.

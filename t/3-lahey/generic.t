@@ -13,30 +13,29 @@
 #------------------------------------------------------------------#
 
 use strict;
-use Test::More;
+use warnings;
+
+use Test::More tests => 168;
+
 use Language::Befunge::IP;
 use Language::Befunge::LaheySpace::Generic;
-BEGIN { use_ok ('Test::Exception') };
-my $test_exception_loaded = defined($Test::Exception::VERSION);
+
 
 my $tests;
 my $ip = Language::Befunge::IP->new(4);
 my $zerovec = Language::Befunge::Vector->new_zeroes(4);
 my ($w,$h,$href);
-BEGIN { $tests = 0 };
 
 
 # constructor.
 my $ls = Language::Befunge::LaheySpace::Generic->new(4);
 isa_ok( $ls, "Language::Befunge::LaheySpace::Generic");
-BEGIN { $tests += 1 };
 
 
 # clear method.
 $ls->clear;
 ok( $ls->{min} == $zerovec, "clear resets min" );
 ok( $ls->{max} == $zerovec, "clear resets max" );
-BEGIN { $tests += 2; }
 
 
 # _enlarge/_enlarge methods.
@@ -55,7 +54,6 @@ is( $ls->{max}->get_component(1), 5, "_enlarge sets max[y]" );
 $ls->_enlarge(Language::Befunge::Vector->new(4, 2, 3, 0, 0));   # can't shrink
 is( $ls->{max}->get_component(0), 4, "_enlarge can't shrink max[x]" );
 is( $ls->{max}->get_component(1), 5, "_enlarge can't shrink max[y]" );
-BEGIN{ $tests += 10; }
 
 
 # enlarge torus.
@@ -80,7 +78,6 @@ is( $ls->{min}->get_component(0), -4, "_enlarge_x <0 does grow min[x]" );
 is( $ls->{min}->get_component(1), -5, "_enlarge_x <0 does not grow min[y]" );
 is( $ls->{max}->get_component(0), 2,  "_enlarge_x <0 does not grow max[x]" );
 is( $ls->{max}->get_component(1), 3,  "_enlarge_x <0 does not grow max[y]" );
-BEGIN { $tests += 16; }
 
 
 # get/set value.
@@ -102,7 +99,6 @@ $ls->clear;
 $ls->_enlarge(Language::Befunge::Vector->new(4, 0, 3, 0, 0) ); # corner cases, should not happen - but anyway.
 is( $ls->get_value(Language::Befunge::Vector->new(4,  -4, 0, 0, 0)), 32, "get_value defaults to space" );
 is( $ls->get_value(Language::Befunge::Vector->new(4,   4, 0, 0, 0)), 32, "get_value defaults to space" );
-BEGIN { $tests += 11; }
 
 
 # input checking: make sure get_char() returns ASCII.
@@ -118,7 +114,6 @@ is( $ls->get_char(Language::Befunge::Vector->new(4, 0, 0, 0, 0)), sprintf("<np-0
 is( $ls->get_char(Language::Befunge::Vector->new(4, 1, 0, 0, 0)), chr(0),       "get_chars always returns ascii" );
 is( $ls->get_char(Language::Befunge::Vector->new(4, 0, 2, 0, 0)), chr(0xff),    "get_chars always returns ascii" );
 is( $ls->get_char(Language::Befunge::Vector->new(4, 0, 0, 3, 0)), '<np-0x100>', "get_chars always returns ascii" );
-BEGIN { $tests += 8 };
 
 
 # multi-dimensional store method.
@@ -156,7 +151,6 @@ is( $$ls{nd}, 4, "LS::Generic has right number of dimensions");
 is( $ls->get_char(Language::Befunge::Vector->new(4,  0, 0, 0, 0)), 'a', "store begins at 0" );
 is( $ls->get_char(Language::Befunge::Vector->new(4,  1, 1, 1, 1)), 'n', "store handles multidim properly" );
 is( $ls->get_char(Language::Befunge::Vector->new(4,  2, 2, 2, 2)), 'A', "store still handles multidim properly" );
-BEGIN { $tests += 4; }
 
 
 # store method.
@@ -180,7 +174,7 @@ is( $ls->{max}->get_component(1), 1,  "store grows max[y] if needed" );
 is( $ls->get_value(Language::Befunge::Vector->new(4,  0, 0, 0, 0)), 70, "store stores everything" );
 is( $ls->get_value(Language::Befunge::Vector->new(4, 12, 0, 0, 0)), 32, "store defaults to space" );
 is( $ls->get_value(Language::Befunge::Vector->new(4,  1, 5, 0, 0)), 32, "store does not store outside of its bounds" );
-BEGIN { $tests += 7; }
+
 $ls->store( <<'EOF', Language::Befunge::Vector->new(4, 4, 1, 0, 0) );
 Foo bar baz
 camel llama buffy
@@ -200,7 +194,7 @@ is( $ls->{max}->get_component(1), 2,  "store grows max[y] if needed" );
 is( $ls->get_value(Language::Befunge::Vector->new(4,  0, 0, 0, 0)),  70,  "store respects specified origin" ); # old values.
 is( $ls->get_value(Language::Befunge::Vector->new(4,  4, 1, 0, 0)),  70,  "store overwrites if needed" );
 is( $ls->get_value(Language::Befunge::Vector->new(4,  20, 2, 0, 0)), 121, "store stores everything" ); # last value.
-BEGIN { $tests += 7; }
+
 ($w, $h) = $ls->store( <<'EOF', Language::Befunge::Vector->new(4, -2, -1, 0, 0 ))->get_all_components;
 Foo bar baz
 camel llama buffy
@@ -222,7 +216,7 @@ is( $ls->{max}->get_component(1), 2,  "store does not grow max[y] if not needed"
 is( $ls->get_value(Language::Befunge::Vector->new(4,  -2, -1, 0, 0)), 70,  "store stores value in negative indices" );
 is( $ls->get_value(Language::Befunge::Vector->new(4,  0, 0, 0, 0 )),  109, "store overwrites if needed" );
 is( $ls->get_value(Language::Befunge::Vector->new(4,  4, 1, 0, 0 )),  70,  "store does not overwrite outside its rectangle" );
-BEGIN { $tests += 9; }
+
 $ls->store( <<'EOF', Language::Befunge::Vector->new(4, -2, 0, 0, 0 ));
 Foo bar baz
 camel llama buffy
@@ -241,14 +235,12 @@ is( $ls->{max}->get_component(0), 20, "store does not grow max[x] if not needed"
 is( $ls->{max}->get_component(1), 2,  "store does not grow max[y] if not needed" );
 is( $ls->get_value(Language::Befunge::Vector->new(4,  -2, 0, 0, 0)), 70,  "store overwrites if needed" );
 is( $ls->get_value(Language::Befunge::Vector->new(4,  12, 0, 0, 0 )), 32, "store overwrites with spaces if needed" );
-BEGIN { $tests += 6; }
 
 
 # rectangle.
 is( $ls->rectangle(Language::Befunge::Vector->new(4, -3, 4, 0, 0),Language::Befunge::Vector->new(4, 1,1, 0, 0)), " \n\f\0", "rectangle returns lines ending with \\n" );
 is( $ls->rectangle(Language::Befunge::Vector->new(4, -2,-1, 0, 0),Language::Befunge::Vector->new(4, 3,2, 0, 0)), "Foo\nFoo\n\f\0", "rectangle works with multiple lines" );
 is( $ls->rectangle(Language::Befunge::Vector->new(4, 19,-2, 0, 0),Language::Befunge::Vector->new(4, 2,6, 0, 0)), "  \n  \n  \n  \nfy\n  \n\f\0", "rectangle works accross origin" );
-BEGIN { $tests += 3; }
 
 
 # store_binary method
@@ -275,7 +267,7 @@ is( $ls->get_value(Language::Befunge::Vector->new(4,  6, 0, 0, 0)), 32,  "store_
 is( $ls->get_value(Language::Befunge::Vector->new(4,  7, 0, 0, 0)), 102, "store_binary stores binary" );
 is( $size->get_component(0), 13, "store_binary flattens input" );
 is( $size->get_component(1), 1,  "store_binary flattens input" );
-BEGIN { $tests += 12; }
+
 $ls->store_binary( <<'EOF', Language::Befunge::Vector->new(4, 4, 1, 0, 0 ));
 klmno
   pqrst
@@ -292,7 +284,7 @@ is( $ls->{max}->get_component(0), 17, "store_binary grows max[x] if needed" );
 is( $ls->{max}->get_component(1), 1,  "store_binary grows max[y] if needed" );
 is( $ls->get_value(Language::Befunge::Vector->new(4,  0, 0, 0, 0)), 97, "store_binary respects specified origin" ); # old values.
 is( $ls->get_value(Language::Befunge::Vector->new(4,  4, 1, 0, 0)), 107,"store_binary stores everything" );
-BEGIN { $tests += 6; }
+
 $ls->store_binary( <<'EOF', Language::Befunge::Vector->new(4, -2, -1, 0, 0 ));
 Foo bar baz
 camel llama buffy
@@ -308,7 +300,7 @@ is( $ls->{min}->get_component(1), -1, "store_binary grows min[y] if needed" );
 is( $ls->{max}->get_component(0), 27, "store_binary does not grow max[x] if not needed" );
 is( $ls->{max}->get_component(1), 1,  "store_binary does not grow max[y] if not needed" );
 is( $ls->get_value(Language::Befunge::Vector->new(4,  -2, -1, 0, 0)), 70,  "store_binary stores value in negative indices" );
-BEGIN { $tests += 5; }
+
 $ls->store_binary( <<'EOF', Language::Befunge::Vector->new(4, 0, 2, 0, 0 ));
 Foo bar baz
 camel llama buffy
@@ -321,7 +313,6 @@ EOF
 #  2
 is( $ls->get_value(Language::Befunge::Vector->new(4,  0, 0, 0, 0)), 97, "store_binary doesn't overwrite stuff to the left on the same line" );
 is( $ls->get_value(Language::Befunge::Vector->new(4,  0, 2, 0, 0)), 70, "store_binary overwrites if needed" );
-BEGIN { $tests += 2; }
 
 
 # move ip.
@@ -366,7 +357,7 @@ $ip->get_delta->set_component(0, 0);
 $ip->get_delta->set_component(1, -1);
 $ls->move_ip_forward( $ip );
 is( $ip->get_position->get_component(1), 10, "move_ip_forward wraps min[y]" );
-BEGIN { $tests += 10 }
+
 
 $ls->clear;   # "negative" playfield.
 $ls->_enlarge(Language::Befunge::Vector->new(4, -1, -3, -5, -2));
@@ -395,7 +386,6 @@ $ip->get_delta->set_component(0, 0);
 $ip->get_delta->set_component(1, -1);
 $ls->move_ip_forward( $ip );
 is( $ip->get_position->get_component(1), 10, "move_ip_forward wraps min[y]" );
-BEGIN { $tests += 6; }
 
 $ls->clear;   # diagonals.
 $ls->_enlarge(Language::Befunge::Vector->new(4, -1, -2, 0, 0));
@@ -406,7 +396,6 @@ $ip->get_delta->set_component(1,-3);
 $ls->move_ip_forward( $ip );
 is( $ip->get_position->get_component(0), 2, "move_ip_forward deals with diagonals" );
 is( $ip->get_position->get_component(1), 3, "move_ip_forward deals with diagonals" );
-BEGIN { $tests += 2; }
 
 
 # label lookup
@@ -447,7 +436,7 @@ is( $href->{blah}[0]->get_component(0), 4,  "labels_lookup finds top-bottom" );
 is( $href->{blah}[0]->get_component(1), 12, "labels_lookup finds top-bottom" );
 is( $href->{blah}[1]->get_component(0), 0,  "labels_lookup deals with top-bottom" );
 is( $href->{blah}[1]->get_component(1), 1,  "labels_lookup deals with top-bottom" );
-BEGIN { $tests += 18};
+
 
 # wrapping...
 $ls->clear;
@@ -480,7 +469,7 @@ is( $href->{blah}[0]->get_component(0), 9, "labels_lookup finds top-bottom" );
 is( $href->{blah}[0]->get_component(1), 0, "labels_lookup finds top-bottom" );
 is( $href->{blah}[1]->get_component(0), 0, "labels_lookup deals with top-bottom" );
 is( $href->{blah}[1]->get_component(1), 1, "labels_lookup deals with top-bottom" );
-BEGIN { $tests += 17 };
+
 
 # garbage...
 $ls->clear;
@@ -494,7 +483,7 @@ is( $href->{foo}[0]->get_component(0), 14, "labels_lookup discards comments" );
 is( $href->{foo}[0]->get_component(1), -1, "labels_lookup discards comments" );
 is( $href->{foo}[1]->get_component(0), 1,  "labels_lookup discards comments" );
 is( $href->{foo}[1]->get_component(1), 0,  "labels_lookup discards comments" );
-BEGIN { $tests += 5 };
+
 
 # double define...
 $ls->clear;
@@ -505,8 +494,4 @@ EOF
 eval { $href = $ls->labels_lookup; };
 like( $@, qr/^Help! I found two labels 'foo' in the funge space/,
       "labels_lookup chokes on double-defined labels" );
-BEGIN { $tests += 1 };
 
-
-
-BEGIN { plan tests => $tests };
