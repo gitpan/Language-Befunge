@@ -26,7 +26,7 @@ $lbi = Language::Befunge::Interpreter->new;
 $ip  = Language::Befunge::IP->new;
 $lbi->set_curip( $ip );
 
-$v   = Language::Befunge::Vector->new(2,1,0);
+$v   = Language::Befunge::Vector->new(1,0);
 $ip->set_delta( $v );
 $ip->spush( 12, 24, 46 );
 Language::Befunge::Ops::decis_cmp( $lbi );
@@ -34,14 +34,14 @@ is( $ip->get_delta, '(0,-1)',
     'decis_cmp turns left if popped values are sorted' );
 is( $ip->spop, 12, 'decis_cmp pops only two values' );
 
-$v   = Language::Befunge::Vector->new(2,1,0);
+$v   = Language::Befunge::Vector->new(1,0);
 $ip->set_delta( $v );
 $ip->spush( 12, 24, 13 );
 Language::Befunge::Ops::decis_cmp( $lbi );
 is( $ip->get_delta, '(0,1)',
     'decis_cmp turns right if popped values are not sorted' );
 
-$v   = Language::Befunge::Vector->new(2,1,0);
+$v   = Language::Befunge::Vector->new(1,0);
 $ip->set_delta( $v );
 $ip->spush( 12, 24, 24 );
 Language::Befunge::Ops::decis_cmp( $lbi );

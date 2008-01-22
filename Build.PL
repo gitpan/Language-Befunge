@@ -27,9 +27,10 @@ my $builder = Module::Build->new
         'perl'                => '5.006',
     },
     recommends           => {
-        'Test::Exception'     => 0,
-        'Test::Pod'           => 0,
-        'Test::Pod::Coverage' => 0,
+        'Language::Befunge::Vector::XS' => '0.2.2',
+        'Test::Exception'               => 0,
+        'Test::Pod'                     => 0,
+        'Test::Pod::Coverage'           => 0,
     },
     script_files         => [ 'bin/jqbf98' ],
     add_to_cleanup       =>

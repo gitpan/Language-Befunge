@@ -24,7 +24,7 @@ my ($lbi, $ip, $v);
 
 $lbi = Language::Befunge::Interpreter->new;
 $ip  = Language::Befunge::IP->new;
-$v   = Language::Befunge::Vector->new(2,0,0);
+$v   = Language::Befunge::Vector->new(0,0);
 $lbi->set_curip( $ip );
 $lbi->get_torus->set_value( $v, ord('e') );
 Language::Befunge::Ops::num_push_number( $lbi );

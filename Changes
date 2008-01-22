@@ -16,6 +16,12 @@ High-level changelog
 Low-level changelog
 ===================
 
+3.05 Tue Jan 22 17:52:27 CET 2008
+ - LBV now uses an array internally for more efficiency
+ - LBV tries to load transparently LBVXS for even more speed
+ - LB:LaheySpace.pm now also understand \r\n and \r terminated programs
+ - some tests cleaning
+
 3.04 Wed Jan  9 17:50:58 CET 2008
  - more robust way of skipping tests when Test::Exception isn't present
    . fix t/1-classes/vector.t and t/3-lahey/generic.t

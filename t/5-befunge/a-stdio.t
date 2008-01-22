@@ -63,7 +63,7 @@ is( $out, "%" );
     $fh = select OUT;
     close OUT;
     my $ip = Language::Befunge::IP->new;
-    $ip->set_delta( Language::Befunge::Vector->new(2,1,0) );
+    $ip->set_delta( Language::Befunge::Vector->new(1,0) );
     $ip->spush( 65 );
     $bef->set_curip($ip);
     $bef->get_ops->{","}->($bef);
@@ -88,7 +88,7 @@ is( $out, "15 " );
     $fh = select OUT;
     close OUT;
     my $ip = Language::Befunge::IP->new;
-    $ip->set_delta( Language::Befunge::Vector->new(2,1,0) );
+    $ip->set_delta( Language::Befunge::Vector->new(1,0) );
     $ip->spush( 65 );
     $bef->set_curip($ip);
     $bef->get_ops->{","}->($bef);
@@ -136,8 +136,8 @@ END_OF_CODE
 $bef->run_code;
 $out = slurp;
 is( $bef->get_torus->rectangle
-    ( Language::Befunge::Vector->new(2, 6, 9),
-      Language::Befunge::Vector->new(2, 71, 1) ),
+    ( Language::Befunge::Vector->new( 6, 9),
+      Language::Befunge::Vector->new( 71, 1) ),
     qq{v q  ,,,,,,,,,,,,,"hello world!"a <\n>                                 ^} . "\n" );
 is( $out, "" );
 BEGIN { $tests += 2 };

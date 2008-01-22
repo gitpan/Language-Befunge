@@ -1,6 +1,6 @@
 #
 # This file is part of Language::Befunge.
-# Copyright (c) 2001-2007 Jerome Quelin, all rights reserved.
+# Copyright (c) 2001-2008 Jerome Quelin, all rights reserved.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the same terms as Perl itself.
@@ -1128,7 +1128,10 @@ sub lib_run_instruction {
     foreach my $obj ( @{ $ip->get_libs } ) {
         # Try the loaded libraries in order.
         eval "\$obj->$char(\$lbi)";
-        next if $@; # Uh, this wasn't the good one.
+        if( $@ ) {
+            $lbi->debug( ref($obj) . "->$char failed: $@" );
+            next;
+        }
 
         # We manage to get a library.
         $lbi->debug( "library semantics processed by ".ref($obj)."\n" );
@@ -1162,7 +1165,7 @@ Development is discussed on E<lt>language-befunge@mongueurs.netE<gt>
 
 =head1 COPYRIGHT & LICENSE
 
-Copyright (c) 2001-2007 Jerome Quelin, all rights reserved.
+Copyright (c) 2001-2008 Jerome Quelin, all rights reserved.
 
 This program is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.

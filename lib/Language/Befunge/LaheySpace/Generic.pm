@@ -1,6 +1,6 @@
 #
 # This file is part of Language::Befunge.
-# Copyright (c) 2001-2007 Jerome Quelin, all rights reserved.
+# Copyright (c) 2001-2008 Jerome Quelin, all rights reserved.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the same terms as Perl itself.
@@ -86,6 +86,10 @@ sub store {
     my $nd = $$self{nd};
     $v = Language::Befunge::Vector->new_zeroes($$self{nd}) unless defined $v;
 
+    # support for any eol convention
+    $code =~ s/\r\n/\n/g;
+    $code =~ s/\r/\n/g;
+
     # The torus is a tree of arrays of numbers.
     # The tree is N levels deep, where N is the number of dimensions.
     # Each number is the ordinal value of the character held in this cell.
@@ -104,8 +108,8 @@ sub store {
     my $coderef = _code_split_helper($nd - 1, $code, \@separators, \@sizes);
 
     # Figure out the rectangle size and the end-coordinate (max).
-    my $size = Language::Befunge::Vector->new($nd, @sizes);
-    my $max  = Language::Befunge::Vector->new($nd, map { $_ - 1 } (@sizes));
+    my $size = Language::Befunge::Vector->new(@sizes);
+    my $max  = Language::Befunge::Vector->new(map { $_ - 1 } (@sizes));
     $max += $v;
 
     # Enlarge torus to make sure our new values will fit.
@@ -163,8 +167,8 @@ sub store_binary {
     push(@sizes,1) for(2..$nd);
 
     # Figure out the rectangle size and the end-coordinate (max).
-    my $size = Language::Befunge::Vector->new($nd, @sizes);
-    my $max  = Language::Befunge::Vector->new($nd, map { $_ - 1 } (@sizes));
+    my $size = Language::Befunge::Vector->new(@sizes);
+    my $max  = Language::Befunge::Vector->new(map { $_ - 1 } (@sizes));
     $max += $v;
 
     # Enlarge torus to make sure our new values will fit.
@@ -320,7 +324,7 @@ sub rectangle {
 
     # Fetch the data.
     my $data = "";
-    my $this = $v1->vector_copy;
+    my $this = $v1->copy;
     my $that = $v1 + $v2;
     my $torus = $$self{torus};
     # No separator is used for the first dimension, for obvious reasons.
@@ -381,7 +385,7 @@ sub labels_lookup {
     my $labels = {};
 
     my ($min, $max) = ($$self{min}, $$self{max});
-    $max = $max->vector_copy();
+    $max = $max->copy;
     my $nd = $$self{nd};
     my @directions = ();
     foreach my $dimension (0..$nd-1) {
@@ -391,14 +395,14 @@ sub labels_lookup {
 
         # build the array of (non-diagonal) vectors
         my $v1 = Language::Befunge::Vector->new_zeroes($nd);
-        my $v2 = $v1->vector_copy();
+        my $v2 = $v1->copy;
         $v1->set_component($dimension,-1);
         push(@directions,$v1);
         $v2->set_component($dimension, 1);
         push(@directions,$v2);
     }
     
-    R: for(my $this = $min->vector_copy; $this != $max; $this = $self->_rasterize($this)) {
+    R: for(my $this = $min->copy; $this != $max; $this = $self->_rasterize($this)) {
         V: for my $v (@directions) {
             next R unless $self->get_char($this) eq ";";
             my ($label, $loc) = $self->_labels_try( $this, $v );
@@ -424,7 +428,7 @@ sub labels_lookup {
 #
 sub get_min {
     my $self = shift;
-    return $$self{min}->vector_copy();
+    return $$self{min}->copy;
 }
 
 
@@ -436,7 +440,7 @@ sub get_min {
 #
 sub get_max {
     my $self = shift;
-    return $$self{max}->vector_copy();
+    return $$self{max}->copy;
 }
 
 
@@ -543,11 +547,11 @@ sub _out_of_bounds {
 #
 sub _labels_try {
     my ($self, $orig, $delta) = @_;
-    my $vector = $orig->vector_copy;
+    my $vector = $orig->copy;
     my $comment = "";
 
     # don't affect the parent
-    #$vector = $vector->vector_copy();
+    #$vector = $vector->copy();
     # Fetch the whole comment stuff.
     do {
         # Calculate the next cell coordinates.
@@ -572,7 +576,7 @@ sub _labels_try {
 #
 sub _rasterize {
     my ($self, $v) = @_;
-    $v = $v->vector_copy();
+    $v = $v->copy;
     my $nd = $$self{nd};
     my ($min, $max) = ($$self{min}, $$self{max});
     for my $d (0..$nd-1) {
@@ -796,7 +800,7 @@ Development is discussed on E<lt>language-befunge@mongueurs.netE<gt>
 
 =head1 COPYRIGHT & LICENSE
 
-Copyright (c) 2001-2007 Jerome Quelin, all rights reserved.
+Copyright (c) 2001-2008 Jerome Quelin, all rights reserved.
 
 This program is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.

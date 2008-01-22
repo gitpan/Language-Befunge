@@ -24,7 +24,7 @@ my ($lbi, $ip, $v);
 
 $lbi = Language::Befunge::Interpreter->new;
 $ip  = Language::Befunge::IP->new;
-$v   = Language::Befunge::Vector->new(2,4,4);
+$v   = Language::Befunge::Vector->new(4,4);
 $ip->set_delta( $v );
 $lbi->set_curip( $ip );
 Language::Befunge::Ops::dir_go_north( $lbi );

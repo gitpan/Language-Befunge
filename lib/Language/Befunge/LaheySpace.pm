@@ -1,6 +1,6 @@
 #
 # This file is part of Language::Befunge.
-# Copyright (c) 2001-2007 Jerome Quelin, all rights reserved.
+# Copyright (c) 2001-2008 Jerome Quelin, all rights reserved.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the same terms as Perl itself.
@@ -103,14 +103,17 @@ sub store {
     		($x, $y) = $v->get_all_components();
     } else {
 	    $x = $y = 0;
-	    $v = Language::Befunge::Vector->new(2, $x, $y);
+	    $v = Language::Befunge::Vector->new($x, $y);
     }
 
     # The torus is an array of arrays of numbers.
     # Each number is the ordinal value of the character
     # held in this cell.
 
-    my @lines = split $/, $code;
+    # support for any eol convention
+    $code =~ s/\r\n/\n/g;
+    $code =~ s/\r/\n/g;
+    my @lines = split /\n/, $code;
 
     # Fetch min/max values.
     my $maxy = $#lines + $y - $self->{ymin};
@@ -133,7 +136,7 @@ sub store {
         splice @{ $self->{torus}[ $j + $y - $self->{ymin} ] }, $x - $self->{xmin}, $maxlen, @chars;
     }
 
-    return (Language::Befunge::Vector->new(2, $maxlen, scalar( @lines ) ));
+    return (Language::Befunge::Vector->new($maxlen, scalar( @lines ) ));
 }
 
 =head2 store_binary( code, [vector] )
@@ -155,7 +158,7 @@ sub store_binary {
     		($x, $y) = $v->get_all_components();
     } else {
 	    $x = $y = 0;
-	    $v = Language::Befunge::Vector->new(2, $x, $y);
+	    $v = Language::Befunge::Vector->new($x, $y);
     }
 
     # The torus is an array of arrays of numbers.
@@ -175,7 +178,7 @@ sub store_binary {
     my @chars = map { ord } split //, $code;
     splice @{ $self->{torus}[ $y - $self->{ymin} ] }, $x - $self->{xmin}, $maxlen, @chars;
 
-    return (Language::Befunge::Vector->new(2, $maxlen, 1 ));
+    return (Language::Befunge::Vector->new($maxlen, 1 ));
 }
 
 =head2 get_char( vector )
@@ -504,7 +507,7 @@ Jerome Quelin, E<lt>jquelin@cpan.orgE<gt>
 
 =head1 COPYRIGHT & LICENSE
 
-Copyright (c) 2001-2007 Jerome Quelin, all rights reserved.
+Copyright (c) 2001-2008 Jerome Quelin, all rights reserved.
 
 This program is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.
