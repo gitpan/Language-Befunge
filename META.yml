@@ -1,6 +1,6 @@
 ---
 name: Language-Befunge
-version: 3.05
+version: 4.00
 author:
   - 'Jerome Quelin <jquelin@cpan.org>'
 abstract: a Befunge-98 interpreter
@@ -8,12 +8,24 @@ license: perl
 resources:
   license: http://dev.perl.org/licenses/
 requires:
+  Carp: 0
+  Class::Accessor::Fast: 0
+  List::Util: 0
+  Readonly: 0
   Storable: 0
-  perl: 5.006
+  UNIVERSAL::require: 0
+  aliased: 0.22
+  perl: 5.010
 build_requires:
+  Carp: 0
+  Class::Accessor::Fast: 0
+  List::Util: 0
+  Readonly: 0
   Storable: 0
   Test::More: 0
-  perl: 5.006
+  UNIVERSAL::require: 0
+  aliased: 0.22
+  perl: 5.010
 recommends:
   Language::Befunge::Vector::XS: 0.2.2
   Test::Exception: 0
@@ -22,15 +34,11 @@ recommends:
 provides:
   Language::Befunge:
     file: lib/Language/Befunge.pm
-    version: 3.05
+    version: 4.00
   Language::Befunge::IP:
     file: lib/Language/Befunge/IP.pm
   Language::Befunge::Interpreter:
     file: lib/Language/Befunge/Interpreter.pm
-  Language::Befunge::LaheySpace:
-    file: lib/Language/Befunge/LaheySpace.pm
-  Language::Befunge::LaheySpace::Generic:
-    file: lib/Language/Befunge/LaheySpace/Generic.pm
   Language::Befunge::Ops:
     file: lib/Language/Befunge/Ops.pm
   Language::Befunge::Ops::Befunge98:
@@ -39,8 +47,20 @@ provides:
     file: lib/Language/Befunge/Ops/GenericFunge98.pm
   Language::Befunge::Ops::Unefunge98:
     file: lib/Language/Befunge/Ops/Unefunge98.pm
+  Language::Befunge::Storage:
+    file: lib/Language/Befunge/Storage.pm
+  Language::Befunge::Storage::2D::Sparse:
+    file: lib/Language/Befunge/Storage/2D/Sparse.pm
+  Language::Befunge::Storage::Generic::AoA:
+    file: lib/Language/Befunge/Storage/Generic/AoA.pm
+  Language::Befunge::Storage::Generic::Sparse:
+    file: lib/Language/Befunge/Storage/Generic/Sparse.pm
+  Language::Befunge::Storage::Generic::Vec:
+    file: lib/Language/Befunge/Storage/Generic/Vec.pm
   Language::Befunge::Vector:
     file: lib/Language/Befunge/Vector.pm
+  Language::Befunge::Wrapping::LaheySpace:
+    file: lib/Language/Befunge/Wrapping/LaheySpace.pm
   Language::Befunge::lib::FOO:
     file: lib/Language/Befunge/lib/FOO.pm
   Language::Befunge::lib::HELO:

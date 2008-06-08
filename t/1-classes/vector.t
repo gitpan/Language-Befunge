@@ -15,7 +15,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 94;
+use Test::More tests => 122;
 
 use Language::Befunge::Vector;
 
@@ -165,6 +165,27 @@ SKIP: {
 	throws_ok(sub { $v1->bounds_check($v2, $v3d) },
 		qr/uneven dimensions/, "bounds_check() catches wrong dimension in third arg");
 }
+
+
+# rasterize
+$v1 = Language::Befunge::Vector->new(-1, -1, -1);
+$v2 = Language::Befunge::Vector->new(1, 1, 1);
+my @expectations = (
+    [-1, -1, -1], [ 0, -1, -1], [ 1, -1, -1],
+    [-1,  0, -1], [ 0,  0, -1], [ 1,  0, -1],
+    [-1,  1, -1], [ 0,  1, -1], [ 1,  1, -1],
+    [-1, -1,  0], [ 0, -1,  0], [ 1, -1,  0],
+    [-1,  0,  0], [ 0,  0,  0], [ 1,  0,  0],
+    [-1,  1,  0], [ 0,  1,  0], [ 1,  1,  0],
+    [-1, -1,  1], [ 0, -1,  1], [ 1, -1,  1],
+    [-1,  0,  1], [ 0,  0,  1], [ 1,  0,  1],
+    [-1,  1,  1], [ 0,  1,  1], [ 1,  1,  1]);
+for($v3 = $v1->copy(); scalar @expectations; $v3 = $v3->rasterize($v1, $v2)) {
+    my $expect = shift @expectations;
+    $expect = Language::Befunge::Vector->new(@$expect);
+    is($v3, $expect, "next one is $expect");
+}
+is($v3, undef, "rasterize returns undef at end of loop");
 
 
 #- math ops

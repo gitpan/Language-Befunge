@@ -8,7 +8,7 @@
 #
 
 package Language::Befunge::Ops;
-require 5.006;
+require 5.010;
 
 use strict;
 use warnings;
@@ -44,7 +44,7 @@ sub num_push_number {
 
     # Fetching char.
     my $ip  = $lbi->get_curip;
-    my $num = hex( chr( $lbi->get_torus->get_value( $ip->get_position ) ) );
+    my $num = hex( chr( $lbi->storage->get_value( $ip->get_position ) ) );
 
     # Pushing value.
     $ip->spush( $num );
@@ -83,11 +83,11 @@ sub str_fetch_char {
     my $ip = $lbi->get_curip;
 
     # Moving pointer...
-    $lbi->move_curip;
+    $lbi->move_ip($lbi->get_curip);
 
    # .. then fetch value and push it.
-    my $ord = $lbi->get_torus->get_value( $ip->get_position );
-    my $chr = $lbi->get_torus->get_char( $ip->get_position );
+    my $ord = $lbi->storage->get_value( $ip->get_position );
+    my $chr = $lbi->storage->get_char( $ip->get_position );
     $ip->spush( $ord );
 
     # Cosmetics.
@@ -103,14 +103,14 @@ sub str_store_char {
     my $ip = $lbi->get_curip;
 
     # Moving pointer.
-    $lbi->move_curip;
+    $lbi->move_ip($lbi->get_curip);
 
     # Fetching value.
     my $val = $ip->spop;
 
     # Storing value.
-    $lbi->get_torus->set_value( $ip->get_position, $val );
-    my $chr = $lbi->get_torus->get_char( $ip->get_position );
+    $lbi->storage->set_value( $ip->get_position, $val );
+    my $chr = $lbi->storage->get_char( $ip->get_position );
 
     # Cosmetics.
     $lbi->debug( "storing value $val (char='$chr')\n" );
@@ -453,7 +453,7 @@ A serie of spaces is to be treated as B<one> NO-OP.
 =cut
 sub flow_space {
     my ($lbi) = @_;
-    $lbi->move_curip( qr/ / );
+    $lbi->move_ip( $lbi->get_curip, qr/ / );
     $lbi->debug( "slurping serie of spaces\n" );
 }
 
@@ -474,9 +474,9 @@ Bypass comments in one tick.
 =cut
 sub flow_comments {
     my ($lbi) = @_;
-    $lbi->move_curip;
-    $lbi->move_curip( qr/[^;]/ );
-    $lbi->move_curip;
+    $lbi->move_ip($lbi->get_curip);
+    $lbi->move_ip($lbi->get_curip, qr/[^;]/);
+    $lbi->move_ip($lbi->get_curip);
     $lbi->debug( "skipping comments\n" );
 }
 
@@ -486,7 +486,7 @@ sub flow_comments {
 =cut
 sub flow_trampoline {
     my ($lbi) = @_;
-    $lbi->move_curip;
+    $lbi->move_ip($lbi->get_curip);
     $lbi->debug( "trampoline! (skipping next instruction)\n" );
 }
 
@@ -501,9 +501,9 @@ sub flow_jump_to {
     $lbi->debug( "skipping $count instructions\n" );
     $count == 0 and return;
     $count < 0  and $ip->dir_reverse; # We can move backward.
-    $lbi->move_curip for (1..abs($count));
+    $lbi->move_ip($lbi->get_curip) for (1..abs($count));
     # don't forget that runloop will advance the ip next time.
-    $count < 0  and $lbi->move_curip, $ip->dir_reverse;
+    $count < 0  and $lbi->move_ip($lbi->get_curip), $ip->dir_reverse;
 }
 
 
@@ -516,7 +516,7 @@ sub flow_repeat {
 
     my $kcounter = $ip->spop;
     $lbi->debug( "repeating next instruction $kcounter times.\n" );
-    $lbi->move_curip;
+    $lbi->move_ip($lbi->get_curip);
 
     # Nothing to repeat.
     $kcounter == 0 and return;
@@ -525,7 +525,7 @@ sub flow_repeat {
     $kcounter < 0 and $lbi->abort( "Attempt to repeat ('k') a negative number of times ($kcounter)" );
 
     # Fetch instruction to repeat.
-    my $val = $lbi->get_torus->get_value( $ip->get_position );
+    my $val = $lbi->storage->get_value( $ip->get_position );
 
     # Check if we can repeat the instruction.
     $val > 0 and $val < 256 and chr($val) =~ /([ ;])/ and
@@ -635,10 +635,10 @@ sub block_open {
     $ip->soss_push( $ip->get_storage->get_all_components );
 
     # Set the new Storage Offset.
-    $lbi->move_curip;
+    $lbi->move_ip($lbi->get_curip);
     $ip->set_storage( $ip->get_position );
     $ip->dir_reverse;
-    $lbi->move_curip;
+    $lbi->move_ip($lbi->get_curip);
     $ip->dir_reverse;
 }
 
@@ -697,7 +697,7 @@ sub store_get {
     $v += $ip->get_storage;
 
     # Fetching char.
-    my $val = $lbi->get_torus->get_value( $v );
+    my $val = $lbi->storage->get_value( $v );
     $ip->spush( $val );
 
     $lbi->debug( "fetching value at $v: pushing $val\n" );
@@ -717,7 +717,7 @@ sub store_put {
 
     # Fetching char.
     my $val = $ip->spop;
-    $lbi->get_torus->set_value( $v, $val );
+    $lbi->storage->set_value( $v, $val );
 
     $lbi->debug( "storing value $val at $v\n" );
 }
@@ -823,8 +823,8 @@ sub stdio_in_file {
 
     # Store the code and the result vector.
     my ($size) = $flag % 2
-        ? ( $lbi->get_torus->store_binary( $lines, $vin ) )
-        : ( $lbi->get_torus->store( $lines, $vin ) );
+        ? ( $lbi->storage->store_binary( $lines, $vin ) )
+        : ( $lbi->storage->store( $lines, $vin ) );
     $ip->spush_vec( $size, $vin );
 }
 
@@ -842,7 +842,7 @@ sub stdio_out_file {
     my ($vin) = $ip->spop_vec;
     $vin += $ip->get_storage;
     my ($size) = $ip->spop_vec;
-    my $data = $lbi->get_torus->rectangle( $vin, $size );
+    my $data = $lbi->storage->rectangle( $vin, $size );
 
     # Cosmetics.
     my $vend = $vin + $size;
@@ -888,8 +888,8 @@ sub stdio_sys_exec {
 =cut
 sub sys_info {
     my ($lbi) = @_;
-    my $ip    = $lbi->get_curip;
-    my $torus = $lbi->get_torus;
+    my $ip      = $lbi->get_curip;
+    my $storage = $lbi->storage;
 
     my $val = $ip->spop;
     my @cells = ();
@@ -942,12 +942,16 @@ sub sys_info {
     push @cells, \@stor;
 
     # 13. Top-left point.
-    my @topleft = ( $torus->{xmin}, $torus->{ymin} );
+    my $min = $storage->min;
+    # FIXME: multiple dims?
+    my @topleft = ( $min->get_component(0), $min->get_component(1) );
     push @cells, \@topleft;
 
-    # 14. Dims of the torus.
-    my @dims = ( $torus->{xmax} - $torus->{xmin} + 1,
-                 $torus->{ymax} - $torus->{ymin} + 1 );
+    # 14. Dims of the storage.
+    my $max = $storage->max;
+    # FIXME: multiple dims?
+    my @dims = ( $max->get_component(0) - $min->get_component(0) + 1,
+                 $max->get_component(1) - $min->get_component(1) + 1 );
     push @cells, \@dims;
 
     # 15/16. Current date/time.
@@ -1023,7 +1027,7 @@ sub spawn_ip {
     # Cloning and storing new IP.
     my $newip = $lbi->get_curip->clone;
     $newip->dir_reverse;
-    $lbi->get_torus->move_ip_forward($newip);
+    $lbi->move_ip($newip);
     push @{ $lbi->get_newips }, $newip;
 }
 
@@ -1120,7 +1124,7 @@ sub lib_unload {
 sub lib_run_instruction {
     my ($lbi) = @_;
     my $ip   = $lbi->get_curip;
-    my $char = $lbi->get_torus->get_char( $ip->get_position );
+    my $char = $lbi->storage->get_char( $ip->get_position );
 
     # Maybe a library semantics.
     $lbi->debug( "library semantics\n" );

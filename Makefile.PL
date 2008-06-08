@@ -8,7 +8,7 @@
 #
 #
 
-BEGIN { require 5.006; }
+BEGIN { require 5.010; }
 use strict;
 use warnings;
 
@@ -20,11 +20,20 @@ WriteMakefile(
     ABSTRACT_FROM => 'lib/Language/Befunge.pm',
     EXE_FILES     => [ 'bin/jqbf98' ],
     LICENSE       => 'perl',
-    PREREQ_PM     => { Storable => 0, 'Test::More' => 0 },
+    PREREQ_PM     => {
+        'aliased'               => '0.22',
+        'Carp'                  => 0,
+        'Class::Accessor::Fast' => 0,
+        'List::Util'            => 0,
+        'Readonly'              => 0,
+        'Storable'              => 0,
+        'Test::More'            => 0,
+        'UNIVERSAL::require'    => 0,
+    }
     dist          => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean         => { FILES => [
                     'Language-Befunge-*',
-					map { ( '*/' x $_ ) . '*~' } 0..4 ] },
+					map { ( '*/' x $_ ) . '*~' } 0..5 ] },
     test          => { TESTS => 't/*.t t/*/*.t' },
 );
 

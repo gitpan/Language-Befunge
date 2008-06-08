@@ -21,7 +21,7 @@ use Test;
 my ($file, $fh);
 my $tests;
 my $out;
-my $tref = Language::Befunge->new( Dimensions => 3 );
+my $tref = Language::Befunge->new( {syntax=>'trefunge98'} );
 BEGIN { $tests = 0 };
 
 # In order to see what happens...
@@ -46,14 +46,14 @@ sub slurp () {
 
 # Basic constructor.
 sel;
-$tref = Language::Befunge->new( "t/_resources/q.bf", Dimensions => 3 );
+$tref = Language::Befunge->new( {file=>'t/_resources/q.bf', syntax=>'trefunge98'} );
 $tref->run_code;
 $out = slurp;
 ok( $out, "" );
 BEGIN { $tests += 1 };
 
 # Basic reading.
-$tref = Language::Befunge->new( Dimensions => 3 );
+$tref = Language::Befunge->new( {syntax=>'trefunge98'} );
 sel;
 $tref->read_file( "t/_resources/q.bf" );
 $tref->run_code;

@@ -8,125 +8,139 @@
 #
 
 package Language::Befunge::Interpreter;
-require 5.006;
+use 5.010;
 
 use strict;
 use warnings;
 
 use Carp;
-use Config;   # For the 'y' instruction.
 use Language::Befunge::IP;
-use Language::Befunge::LaheySpace;
-use Language::Befunge::LaheySpace::Generic;
-use Language::Befunge::Ops::Befunge98;
-use Language::Befunge::Ops::Unefunge98;
-use Language::Befunge::Ops::GenericFunge98;
+use UNIVERSAL::require;
+
+use base qw{ Class::Accessor::Fast };
+__PACKAGE__->mk_accessors( qw{ storage _wrapping } );
 
 # Public variables of the module.
 $| = 1;
-# the syntaxes hash allows funges to register their ops maps with us.
-our %syntaxes;
 
 
 # -- CONSTRUCTOR
 
 
 #
-# new( [filename, ] [ Key => Value, ... ] )
+# my $interpreter = LBI->new( $opts )
 #
-# Create a new Befunge interpreter.  As an optional first argument, you
-# can pass it a filename to read Funge code from (default: blank
-# torus).  All other arguments are key=>value pairs.  The following
-# keys are accepted, with their default values shown:
+# Create a new funge interpreter. One can pass some options as a hash
+# reference, with the following keys:
+#  - file:     the filename to read funge code from (default: blank storage)
+#  - syntax:   the tunings set (default: 'befunge98')
+#  - dims:     the number of dimensions
+#  - ops:      the Ops subclass used in this interpreter
+#  - storage:  the Storage subclass used in this interpreter
+#  - wrapping: the Wrapping subclass used in this interpreter
 #
-# 	Dimensions => 2,
-# 	Syntax     => 'befunge98',
-# 	Storage    => 'laheyspace'
+# Usually, the "dims", "ops", "storage" and "wrapping" keys are left
+# undefined, and are implied by the "syntax" key.
+#
+# Depending on the value of syntax will change the interpreter
+# internals: set of allowed ops, storage implementation, wrapping. The
+# following values are recognized for 'syntax' (with in order: the
+# number of dimensions, the set of operation loaded, the storage
+# implementation and the wrapping implementation):
+#
+#  - unefunge98: 1, LBO:Unefunge98, LBS:Generic::AoA, LBW:LaheySpace
+#  - befunge98:  2, LBO:Befunge98,  LBS:2D:Sparse,    LBW:LaheySpace
+#  - trefunge98: 3, LBO:GenericFunge98, LBS:Generic::AoA, LBW:LaheySpace
+#  - 4funge98:   4, LBO:GenericFunge98, LBS:Generic::AoA, LBW:LaheySpace
+#  - 5funge98:   5, LBO:GenericFunge98, LBS:Generic::AoA, LBW:LaheySpace
+#  ...and so on.
+#
+#
+# If none of those values suit your needs, you can pass the value
+# 'custom' and in that case you're responsible for also giving
+# appropriate values for the keys 'dims', 'ops', 'storage', 'wrapping'.
+# Note that those values will be ignored for all syntax values beside
+# 'custom'.
 #
 sub new {
-    # Create and bless the object.
-    my $class = shift;
+    my ($class, $opts) = @_;
 
-    my $file;
-    # an odd number of arguments means a filename was passed.  (Previous
-    # revs took an optional file argument; this is preserved for reverse
-    # compatibility.)
-    $file = shift if(scalar @_ & 1);
-    my %args = @_;
-    $args{Dimensions} = 2            unless exists($args{Dimensions});
-    $args{Storage}    = 'laheyspace' unless exists($args{Storage});
-
-    if(defined($args{Syntax})) {
-    	# accept values like "4Funge98"
-	    if(lc($args{Syntax}) =~ /^(\d+)funge98$/) {
-	    	$args{Syntax} = 'genericfunge98';
-	    	$args{Dimensions} = $1;
-	    }
-
-	    # accept "Trefunge98"
-	    elsif(lc($args{Syntax}) eq 'trefunge98') {
-	    	# 3D-and-above Funges have the same instruction sets, for now.
-	    	$args{Syntax} = 'genericfunge98';
-	    	$args{Dimensions} = 3;
-	    }
-
-	    # accept "Unefunge98"
-	    elsif(lc($args{Syntax}) eq 'unefunge98') {
-	    	$args{Syntax} = 'unefunge98';
-	    	$args{Dimensions} = 1;
-	    }
-    } else {
-    	if($args{Dimensions} == 1) {
-    		$args{Syntax} = 'unefunge98';
-    	}
-    	elsif($args{Dimensions} == 2) {
-    		$args{Syntax} = 'befunge98';
-    	}
-    	else {
-	    	# 3D-and-above Funges have the same instruction sets, for now.
-    		$args{Syntax} = 'genericfunge98';
-    	}
+    $opts //= { dims => 2 };
+    unless(exists($$opts{syntax})) {
+        $$opts{dims} //= 2;
+        croak("If you pass a 'dims' attribute, it must be numeric.")
+            if $$opts{dims} =~ /\D/;
+        my %defaults = (
+            1 => 'unefunge98',
+            2 => 'befunge98',
+            3 => 'trefunge98',
+        );
+        if(exists($defaults{$$opts{dims}})) {
+            $$opts{syntax} = $defaults{$$opts{dims}};
+        } else {
+            $$opts{syntax} = $$opts{dims} . 'funge98';
+        }
     }
 
-    my $self  =
-      { dimensions => $args{Dimensions},
-        file     => "STDIN",
-        params   => [],
-        retval   => 0,
-        DEBUG    => 0,
-        curip    => undef,
-        ips      => [],
-        newips   => [],
-        handprint => 'JQBF98', # the handprint of the interpreter.
+    # select the classes to use, depending on the wanted syntax.
+    my $lbo = 'Language::Befunge::Ops::';
+    my $lbs = 'Language::Befunge::Storage::';
+    my $lbw = 'Language::Befunge::Wrapping::';
+    given ( $opts->{syntax} ) {
+        when ('unefunge98') {
+            $opts->{dims}     //= 1;
+            $opts->{ops}      //= $lbo . 'Unefunge98';
+            $opts->{storage}  //= $lbs . 'Generic::AoA';
+            $opts->{wrapping} //= $lbw . 'LaheySpace';
+        }
+        when ('befunge98') {
+            $opts->{dims}     //= 2;
+            $opts->{ops}      //= $lbo . 'Befunge98';
+            $opts->{storage}  //= $lbs . '2D::Sparse';
+            $opts->{wrapping} //= $lbw . 'LaheySpace';
+        }
+        when ('trefunge98') {
+            $opts->{dims}     //= 3;
+            $opts->{ops}      //= $lbo . 'GenericFunge98';
+            $opts->{storage}  //= $lbs . 'Generic::AoA';
+            $opts->{wrapping} //= $lbw . 'LaheySpace';
+        }
+        when (/(\d+)funge98$/) { # accept values like "4funge98"
+            $opts->{dims}     //= $1;
+            $opts->{ops}      //= $lbo . 'GenericFunge98';
+            $opts->{storage}  //= $lbs . 'Generic::AoA';
+            $opts->{wrapping} //= $lbw . 'LaheySpace';
+        }
+        default { croak "syntax '$opts->{syntax}' not recognized." }
+    }
+
+    # load the classes (through UNIVERSAL::require)
+    $opts->{ops}->use;
+    $opts->{storage}->use;
+    $opts->{wrapping}->use;
+
+    # create the object
+    my $wrapping = $opts->{wrapping}->new;
+    my $self  = {
+        dimensions => $opts->{dims},
+        storage    => $opts->{storage}->new( $opts->{dims}, Wrapping => $wrapping ),
+        file       => "STDIN",
+        params     => [],
+        retval     => 0,
+        DEBUG      => 0,
+        curip      => undef,
+        ops        => $opts->{ops}->get_ops_map,
+        ips        => [],
+        newips     => [],
+        handprint  => 'JQBF98', # the official handprint
+        _wrapping  => $wrapping,
       };
     bless $self, $class;
 
-    # TODO: if we're going to have multiple types of storage, we'll need a
-    # registration API for them, and replace this with a hash lookup or
-    # something.  Also, revisit this when wrapping is split into a separate
-    # module from topology.
-    if($args{Storage} eq 'laheyspace') {
-    	if($args{Dimensions} == 2) {
-    		# the 2D-specific LaheySpace is probably faster.
-    		$$self{torus} = Language::Befunge::LaheySpace->new();
-    	} else {
-    		$$self{torus} = Language::Befunge::LaheySpace::Generic->new($args{Dimensions});
-    	}
-    } else {
-	    die "Only laheyspace storages are supported, for the moment.\n";
-    }
+    # read the file if needed.
+    defined($opts->{file}) and $self->read_file( $opts->{file} );
 
-    $args{Syntax} = lc($args{Syntax});
-    if(exists($syntaxes{$args{Syntax}})) {
-        $$self{ops} = &{$syntaxes{$args{Syntax}}}();
-    } else {
-	    die "Supported Syntax types: " . join(", ",keys(%syntaxes));
-    }
-
-    # Read the file if needed.
-    defined($file) and $self->read_file( $file );
-
-    # Return the object.
+    # return the object.
     return $self;
 }
 
@@ -171,11 +185,8 @@ sub new {
 # get_retval() / set_retval()
 # the current return value of the interpreter (an integer)
 #
-# get_torus() / set_torus()
-# the current Lahey space (a L::B::LaheySpace object)
-#
 BEGIN {
-    my @attrs = qw[ dimensions file params retval DEBUG curip ips newips ops torus handprint ];
+    my @attrs = qw[ dimensions file params retval DEBUG curip ips newips ops handprint ];
     foreach my $attr ( @attrs ) {
         my $code = qq[ sub get_$attr { return \$_[0]->{$attr} } ];
         $code .= qq[ sub set_$attr { \$_[0]->{$attr} = \$_[1] } ];
@@ -190,39 +201,38 @@ BEGIN {
 
 
 #
-# move_curip( [regex] )
+# move_ip( $ip [,regex] )
 #
-# Move the current IP according to its delta on the LaheySpace topology.
+# Move $ip according to its delta on the storage.
 #
-# If a regex ( a C<qr//> object ) is specified, then IP will move as
+# If a regex ( a C<qr//> object ) is specified, then $ip will move as
 # long as the pointed character match the supplied regex.
 #
 # Example: given the code C<;foobar;> (assuming the IP points on the
 # first C<;>) and the regex C<qr/[^;]/>, the IP will move in order to
 # point on the C<r>.
 #
-sub move_curip {
-    my ($self, $re) = @_;
-    my $curip = $self->get_curip;
-    my $torus = $self->get_torus;
+sub move_ip {
+    my ($self, $ip, $re) = @_;
+    my $storage = $self->storage;
 
     if ( defined $re ) {
-        my $orig = $curip->get_position;
-        # Moving as long as we did not reach the condition.
-        while ( $torus->get_char($curip->get_position) =~ $re ) {
-            $torus->move_ip_forward($curip);
+        my $orig = $ip->get_position;
+        # moving as long as we did not reach the condition.
+        while ( $storage->get_char($ip->get_position) =~ $re ) {
+            $self->_move_ip_forward($ip);
             $self->abort("infinite loop")
-                if ( $curip->get_position == $orig );
+                if $ip->get_position == $orig;
         }
 
-        # We moved one char too far.
-        $curip->dir_reverse;
-        $torus->move_ip_forward($curip);
-        $curip->dir_reverse;
+        # we moved one char too far.
+        $ip->dir_reverse;
+        $self->_move_ip_forward($ip);
+        $ip->dir_reverse;
 
     } else {
-        # Moving one step beyond...
-        $torus->move_ip_forward($curip);
+        # moving one step beyond...
+        $self->_move_ip_forward($ip);
     }
 }
 
@@ -290,8 +300,8 @@ sub read_file {
 sub store_code {
     my ($self, $code) = @_;
     $self->debug( "Storing code\n" );
-    $self->get_torus->clear;
-    $self->get_torus->store( $code );
+    $self->storage->clear;
+    $self->storage->store( $code );
 }
 
 
@@ -357,8 +367,8 @@ sub process_ip {
 
     # Fetch values for this IP.
     my $v  = $ip->get_position;
-    my $ord  = $self->get_torus->get_value( $v );
-    my $char = $self->get_torus->get_char( $v );
+    my $ord  = $self->storage->get_value( $v );
+    my $char = $self->storage->get_char( $v );
 
     # Cosmetics.
     $self->debug( "#".$ip->get_id.":$v: $char (ord=$ord)  Stack=(@{$ip->get_toss})\n" );
@@ -373,7 +383,7 @@ sub process_ip {
         } elsif ( $char eq ' ' ) {
             # A serie of spaces, to be treated as one space.
             $self->debug( "string-mode: pushing char ' '\n" );
-            $self->move_curip( qr/ / );
+            $self->move_ip( $ip, qr/ / );
             $ip->spush( $ord );
 
         } else {
@@ -399,8 +409,38 @@ sub process_ip {
     if ($continue) {
         # Tick done for this IP, let's move it and push it in the
         # set of non-terminated IPs.
-        $self->move_curip;
+        $self->move_ip( $self->get_curip );
         push @{ $self->get_newips }, $ip unless $ip->get_end;
+    }
+}
+
+#-- PRIVATE METHODS
+
+
+#
+# $lbi->_move_ip_forward( $ip );
+#
+# move $ip one step further, according to its velocity. if $ip gets out
+# of bounds, then a wrapping is performed (according to current
+# interpreter wrapping implementation) on the ip.
+#
+sub _move_ip_forward {
+    my ($self, $ip) = @_;
+    my $storage = $self->storage;
+
+    # fetch the current position of the ip.
+    my $v = $ip->get_position;
+    my $d = $ip->get_delta;
+
+    # now, let's move the ip.
+    $v += $d;
+
+    if ( $v->bounds_check($storage->min, $storage->max) ) {
+        # within bounds - store new position.
+        $ip->set_position( $v );
+    } else {
+        # wrap needed - this will update the position.
+        $self->_wrapping->wrap( $storage, $ip );
     }
 }
 
@@ -472,10 +512,6 @@ the parameters of the script (an array reference)
 
 the current return value of the interpreter (an integer)
 
-=item get_torus() / set_torus()
-
-the current Lahey space (a L::B::LaheySpace object)
-
 =back
 
 
@@ -485,11 +521,11 @@ the current Lahey space (a L::B::LaheySpace object)
 
 =over 4
 
-=item move_curip( [regex] )
+=item move_ip( $ip [, $regex] )
 
-Move the current IP according to its delta on the LaheySpace topology.
+Move the C<$ip> according to its delta on the storage.
 
-If a regex ( a C<qr//> object ) is specified, then IP will move as
+If C<$regex> ( a C<qr//> object ) is specified, then C<$ip> will move as
 long as the pointed character match the supplied regex.
 
 Example: given the code C<;foobar;> (assuming the IP points on the

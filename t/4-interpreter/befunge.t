@@ -46,7 +46,7 @@ sub slurp () {
 
 # Basic constructor.
 sel;
-$bef = Language::Befunge->new( "t/_resources/q.bf" );
+$bef = Language::Befunge->new( {file => "t/_resources/q.bf"} );
 $bef->run_code;
 $out = slurp;
 is( $out, "" );
@@ -73,10 +73,6 @@ BEGIN { $tests += 1 };
     is( $warning, "",      "debug does not warn when DEBUG is off" );
 }
 BEGIN { $tests += 3 };
-
-
-# useless tests for unused accessor - in order for coverage to be complete.
-$bef->set_torus( );
 
 
 # Basic reading.

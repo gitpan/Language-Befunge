@@ -26,6 +26,6 @@ $lbi = Language::Befunge::Interpreter->new;
 $ip  = Language::Befunge::IP->new;
 $v   = Language::Befunge::Vector->new(0,0);
 $lbi->set_curip( $ip );
-$lbi->get_torus->set_value( $v, ord('e') );
+$lbi->storage->set_value( $v, ord('e') );
 Language::Befunge::Ops::num_push_number( $lbi );
 is( $ip->spop, 14, 'num_push_number pushes current instruction on the stack as number' );

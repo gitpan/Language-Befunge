@@ -8,7 +8,7 @@
 #
 
 package Language::Befunge::Ops::Unefunge98;
-require 5.006;
+require 5.010;
 
 use strict;
 use warnings;
@@ -110,7 +110,6 @@ sub get_ops_map {
     };
 }
 
-$Language::Befunge::Interpreter::syntaxes{unefunge98} = \&get_ops_map;
 1;
 
 __END__

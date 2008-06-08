@@ -15,18 +15,19 @@ use integer;
 use Carp;
 
 use overload
-	'='   => \&copy,
-	'+'   => \&_add,
-	'-'   => \&_substract,
-	'neg' => \&_invert,
-	'+='  => \&_add_inplace,
+    '='   => \&copy,
+    '+'   => \&_add,
+    '-'   => \&_substract,
+    'neg' => \&_invert,
+    '+='  => \&_add_inplace,
     '-='  => \&_substract_inplace,
-	'<=>' => \&_compare,
-	'""'  => \&as_string;
+    '<=>' => \&_compare,
+    '""'  => \&as_string;
 
 # try to load speed-up LBV
 eval 'use Language::Befunge::Vector::XS';
 if ( defined $Language::Befunge::Vector::XS::VERSION ) {
+    my $xsversion = $Language::Befunge::Vector::XS::VERSION;
     my @subs = qw[
         new new_zeroes copy
         as_string get_dims get_component get_all_components
@@ -42,6 +43,25 @@ if ( defined $Language::Befunge::Vector::XS::VERSION ) {
         my $lbvxs_sub = "Language::Befunge::Vector::XS::$sub";
         *$sub = \&$lbvxs_sub;
     }
+    # LBV::XS 1.1.0 adds rasterize()
+    @subs = qw[ rasterize _xs_rasterize_ptr ];
+    if($xsversion gt "1.0.0") {
+        # import the XS functions from LBVXS
+        no strict 'refs';
+        no warnings 'redefine';
+        foreach my $sub (@subs) {
+            my $lbvxs_sub = "Language::Befunge::Vector::XS::$sub";
+            *$sub = \&$lbvxs_sub;
+        }
+    } else {
+        # export the pure-perl functions to LBVXS
+        no strict 'refs';
+        no warnings 'redefine';
+        foreach my $sub (@subs) {
+            my $lbvxs_sub = "Language::Befunge::Vector::XS::$sub";
+            *$lbvxs_sub = \&$sub;
+        }
+    }
 }
 
 
@@ -54,16 +74,16 @@ if ( defined $Language::Befunge::Vector::XS::VERSION ) {
 # integer per dimension.
 #
 sub new {
-	my $pkg = shift;
+    my $pkg = shift;
 
     # sanity checks
-	my $usage = "Usage: $pkg->new(\$x, ...)";
-	croak $usage unless scalar(@_) > 0;
+    my $usage = "Usage: $pkg->new(\$x, ...)";
+    croak $usage unless scalar(@_) > 0;
 
     # regular LBV object
     my $self = [@_];
     bless $self, $pkg;
-	return $self;
+    return $self;
 }
 
 
@@ -77,14 +97,14 @@ sub new_zeroes {
     my ($pkg, $dims) = @_;
 
     # sanity checks
-	my $usage = "Usage: $pkg->new_zeroes(\$dimensions)";
-	croak $usage unless defined $dims;
-	croak $usage unless $dims > 0;
+    my $usage = "Usage: $pkg->new_zeroes(\$dimensions)";
+    croak $usage unless defined $dims;
+    croak $usage unless $dims > 0;
 
     # regular LBV object
     my $self = [ (0) x $dims ];
     bless $self, $pkg;
-	return $self;
+    return $self;
 }
 
 
@@ -113,8 +133,8 @@ sub copy {
 # might look like "(1,2)".
 #
 sub as_string {
-	my $self = shift;
-	return "(" . join(",",@$self) . ")";
+    my $self = shift;
+    return "(" . join(",",@$self) . ")";
 }
 
 
@@ -124,8 +144,8 @@ sub as_string {
 # Return the number of dimensions, an integer.
 #
 sub get_dims {
-	my $self = shift;
-	return scalar(@$self);
+    my $self = shift;
+    return scalar(@$self);
 }
 
 
@@ -186,15 +206,48 @@ sub set_component {
 # Return 1 if vector is contained within the box, and 0 otherwise.
 #
 sub bounds_check {
-	my ($vchk, $begin, $end) = @_;
-	croak "uneven dimensions in bounds check!" unless $vchk->get_dims == $begin->get_dims;
-	croak "uneven dimensions in bounds check!" unless $vchk->get_dims == $end->get_dims;
-	for (my $d = 0; $d < $vchk->get_dims; $d++) {
-		return 0 if $vchk->get_component($d) < $begin->get_component($d);
-		return 0 if $vchk->get_component($d) >   $end->get_component($d);
-	}
-	return 1;
+    my ($vchk, $begin, $end) = @_;
+    croak "uneven dimensions in bounds check!" unless $vchk->get_dims == $begin->get_dims;
+    croak "uneven dimensions in bounds check!" unless $vchk->get_dims == $end->get_dims;
+    for (my $d = 0; $d < $vchk->get_dims; $d++) {
+        return 0 if $vchk->get_component($d) < $begin->get_component($d);
+        return 0 if $vchk->get_component($d) >   $end->get_component($d);
+    }
+    return 1;
 }
+
+
+#
+# $vec = $vec->rasterize($min, $max);
+#
+# Return the next vector in raster order, or undef if the hypercube space
+# has been fully covered.  To enumerate the entire storage area, the caller
+# should call rasterize on the storage area's "min" value the first time,
+# and keep looping while the return value is defined.  To enumerate a
+# smaller rectangle, the caller should pass in the min and max vectors
+# describing the rectangle, and keep looping while the return value is
+# defined.
+#
+
+sub rasterize {
+    my ($v, $min, $max) = @_;
+    return undef unless $v->bounds_check($min, $max);
+    $v = $v->copy;
+    my $nd = $v->get_dims();
+    for my $d (0..$nd-1) {
+        if($v->get_component($d) >= $max->get_component($d)) {
+            # wrap to the next highest dimension, continue loop
+            $v->set_component($d, $min->get_component($d));
+        } else {
+            # still have farther to go in this dimension.
+            $v->set_component($d, $v->get_component($d) + 1);
+            return $v;
+        }
+    }
+    # ran out of dimensions!
+    return undef;
+}
+
 
 
 # -- PRIVATE METHODS
@@ -208,13 +261,10 @@ sub bounds_check {
 # Return a new LBV object, which is the result of $v1 plus $v2.
 #
 sub _add {
-	my ($v1, $v2) = @_;
-	croak "uneven dimensions in vector addition!" unless $v1->get_dims == $v2->get_dims;
-	my $rv = ref($v1)->new_zeroes($v1->get_dims);
-	for (my $i = 0; $i < $v1->get_dims; $i++) {
-		$rv->[$i] = $v1->[$i] + $v2->[$i];
-	}
-	return $rv;
+    my ($v1, $v2) = @_;
+    my $nd = scalar @$v1;
+    croak "uneven dimensions in vector addition!" unless $nd == scalar @$v2;
+    return ref($v1)->new(map { $$v1[$_] + $$v2[$_] } (0..$nd-1));
 }
 
 
@@ -226,16 +276,12 @@ sub _add {
 #
 sub _substract {
     my ($v1, $v2) = @_;
-    croak "uneven dimensions in vector subtraction!" unless $v1->get_dims == $v2->get_dims;
-    my $rv = ref($v1)->new_zeroes($v1->get_dims);
-    for (my $i=0; $i<$v1->get_dims; $i++) {
-        $rv->[$i] = $v1->[$i] - $v2->[$i];
-    }
-    return $rv;
+    my $nd = scalar @$v1;
+    croak "uneven dimensions in vector subtraction!" unless $nd == scalar @$v2;
+    return ref($v1)->new(map { $$v1[$_] - $$v2[$_] } (0..$nd-1));
 }
 
 
- 
 #
 # my $v2 = $v1->_invert;
 # my $v2 = -$v1;
@@ -246,11 +292,8 @@ sub _substract {
 #
 sub _invert {
     my ($v1) = @_;
-    my $rv = ref($v1)->new_zeroes($v1->get_dims);
-    for (my $i = 0; $i < $v1->get_dims; $i++) {
-        $rv->[$i] = -$v1->[$i];
-    }
-    return $rv;
+    my $nd = scalar @$v1;
+    return ref($v1)->new(map { -$_ } (@$v1));
 }
 
 
@@ -263,10 +306,9 @@ sub _invert {
 #
 sub _add_inplace {
     my ($v1, $v2) = @_;
-    croak "uneven dimensions in vector addition!" unless $v1->get_dims == $v2->get_dims;
-    for (my $i = 0; $i < $v1->get_dims; $i++) {
-        $v1->[$i] += $v2->[$i];
-    }
+    my $nd = scalar @$v1;
+    croak "uneven dimensions in vector addition!" unless $nd == scalar @$v2;
+    map { $$v1[$_] += $$v2[$_] } (0..$nd-1);
     return $v1;
 }
 
@@ -278,12 +320,11 @@ sub _add_inplace {
 # Substract $v2 to $v1, and stores the result back into $v1.
 #
 sub _substract_inplace {
-	my ($v1, $v2) = @_;
-	croak "uneven dimensions in vector substraction!" unless $v1->get_dims == $v2->get_dims;
-	for (my $i = 0; $i < $v1->get_dims; $i++) {
-		$v1->[$i] -= $v2->[$i];
-	}
-	return $v1;
+    my ($v1, $v2) = @_;
+    my $nd = scalar @$v1;
+    croak "uneven dimensions in vector substraction!" unless $nd == scalar @$v2;
+    map { $$v1[$_] -= $$v2[$_] } (0..$nd-1);
+    return $v1;
 }
 
 
@@ -297,13 +338,33 @@ sub _substract_inplace {
 # do, 1 if they don't.
 #
 sub _compare {
- 	my ($v1, $v2) = @_;
- 	croak "uneven dimensions in bounds check!" unless $v1->get_dims == $v2->get_dims;
-	for (my $d = 0; $d < $v1->get_dims; $d++) {
-		return 1 if $v1->get_component($d) != $v2->get_component($d);
- 	}
-	return 0;
+    my ($v1, $v2) = @_;
+    my $nd = scalar @$v1;
+    croak "uneven dimensions in bounds check!" unless $nd == scalar @$v2;
+    for (my $d = 0; $d < $nd; $d++) {
+        return 1 if $$v1[$d] != $$v2[$d];
+    }
+    return 0;
 }
+
+
+#- other private methods
+
+#
+# my $ptr = $v1->_xs_rasterize_ptr();
+#
+# Get a pointer to the C "rasterize" function.  Returns undef if LBVXS is not
+# loaded.  This is useful for external XS modules, because calling the C
+# function directly is faster.
+#
+# The prototype of the C rasterize function is:
+#
+#     AV *rasterize(AV *vec_array, AV *min_array, AV *max_array);
+#
+# It operates just like the perl rasterize function, and returns NULL when the
+# end of the loop has been reached.
+#
+sub _xs_rasterize_ptr { return undef }
 
 
 1;
@@ -397,6 +458,18 @@ Check whether C<$vec> is within the box defined by C<$begin> and C<$end>.
 Return 1 if vector is contained within the box, and 0 otherwise.
 
 
+=head2 $vec->rasterize($min, $max);
+
+Return the next vector in raster order, or undef if the hypercube space
+has been fully covered.
+
+To enumerate the entire storage area, the caller should call rasterize
+on the storage area's "min" value the first time, and keep looping while
+the return value is defined.  To enumerate a smaller rectangle, the
+caller should pass in the min and max vectors describing the rectangle,
+and keep looping while the return value is defined.
+
+
 
 =head1 MATHEMATICAL OPERATIONS
 
@@ -437,6 +510,24 @@ both point at the same spot.
 
     print "same"   if $v1 == $v2;
     print "differ" if $v1 != $v2;
+
+
+=head1 PRIVATE METHODS
+
+=head2 _xs_rasterize_ptr
+
+    my $ptr = $v1->_xs_rasterize_ptr();
+
+Get a pointer to the C "rasterize" function.  Returns undef if LBVXS is not
+loaded.  This is useful for external XS modules, to allow them to call the
+C function directly for additional speed.
+
+The prototype of the C rasterize function is:
+
+    AV *rasterize(AV *vec_array, AV *min_array, AV *max_array);
+
+It operates just like the perl rasterize function, and returns NULL when the
+end of the loop has been reached.
 
 
 =head1 SEE ALSO

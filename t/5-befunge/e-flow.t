@@ -176,7 +176,7 @@ END_OF_CODE
 eval { $bef->run_code; };
 $out = slurp;
 ok( $@, qr/Attempt to repeat \('k'\) a repeat instruction \('k'\)/ );
-sel; # move_curip() short circuits on a dead end
+sel; # move_ip() short circuits on a dead end
 $bef->store_code( <<'END_OF_CODE' );
 
 END_OF_CODE
@@ -184,7 +184,7 @@ $bef->get_curip->set_position( Language::Befunge::Vector->new_zeroes(2) );
 eval {
     local $SIG{ALRM} = sub { die "timeout\n" };
     alarm 10;
-    $bef->move_curip(qr/ /);
+    $bef->move_ip($bef->get_curip, qr/ /);
     alarm 0;
 };
 $out = slurp;

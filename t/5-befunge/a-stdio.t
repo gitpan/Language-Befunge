@@ -135,10 +135,10 @@ v qiv# "t/_resources/hello.bf"0  <
 END_OF_CODE
 $bef->run_code;
 $out = slurp;
-is( $bef->get_torus->rectangle
+is( $bef->storage->rectangle
     ( Language::Befunge::Vector->new( 6, 9),
       Language::Befunge::Vector->new( 71, 1) ),
-    qq{v q  ,,,,,,,,,,,,,"hello world!"a <\n>                                 ^} . "\n" );
+    qq{v q  ,,,,,,,,,,,,,"hello world!"a <\n>                                 ^} );
 is( $out, "" );
 BEGIN { $tests += 2 };
 
@@ -169,7 +169,7 @@ open FOO, "<t/foo.txt" or die $!;
     local $/;
     $slurp = <FOO>;
 }
-is( $slurp, "foo!\n    \n;-) \n    \n" );
+is( $slurp, "foo!\n    \n;-) \n    " );
 unlink "t/foo.txt";
 sel; # flag: text file.
 $bef->store_code( <<'END_OF_CODE' );

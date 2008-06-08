@@ -32,7 +32,7 @@ Just provide the name of the Befunge script, and there you go!
 my %opts;
 Getopt::Long::Configure('no_auto_abbrev', 'bundling', 'ignore_case', 'no_pass_through');
 GetOptions( \%opts, "verbose|v") or die;
-my $bef = Language::Befunge->new( shift );
+my $bef = Language::Befunge->new( {file=>shift} );
 $bef->set_DEBUG( $opts{verbose} );
 exit $bef->run_code( @ARGV );
 

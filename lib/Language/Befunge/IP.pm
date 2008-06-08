@@ -8,7 +8,7 @@
 #
 
 package Language::Befunge::IP;
-require 5.006;
+require 5.010;
 
 use strict;
 use warnings;
@@ -26,7 +26,7 @@ sub new {
     $dims = 2 unless defined $dims;
     my $self  =
       { id           => 0,
-      	dims         => $dims,
+        dims         => $dims,
         toss         => [],
         ss           => [],
         position     => Language::Befunge::Vector->new_zeroes($dims),
@@ -86,10 +86,10 @@ sub spush {
 }
 
 sub spush_vec {
-	my ($self) = shift;
-	foreach my $v (@_) {
-		$self->spush($v->get_all_components);
-	}
+    my ($self) = shift;
+    foreach my $v (@_) {
+        $self->spush($v->get_all_components);
+    }
 }
 
 sub spush_args {
@@ -277,9 +277,9 @@ sub soss_pop_mult {
 
 sub soss_push_vec {
     my $self = shift;
-	foreach my $v (@_) {
-		$self->soss_push($v->get_all_components);
-	}
+    foreach my $v (@_) {
+        $self->soss_push($v->get_all_components);
+    }
 }
 
 sub soss_pop {

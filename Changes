@@ -3,6 +3,7 @@ Revision history for Language::Befunge.
 High-level changelog
 ====================
 
+4.0x    LB:LS split in LBS/LBW
 3.0x    multidims, multiops possibilities
 2.0x    optimizing + test coverage
 1.2x    real LaheySpace support
@@ -15,6 +16,30 @@ High-level changelog
 
 Low-level changelog
 ===================
+
+4.00 Sun Jun  8 17:08:22 CEST 2008
+ - split LB::LaheySpace in LB::Storage and LB::Wrapping (jq, mg)
+ - first storage implementations:
+    . LBS:2D:Sparse      2-dims, sparse hash (jq)
+    . LBS:Generic:AoA    n-dims, array of arrays (jq, mg)
+    . LBS:Generic:Vec    n-dims, vec-based, supporting lbsgvxs (mg)
+    . LBS:Generic:Sparse n-dims, sparse hash (mg)
+ - first wrapping implementations:
+    . LBW:LaheySpace    funge98 wrapping (jq)
+ - LBI->new:
+    . stricter params checking (jq)
+    . easier to expand with syntaxes (jq)
+    . new alternative syntaxes (mg)
+ - requiring perl 5.10 (jq, mg)
+ - API changes:
+    . LBV has additional rasterize method (moved and expanded from LBGSGA) (mg)
+    . LBV supports accelerated rasterize method in LBVXS > 1.0.0 (mg)
+    . labels_lookup should return Vector objects. (mg)
+    . expand() should exist for all Storage modules. (mg)
+    . add get_dims() to the Storage API. (mg)
+ - new befunge lib: TEST (book)
+
+**
 
 3.05 Tue Jan 22 17:52:27 CET 2008
  - LBV now uses an array internally for more efficiency

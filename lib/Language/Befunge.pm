@@ -8,7 +8,7 @@
 #
 
 package Language::Befunge;
-require 5.006;
+require 5.010;
 
 use strict;
 use warnings;
@@ -17,7 +17,7 @@ use Carp;
 use Language::Befunge::Interpreter;
 
 # Public variables of the module.
-our $VERSION = '3.05';
+our $VERSION = '4.00';
 $| = 1;
 
 sub new {
@@ -36,7 +36,7 @@ Language::Befunge - a Befunge-98 interpreter
 =head1 SYNOPSIS
 
     use Language::Befunge;
-    my $interp = Language::Befunge->new( "program.bf" );
+    my $interp = Language::Befunge->new( { file => 'program.bf' } );
     $interp->run_code( "param", 7, "foo" );
 
     Or, one can write directly:
