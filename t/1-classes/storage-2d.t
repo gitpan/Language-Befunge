@@ -15,16 +15,12 @@
 use strict;
 use warnings;
 
+use Test::Exception;
 use Test::More tests => 91;
 
 use Language::Befunge::Storage::2D::Sparse;
 use aliased 'Language::Befunge::Vector' => 'LBV';
 use List::Util qw{ max };
-
-# check prereq for test
-eval 'use Test::Exception';
-my $has_test_exception = defined($Test::Exception::VERSION);
-
 
 # vars used within the file
 my ($href, $l, $s, $str, $v);
@@ -44,12 +40,9 @@ is($s->get_dims, 2, '2D::Sparse objects report 2 dimensions');
 $s = Language::Befunge::Storage::2D::Sparse->new(2);
 is($s->get_dims, 2, '2D::Sparse objects still report 2 dimensions');
 
-SKIP: {
-    skip 'need Test::Exception', 1 unless $has_test_exception;
-    throws_ok(sub { Language::Befunge::Storage::2D::Sparse->new(3) },
-        qr/only useful for 2-dimensional storage/,
-        'new() chokes on non-2 dimensionality');
-}
+throws_ok(sub { Language::Befunge::Storage::2D::Sparse->new(3) },
+    qr/only useful for 2-dimensional storage/,
+    'new() chokes on non-2 dimensionality');
 
 
 #-- storage update
@@ -368,12 +361,9 @@ $s->store( <<'EOF', LBV->new(-2, -1 ));
    ;:foo is foo;1
    2;another oof:;
 EOF
-SKIP: {
-    skip 'need Test::Exception', 1 unless $has_test_exception;
-	throws_ok(sub { $s->labels_lookup },
-		qr/^Help! I found two labels 'foo' in the funge space/,
-        'labels_lookup() chokes on double-defined labels');
-}
+throws_ok(sub { $s->labels_lookup },
+	qr/^Help! I found two labels 'foo' in the funge space/,
+       'labels_lookup() chokes on double-defined labels');
 
 
 __END__

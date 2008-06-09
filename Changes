@@ -17,6 +17,9 @@ High-level changelog
 Low-level changelog
 ===================
 
+4.01 Mon Jun  9 17:33:48 CEST 2008
+ - Test::Exception now a hard prereq of the module
+
 4.00 Sun Jun  8 17:08:22 CEST 2008
  - split LB::LaheySpace in LB::Storage and LB::Wrapping (jq, mg)
  - first storage implementations:

@@ -25,6 +25,7 @@ my $builder = Module::Build->new
         'List::Util'            => 0,
         'Readonly'              => 0,
         'Storable'              => 0,
+        'Test::Exception'       => 0,
         'Test::More'            => 0,
         'UNIVERSAL::require'    => 0,
     },
@@ -40,7 +41,6 @@ my $builder = Module::Build->new
     },
     recommends           => {
         'Language::Befunge::Vector::XS' => '0.2.2',
-        'Test::Exception'               => 0,
         'Test::Pod'                     => 0,
         'Test::Pod::Coverage'           => 0,
     },

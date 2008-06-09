@@ -15,13 +15,9 @@
 use strict;
 use warnings;
 
+use Test::Exception;
 use Test::More tests => 33;
 use Language::Befunge::Interpreter;
-
-
-# check prereq for test
-eval "use Test::Exception";
-my $has_test_exception = defined($Test::Exception::VERSION);
 
 
 #-- new()
@@ -74,12 +70,10 @@ isa_ok($interp->storage, 'Language::Befunge::Storage::Generic::Vec', "storage ob
 is($interp->storage->get_dims, 2, "storage has same number of dimensions");
 
 # nonsensical combinations are rejected
-SKIP: {
-    skip "need Test::Exception", 1 unless $has_test_exception;
-    throws_ok(sub { Language::Befunge::Interpreter->new({ dims => 3, syntax => 'befunge98' }) },
-        qr/only useful for 2-dimensional/, "LBS2S rejects non-2D");
-    throws_ok(sub { Language::Befunge::Interpreter->new({ storage => 'Nonexistent::Module' }) },
-        qr/via package "Nonexistent::Module"/, "unfound Storage module");
-    throws_ok(sub { Language::Befunge::Interpreter->new({ ops => 'Nonexistent::Module' }) },
-        qr/via package "Nonexistent::Module"/, "unfound Ops module");
-}
+throws_ok(sub { Language::Befunge::Interpreter->new({ dims => 3, syntax => 'befunge98' }) },
+    qr/only useful for 2-dimensional/, "LBS2S rejects non-2D");
+throws_ok(sub { Language::Befunge::Interpreter->new({ storage => 'Nonexistent::Module' }) },
+    qr/via package "Nonexistent::Module"/, "unfound Storage module");
+throws_ok(sub { Language::Befunge::Interpreter->new({ ops => 'Nonexistent::Module' }) },
+    qr/via package "Nonexistent::Module"/, "unfound Ops module");
+

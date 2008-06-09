@@ -15,16 +15,13 @@
 use strict;
 use warnings;
 
+use Test::Exception;
 use Test::More tests => 92;
 
 use aliased 'Language::Befunge::Storage::Generic::Sparse' => 'Storage';
 use Language::Befunge::Wrapping::LaheySpace;
 use aliased 'Language::Befunge::Vector' => 'LBV';
 use List::Util qw{ max };
-
-# check prereq for test
-eval 'use Test::Exception';
-my $has_test_exception = defined($Test::Exception::VERSION);
 
 
 # vars used within the file
@@ -364,12 +361,9 @@ $s->store( <<'EOF', LBV->new(-2, -1 ));
    ;:foo is foo;1
    2;another oof:;
 EOF
-SKIP: {
-    skip 'need Test::Exception', 1 unless $has_test_exception;
-	throws_ok(sub { $s->labels_lookup },
-		qr/^Help! I found two labels 'foo' in the funge space/,
-        'labels_lookup() chokes on double-defined labels');
-}
+throws_ok(sub { $s->labels_lookup },
+	qr/^Help! I found two labels 'foo' in the funge space/,
+    'labels_lookup() chokes on double-defined labels');
 
 
 

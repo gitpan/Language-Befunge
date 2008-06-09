@@ -15,14 +15,10 @@
 use strict;
 use warnings;
 
+use Test::Exception;
 use Test::More tests => 122;
 
 use Language::Befunge::Vector;
-
-
-# check prereq for test
-eval "use Test::Exception";
-my $has_test_exception = defined($Test::Exception::VERSION);
 
 
 my ($v1, $v2, $v3, $v4, @coords);
@@ -41,11 +37,8 @@ is($v1->get_component(1),         8, "Y is correct");
 is($v1->get_component(2),         9, "Z is correct");
 is($v1->as_string,        '(7,8,9)', "stringifies back to (7,8,9)");
 is("$v1",                 '(7,8,9)', "overloaded stringify back to (7,8,9)");
-SKIP: {
-    skip "need Test::Exception", 1 unless $has_test_exception;
-	throws_ok(sub { Language::Befunge::Vector->new() },
-		qr/Usage/, "LBV->new needs a defined 'dimensions' argument");
-}
+throws_ok(sub { Language::Befunge::Vector->new() },
+	qr/Usage/, "LBV->new needs a defined 'dimensions' argument");
 
 
 # new_zeroes()
@@ -57,13 +50,10 @@ is($v1->get_component(1),           0, "Y is correct");
 is($v1->get_component(2),           0, "Z is correct");
 is($v1->get_component(3),           0, "T is correct");
 is("$v1",                 '(0,0,0,0)', "all values are 0");
-SKIP: {
-    skip "need Test::Exception", 2 unless $has_test_exception;
-	throws_ok(sub { Language::Befunge::Vector->new_zeroes() },
-		qr/Usage/, "LBV->new_zeroes needs a defined 'dimensions' argument");
-	throws_ok(sub { Language::Befunge::Vector->new_zeroes(0) },
-		qr/Usage/, "LBV->new_zeroes needs a non-zero 'dimensions' argument");
-}
+throws_ok(sub { Language::Befunge::Vector->new_zeroes() },
+	qr/Usage/, "LBV->new_zeroes needs a defined 'dimensions' argument");
+throws_ok(sub { Language::Befunge::Vector->new_zeroes(0) },
+	qr/Usage/, "LBV->new_zeroes needs a non-zero 'dimensions' argument");
 
 
 # copy()
@@ -89,13 +79,10 @@ is("$v3",    "(2,3,4,5)", "v3 hasn't changed");
 # get_component()
 # regular behaviour is tested all over this script.
 $v1 = Language::Befunge::Vector->new(2,3);
-SKIP: {
-    skip "need Test::Exception", 2 unless $has_test_exception;
-	throws_ok(sub { $v2d->get_component(-1) },
-		qr/No such dimension/, "get_component() checks min dimension");
-	throws_ok(sub { $v1->get_component(2) },
-		qr/No such dimension/, "get_component() checks max dimension");
-}
+throws_ok(sub { $v2d->get_component(-1) },
+	qr/No such dimension/, "get_component() checks min dimension");
+throws_ok(sub { $v1->get_component(2) },
+	qr/No such dimension/, "get_component() checks max dimension");
 
 
 # get_all_components()
@@ -132,13 +119,10 @@ is($v1->get_component(0),           9, "X is now 9");
 is($v1->get_component(1),           6, "Y is now 6");
 is($v1->get_component(2),           4, "Z is still 4");
 is($v1->get_component(3),           5, "T is still 5");
-SKIP: {
-    skip "need Test::Exception", 2 unless $has_test_exception;
-	throws_ok(sub { $v1->set_component(-1, 0) },
-		qr/No such dimension/, "set_component() checks min dimension");
-	throws_ok(sub { $v1->set_component(4, 0) },
-		qr/No such dimension/, "set_component() checks max dimension");
-}
+throws_ok(sub { $v1->set_component(-1, 0) },
+	qr/No such dimension/, "set_component() checks min dimension");
+throws_ok(sub { $v1->set_component(4, 0) },
+	qr/No such dimension/, "set_component() checks max dimension");
 
 
 #- other methods
@@ -156,15 +140,12 @@ foreach my $coords ( @coords ) {
     $v3 = Language::Befunge::Vector->new(@$coords);
     ok(!$v3->bounds_check($v1, $v2), "$v3 is within bounds");
 }
-SKIP: {
-    skip "need Test::Exception", 3 unless $has_test_exception;
-	throws_ok(sub { $v3d->bounds_check($v1, $v2) },
-		qr/uneven dimensions/, "bounds_check() catches wrong dimension in first arg");
-	throws_ok(sub { $v1->bounds_check($v3d, $v2) },
-		qr/uneven dimensions/, "bounds_check() catches wrong dimension in second arg");
-	throws_ok(sub { $v1->bounds_check($v2, $v3d) },
-		qr/uneven dimensions/, "bounds_check() catches wrong dimension in third arg");
-}
+throws_ok(sub { $v3d->bounds_check($v1, $v2) },
+	qr/uneven dimensions/, "bounds_check() catches wrong dimension in first arg");
+throws_ok(sub { $v1->bounds_check($v3d, $v2) },
+	qr/uneven dimensions/, "bounds_check() catches wrong dimension in second arg");
+throws_ok(sub { $v1->bounds_check($v2, $v3d) },
+	qr/uneven dimensions/, "bounds_check() catches wrong dimension in third arg");
 
 
 # rasterize
@@ -198,11 +179,8 @@ is("$v1",   '(4,5,6)', "addition doesn't change v1");
 is("$v2",   '(1,2,3)', "addition doesn't change v2");
 isa_ok($v3,            "Language::Befunge::Vector");
 is("$v3",   '(5,7,9)', "v3 is v1 plus v2");
-SKIP: {
-    skip "need Test::Exception", 1 unless $has_test_exception;
-	throws_ok(sub { my $blah = $v2d + $v3d },
-		qr/uneven dimensions/, "misaligned vector arithmetic (+)");
-}
+throws_ok(sub { my $blah = $v2d + $v3d },
+	qr/uneven dimensions/, "misaligned vector arithmetic (+)");
 
 
 # substraction
@@ -213,11 +191,8 @@ is("$v1",   '(4,5,6)', "substraction doesn't change v1");
 is("$v2",   '(3,2,1)', "substraction doesn't change v2");
 isa_ok($v3,            "Language::Befunge::Vector");
 is("$v3",   '(1,3,5)', "v3 is v1 minus v2");
-SKIP: {
-    skip "need Test::Exception", 1 unless $has_test_exception;
-	throws_ok(sub { my $blah = $v2d - $v3d },
-		qr/uneven dimensions/, "misaligned vector arithmetic (-)");
-}
+throws_ok(sub { my $blah = $v2d - $v3d },
+	qr/uneven dimensions/, "misaligned vector arithmetic (-)");
 
 
 # inversion
@@ -235,11 +210,8 @@ $v2 = Language::Befunge::Vector->new(1,2,3);
 $v1 += $v2;
 is("$v1", "(5,7,9)", "inplace addition changes v1");
 is("$v2", "(1,2,3)", "inplace addition doesn't change v2");
-SKIP: {
-    skip "need Test::Exception", 1 unless $has_test_exception;
-	throws_ok(sub { $v2d += $v3d },
-		qr/uneven dimensions/, "misaligned vector arithmetic (+=)");
-}
+throws_ok(sub { $v2d += $v3d },
+	qr/uneven dimensions/, "misaligned vector arithmetic (+=)");
 
 
 # inplace substraction
@@ -248,11 +220,8 @@ $v2 = Language::Befunge::Vector->new(3,2,1);
 $v1 -= $v2;
 is("$v1", "(1,3,5)", "inplace substraction changes v1");
 is("$v2", "(3,2,1)", "inplace substraction doesn't change v2");
-SKIP: {
-    skip "need Test::Exception", 1 unless $has_test_exception;
-	throws_ok(sub { $v2d -= $v3d },
-		qr/uneven dimensions/, "misaligned vector arithmetic (-=)");
-}
+throws_ok(sub { $v2d -= $v3d },
+	qr/uneven dimensions/, "misaligned vector arithmetic (-=)");
 
 
 #- comparison
@@ -269,11 +238,8 @@ foreach my $coords ( @coords ) {
     ok(!($v1 == $v3), "!(v1 == $v3)");
     ok(!($v2 == $v3), "!(v2 == $v3)");
 }
-SKIP: {
-    skip "need Test::Exception", 1 unless $has_test_exception;
-	throws_ok(sub { $v2d == $v3d },
-		qr/uneven dimensions/, "misaligned vector arithmetic (==)");
-}
+throws_ok(sub { $v2d == $v3d },
+	qr/uneven dimensions/, "misaligned vector arithmetic (==)");
 
 
 # inequality
@@ -288,9 +254,6 @@ foreach my $coords ( @coords ) {
     ok($v1 != $v3, "v1 != $v3)");
     ok($v2 != $v3, "v2 != $v3)");
 }
-SKIP: {
-    skip "need Test::Exception", 1 unless $has_test_exception;
-	throws_ok(sub { $v2d != $v3d },
-		qr/uneven dimensions/, "misaligned vector arithmetic (!=)");
-}
+throws_ok(sub { $v2d != $v3d },
+	qr/uneven dimensions/, "misaligned vector arithmetic (!=)");
 
