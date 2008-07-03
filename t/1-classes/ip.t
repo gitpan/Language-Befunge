@@ -15,7 +15,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 128;
+use Test::More tests => 133;
 use Language::Befunge::IP;
 
 my ($ip, $clone);
@@ -81,7 +81,9 @@ is( $ip->scount, 6);
 is( $ip->spop, 5 );
 is( $ip->spop, 4 );
 $ip->spush(18, 74);
-my ($x, $y) = $ip->spop_vec->get_all_components;
+my $v = $ip->spop_vec;
+is( ref($v), 'Language::Befunge::Vector' );
+my ($x, $y) = $v->get_all_components;
 is( $x, 18 );
 is( $y, 74 );
 ($x, $y) = $ip->spop_mult(2);
@@ -203,6 +205,13 @@ is( $ip->spop, 18 );              # toss = (11,12,13)
 is( $ip->spop, 13 );              # toss = (11,12)
 is( $ip->spop, 12 );              # toss = (11)
 $ip->ss_create( 0 );              # toss = () soss = (11)
+$ip->soss_push_vec( Language::Befunge::Vector->new(34, 48) );
+is( $ip->soss_pop, 48 );
+is( $ip->soss_pop, 34 );
+$ip->soss_push_vec( Language::Befunge::Vector->new(49, 53) );
+$v = $ip->soss_pop_vec;
+is( ref($v), 'Language::Befunge::Vector' );
+is( $v, "(49,53)" );
 $ip->ss_remove( -3 );             # destroy toss, remove elems
 is( $ip->scount, 0, "ss_remove can clear completely the soss-to-be-toss" );
 

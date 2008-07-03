@@ -1,16 +1,16 @@
 ---
 name: Language-Befunge
-version: 4.01
+version: 4.02
 author:
   - 'Jerome Quelin <jquelin@cpan.org>'
-abstract: a Befunge-98 interpreter
+abstract: a generic funge interpreter
 license: perl
 resources:
   license: http://dev.perl.org/licenses/
 requires:
   Carp: 0
   Class::Accessor::Fast: 0
-  List::Util: 0
+  Config: 0
   Readonly: 0
   Storable: 0
   UNIVERSAL::require: 0
@@ -19,7 +19,9 @@ requires:
 build_requires:
   Carp: 0
   Class::Accessor::Fast: 0
+  Config: 0
   List::Util: 0
+  POSIX: 0
   Readonly: 0
   Storable: 0
   Test::Exception: 0
@@ -28,13 +30,14 @@ build_requires:
   aliased: 0.22
   perl: 5.010
 recommends:
+  Language::Befunge::Storage::Generic::Vec::XS: 0
   Language::Befunge::Vector::XS: 0.2.2
   Test::Pod: 0
   Test::Pod::Coverage: 0
 provides:
   Language::Befunge:
     file: lib/Language/Befunge.pm
-    version: 4.01
+    version: 4.02
   Language::Befunge::IP:
     file: lib/Language/Befunge/IP.pm
   Language::Befunge::Interpreter:
@@ -59,12 +62,16 @@ provides:
     file: lib/Language/Befunge/Storage/Generic/Vec.pm
   Language::Befunge::Vector:
     file: lib/Language/Befunge/Vector.pm
+  Language::Befunge::Wrapping:
+    file: lib/Language/Befunge/Wrapping.pm
   Language::Befunge::Wrapping::LaheySpace:
     file: lib/Language/Befunge/Wrapping/LaheySpace.pm
   Language::Befunge::lib::FOO:
     file: lib/Language/Befunge/lib/FOO.pm
   Language::Befunge::lib::HELO:
     file: lib/Language/Befunge/lib/HELO.pm
+  Language::Befunge::lib::TEST:
+    file: lib/Language/Befunge/lib/TEST.pm
 generated_by: Module::Build version 0.2808
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.2.html

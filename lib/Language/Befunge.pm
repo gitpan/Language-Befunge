@@ -17,7 +17,7 @@ use Carp;
 use Language::Befunge::Interpreter;
 
 # Public variables of the module.
-our $VERSION = '4.01';
+our $VERSION = '4.02';
 $| = 1;
 
 sub new {
@@ -30,7 +30,7 @@ __END__
 
 =head1 NAME
 
-Language::Befunge - a Befunge-98 interpreter
+Language::Befunge - a generic funge interpreter
 
 
 =head1 SYNOPSIS
@@ -52,7 +52,8 @@ Language::Befunge - a Befunge-98 interpreter
 Enter the realm of topological languages!
 
 This module implements the Funge-98 specifications on a 2D field (also
-called Befunge). It can also work as a Trefunge implementation (3D).
+called Befunge). It can also work as a n-funge implementation (3D and
+more).
 
 This Befunge-98 interpreters assumes the stack and Funge-Space cells
 of this implementation are 32 bits signed integers (I hope your os
@@ -71,10 +72,6 @@ Lahey-Space topology to be more precise) looks like the following:
                      y|2,147,483,647
                       v
 
-This implementation is meant to work on unix-like systems, because
-this interpreters only handle the character which ordinal value is 10
-(also known as \n) as an End-Of-Line chars. In particular, no warranty
-is made neither for Microsoft systems (\r\n) nor for Macs (\r).
 
 This module also implements the Concurrent Funge semantics.
 
@@ -83,8 +80,8 @@ This module also implements the Concurrent Funge semantics.
 
 =head2 new( [params] )
 
-Call directly the Language::Befunge::Interpreter constructor. Refer to
-L<Language::Befunge::Interpreter> for more information.
+Call directly the C<Language::Befunge::Interpreter> constructor. Refer
+to L<Language::Befunge::Interpreter> for more information.
 
 
 =head1 TODO

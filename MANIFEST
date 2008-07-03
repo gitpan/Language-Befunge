@@ -18,6 +18,7 @@ lib/Language/Befunge/Interpreter.pm
 lib/Language/Befunge/IP.pm
 lib/Language/Befunge/lib/FOO.pm
 lib/Language/Befunge/lib/HELO.pm
+lib/Language/Befunge/lib/TEST.pm
 lib/Language/Befunge/Ops.pm
 lib/Language/Befunge/Ops/Befunge98.pm
 lib/Language/Befunge/Ops/GenericFunge98.pm
@@ -28,6 +29,7 @@ lib/Language/Befunge/Storage/Generic/AoA.pm
 lib/Language/Befunge/Storage/Generic/Sparse.pm
 lib/Language/Befunge/Storage/Generic/Vec.pm
 lib/Language/Befunge/Vector.pm
+lib/Language/Befunge/Wrapping.pm
 lib/Language/Befunge/Wrapping/LaheySpace.pm
 LICENSE
 Makefile.PL

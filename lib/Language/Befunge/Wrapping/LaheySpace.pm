@@ -15,21 +15,6 @@ use warnings;
 use base qw{ Language::Befunge::Wrapping };
 
 
-# -- CONSTRUCTOR
-
-#
-# my $wrapping = LBW::LaheySpace->new;
-#
-# Create a new laheyspace wrapping.
-#
-sub new {
-    my ($class) = @_;
-    my $self    = {};
-    bless $self, $class;
-    return $self;
-}
-
-
 # -- PUBLIC METHODS
 
 #

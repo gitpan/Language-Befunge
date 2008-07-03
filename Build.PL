@@ -12,38 +12,40 @@ use strict;
 use warnings;
 
 use Module::Build;
+
+my %requires = (
+    'perl'                  => '5.010',
+    'aliased'               => '0.22',
+    'Carp'                  => 0,
+    'Class::Accessor::Fast' => 0,
+    'Config'                => 0,
+    'Readonly'              => 0,
+    'Storable'              => 0,
+    'UNIVERSAL::require'    => 0,
+);
+my %build_requires = (
+    %requires,
+    'List::Util'            => 0,
+    'POSIX'                 => 0,
+    'Test::Exception'       => 0,
+    'Test::More'            => 0,
+);
+my %recommends = (
+    'Language::Befunge::Storage::Generic::Vec::XS' => 0,
+    'Language::Befunge::Vector::XS'                => '0.2.2',
+    'Test::Pod'                                    => 0,
+    'Test::Pod::Coverage'                          => 0,
+);
+
+
 my $builder = Module::Build->new
   ( module_name          => 'Language::Befunge',
     license              => 'perl',
     dist_author          => 'Jerome Quelin <jquelin@cpan.org>',
     dist_version_from    => 'lib/Language/Befunge.pm',
-    build_requires       => {
-        'perl'                  => '5.010',
-        'aliased'               => '0.22',
-        'Carp'                  => 0,
-        'Class::Accessor::Fast' => 0,
-        'List::Util'            => 0,
-        'Readonly'              => 0,
-        'Storable'              => 0,
-        'Test::Exception'       => 0,
-        'Test::More'            => 0,
-        'UNIVERSAL::require'    => 0,
-    },
-    requires             => {
-        'perl'                  => '5.010',
-        'aliased'               => '0.22',
-        'Carp'                  => 0,
-        'Class::Accessor::Fast' => 0,
-        'List::Util'            => 0,
-        'Readonly'              => 0,
-        'Storable'              => 0,
-        'UNIVERSAL::require'    => 0,
-    },
-    recommends           => {
-        'Language::Befunge::Vector::XS' => '0.2.2',
-        'Test::Pod'                     => 0,
-        'Test::Pod::Coverage'           => 0,
-    },
+    build_requires       => \%build_requires,
+    requires             => \%requires,
+    recommends           => \%recommends,
     script_files         => [ 'bin/jqbf98' ],
     add_to_cleanup       =>
       [ 'Language-Befunge-*', map { ( '*/' x $_ ) . '*~' } 0..5 ],
