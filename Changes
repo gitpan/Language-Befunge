@@ -17,6 +17,11 @@ High-level changelog
 Low-level changelog
 ===================
 
+4.03 Fri Jul  4 12:14:45 CEST 2008
+ - adding 'm' opcode (z if) (mg)
+ - completing code coverage up to 97.5% (mg, jq)
+ - adding optional module for TEST lib (jq)
+
 4.02 Thu Jul  3 20:44:11 CEST 2008
  - completing list of required modules, even if a corelist one
  - providing empty base class LBW

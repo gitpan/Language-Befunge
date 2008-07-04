@@ -56,6 +56,7 @@ sub get_ops_map {
         '`'  => \&Language::Befunge::Ops::decis_gt,
         '_'  => \&Language::Befunge::Ops::decis_horiz_if,
         '|'  => \&Language::Befunge::Ops::decis_vert_if,
+        'm'  => \&Language::Befunge::Ops::decis_z_if,
         'w'  => \&Language::Befunge::Ops::decis_cmp,
         ' '  => \&Language::Befunge::Ops::flow_space,
         'z'  => \&Language::Befunge::Ops::flow_no_op,

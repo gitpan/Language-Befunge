@@ -16,7 +16,7 @@ use strict;
 use warnings;
 
 use Test::Exception;
-use Test::More tests => 92;
+use Test::More tests => 95;
 
 use aliased 'Language::Befunge::Storage::Generic::Sparse' => 'Storage';
 use Language::Befunge::Wrapping::LaheySpace;
@@ -366,96 +366,7 @@ throws_ok(sub { $s->labels_lookup },
     'labels_lookup() chokes on double-defined labels');
 
 
-
-__END__
-
-
-
-# move ip.
-$ls->clear;   # "positive" playfield.
-$ls->_set_max(5, 10);
-$ip->set_position(LBV->new( 4, 3 ));
-$ip->get_delta->set_component(0, 1 );
-$ip->get_delta->set_component(1, 0 );
-$ls->move_ip_forward( $ip );
-is( $ip->get_position->get_component(0), 5, "move_ip_forward respects dx" );
-$ls->move_ip_forward( $ip );
-is( $ip->get_position->get_component(0), 0, "move_ip_forward wraps xmax" );
-$ip->set_position(LBV->new( 4, 3 ));
-$ip->get_delta->set_component(0, 7 );
-$ip->get_delta->set_component(1, 0 );
-$ls->move_ip_forward( $ip );
-is( $ip->get_position->get_component(0), 4, "move_ip_forward deals with delta overflowing torus width" );
-$ls->move_ip_forward( $ip ); # wrap xmax harder
-is( $ip->get_position->get_component(0), 4, "move_ip_forward deals with delta overflowing torus width" );
-$ip->set_position(LBV->new( 0, 4 ));
-$ip->get_delta->set_component(0, -1 );
-$ip->get_delta->set_component(1, 0 );
-$ls->move_ip_forward( $ip );
-is( $ip->get_position->get_component(0), 5, "move_ip_forward wraps xmin" );
-
-$ip->set_position(LBV->new(2, 9 ));
-$ip->get_delta->set_component(0, 0 );
-$ip->get_delta->set_component(1, 1 );
-$ls->move_ip_forward( $ip );
-is( $ip->get_position->get_component(1), 10, "move_ip_forward respects dy" );
-$ls->move_ip_forward( $ip );
-is( $ip->get_position->get_component(1), 0,  "move_ip_forward wraps ymax" );
-$ip->set_position(LBV->new(2, 9 ));
-$ip->get_delta->set_component(0, 0 );
-$ip->get_delta->set_component(1, 12 );               # apply delta that overflows torus height
-$ls->move_ip_forward( $ip );
-is( $ip->get_position->get_component(1), 9, "move_ip_forward deals with delta overflowing torus heigth" );
-$ls->move_ip_forward( $ip ); # wrap ymax harder
-is( $ip->get_position->get_component(1), 9, "move_ip_forward deals with delta overflowing torus heigth" );
-$ip->set_position(LBV->new(1, 0 ));
-$ip->get_delta->set_component(0, 0 );
-$ip->get_delta->set_component(1, -1 );
-$ls->move_ip_forward( $ip );
-is( $ip->get_position->get_component(1), 10, "move_ip_forward wraps ymin" );
-BEGIN { $tests += 10 }
-
-$ls->clear;   # "negative" playfield.
-$ls->_set_min(-1, -3);
-$ls->_set_max(5, 10);
-$ip->set_position(LBV->new(4, 3 ));
-$ip->get_delta->set_component(0, 1 );
-$ip->get_delta->set_component(1, 0 );
-$ls->move_ip_forward( $ip );
-is( $ip->get_position->get_component(0), 5, "move_ip_forward respects dx" );
-$ls->move_ip_forward( $ip );
-is( $ip->get_position->get_component(0), -1, "move_ip_forward wraps xmax" );
-$ip->set_position(LBV->new(-1, 4 ));
-$ip->get_delta->set_component(0, -1 );
-$ip->get_delta->set_component(1, 0 );
-$ls->move_ip_forward( $ip );
-is( $ip->get_position->get_component(0), 5, "move_ip_forward wraps xmin" );
-$ip->set_position(LBV->new(2, 9 ));
-$ip->get_delta->set_component(0, 0 );
-$ip->get_delta->set_component(1, 1 );
-$ls->move_ip_forward( $ip );
-is( $ip->get_position->get_component(1), 10, "move_ip_forward respects dy" );
-$ls->move_ip_forward( $ip );
-is( $ip->get_position->get_component(1), -3, "move_ip_forward wraps ymax" );
-$ip->set_position(LBV->new(1, -3 ));
-$ip->get_delta->set_component(0, 0 );
-$ip->get_delta->set_component(1, -1 );
-$ls->move_ip_forward( $ip );
-is( $ip->get_position->get_component(1), 10, "move_ip_forward wraps ymin" );
-BEGIN { $tests += 6; }
-
-$ls->clear;   # diagonals.
-$ls->_set_min(-1, -2);
-$ls->_set_max(6, 5);
-$ip->set_position(LBV->new(0, 0));
-$ip->get_delta->set_component(0,-2);
-$ip->get_delta->set_component(1,-3);
-$ls->move_ip_forward( $ip );
-is( $ip->get_position->get_component(0), 2, "move_ip_forward deals with diagonals" );
-is( $ip->get_position->get_component(1), 3, "move_ip_forward deals with diagonals" );
-BEGIN { $tests += 2; }
-
-
-
-
-BEGIN { plan tests => $tests };
+# bad arguments to constructor
+throws_ok(sub { Storage->new()  }, qr/^Usage/, 'new chokes on undef dimensions');
+throws_ok(sub { Storage->new(0) }, qr/^Usage/, 'new chokes on zero dimensions');
+throws_ok(sub { Storage->new(1) }, qr/^Usage/, 'new chokes on null Wrapping');

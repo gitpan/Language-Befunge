@@ -156,7 +156,7 @@ sub get_value {
     if ($v->bounds_check($$self{min}, $$self{max})) {
         # for each dimension, go one level deeper into the array.
         $val = $$self{torus};
-        for(my $d = $$self{nd} - 1; defined($val) && ($d > -1); $d--) {
+        for(my $d = $$self{nd} - 1; $d > -1; $d--) {
             $val = $$val[$v->get_component($d) - $$self{min}->get_component($d)];
         }
     }

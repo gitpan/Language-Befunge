@@ -77,7 +77,8 @@ sub clear {
 sub store_binary {
     my ($self, $code, $position) = @_;
 
-    my $offset = $position || LBV->new(0,0);
+    my $offset = $position;
+    $offset    = LBV->new(0,0) unless defined $offset;
     my $x      = $offset->get_component(0);
     my $y      = $offset->get_component(1);
     my $href   = $self->_storage;
@@ -116,7 +117,8 @@ sub store_binary {
 sub store {
     my ($self, $code, $position) = @_;
 
-    my $offset = $position || LBV->new(0,0);
+    my $offset = $position;
+    $offset    = LBV->new(0,0) unless defined $offset;
     my $dy     = LBV->new(0,1);
 
     # support for any eol convention

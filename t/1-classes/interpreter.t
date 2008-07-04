@@ -16,7 +16,7 @@ use strict;
 use warnings;
 
 use Test::Exception;
-use Test::More tests => 33;
+use Test::More tests => 46;
 use Language::Befunge::Interpreter;
 
 
@@ -69,6 +69,39 @@ is(scalar @{$interp->get_ips()}, 0, "starts out with no IPs");
 isa_ok($interp->storage, 'Language::Befunge::Storage::Generic::Vec', "storage object");
 is($interp->storage->get_dims, 2, "storage has same number of dimensions");
 
+# syntax combinations like "4funge98" are supported
+$interp = Language::Befunge::Interpreter->new({
+    syntax  => '4funge98',
+    storage => 'Language::Befunge::Storage::Generic::Vec' });
+is(ref($interp->storage), 'Language::Befunge::Storage::Generic::Vec', 'storage specified');
+is($$interp{dimensions}, 4, 'dims inferred from syntax name');
+ok(exists($$interp{ops}{m}), 'GenericFunge98 ops used');
+$interp = Language::Befunge::Interpreter->new({
+    syntax   => '4funge98',
+    wrapping => 'Language::Befunge::Wrapping::LaheySpace' });
+is(ref($interp->_wrapping), 'Language::Befunge::Wrapping::LaheySpace', 'wrapping specified');
+is(ref($interp->storage), 'Language::Befunge::Storage::Generic::AoA', 'default storage');
+$interp = Language::Befunge::Interpreter->new({
+    syntax => '4funge98',
+    ops    => 'Language::Befunge::Ops::Unefunge98' });
+ok(!exists($$interp{ops}{m}), 'ops specified');
+$interp = Language::Befunge::Interpreter->new({
+    syntax => '4funge98',
+    dims   => 5 });
+is($$interp{dimensions}, 5, 'dims specified');
+
+# accessor methods not tested anywhere else
+$interp->set_handprint('TEST');
+is($interp->get_handprint(), 'TEST', 'set_handprint');
+$interp->set_dimensions(6);
+is($interp->get_dimensions(), 6, 'set_dimensions');
+$interp->set_ops(Language::Befunge::Ops::GenericFunge98->get_ops_map);
+ok(exists($$interp{ops}{m}), 'set_ops');
+
+# unrecognized arguments are rejected
+throws_ok(sub { Language::Befunge::Interpreter->new({ syntax => 'crashme' }) },
+    qr/not recognized/, "unknown 'syntax' arguments are rejected");
+
 # nonsensical combinations are rejected
 throws_ok(sub { Language::Befunge::Interpreter->new({ dims => 3, syntax => 'befunge98' }) },
     qr/only useful for 2-dimensional/, "LBS2S rejects non-2D");
@@ -76,4 +109,8 @@ throws_ok(sub { Language::Befunge::Interpreter->new({ storage => 'Nonexistent::M
     qr/via package "Nonexistent::Module"/, "unfound Storage module");
 throws_ok(sub { Language::Befunge::Interpreter->new({ ops => 'Nonexistent::Module' }) },
     qr/via package "Nonexistent::Module"/, "unfound Ops module");
+throws_ok(sub { Language::Befunge::Interpreter->new({ wrapping => 'Nonexistent::Module' }) },
+    qr/via package "Nonexistent::Module"/, "unfound Wrapping module");
+throws_ok(sub { Language::Befunge::Interpreter->new({ dims => 'abc' }) },
+    qr/must be numeric/, "non-numeric dimensions");
 

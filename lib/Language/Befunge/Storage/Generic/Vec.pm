@@ -86,6 +86,7 @@ sub clear {
 sub expand {
     my ($self, $point) = @_;
     my ($old_min, $old_max) = ($$self{min}, $$self{max});
+    # if we have nothing to do, skip out early.
     return if $point->bounds_check($$self{min}, $$self{max});
 
     $point = $point->copy();
@@ -100,9 +101,6 @@ sub expand {
     }
     my $old_size = $old_max - $old_min;
     my $new_size = $new_max - $new_min;
-
-    # if we have nothing to do, skip out early.
-    return if $old_size == $new_size;
 
     # figure out the new storage size
     my $storage_size = $self->_offset($new_max, $new_min, $new_max) + 1;

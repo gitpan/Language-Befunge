@@ -14,8 +14,10 @@
 
 use strict;
 use Language::Befunge;
+use aliased 'Language::Befunge::Vector' => 'LBV';
+
 use POSIX qw! tmpnam !;
-use Test;
+use Test::More;
 
 # Vars.
 my ($file, $fh);
@@ -49,8 +51,27 @@ sel;
 $unef = Language::Befunge->new( {file=>'t/_resources/q.bf', syntax=>'unefunge98'} );
 $unef->run_code;
 $out = slurp;
-ok( $out, "" );
+is( $out, "" );
 BEGIN { $tests += 1 };
+
+# Custom constructor.
+$unef = Language::Befunge->new({
+    syntax  => 'unefunge98',
+    storage => 'Language::Befunge::Storage::Generic::Vec' });
+is(ref($unef->storage), 'Language::Befunge::Storage::Generic::Vec', 'storage specified');
+$unef = Language::Befunge->new({
+    syntax   => 'unefunge98',
+    wrapping => 'Language::Befunge::Wrapping::LaheySpace' });
+is(ref($unef->_wrapping), 'Language::Befunge::Wrapping::LaheySpace', 'wrapping specified');
+$unef = Language::Befunge->new({
+    syntax => 'unefunge98',
+    ops    => 'Language::Befunge::Ops::GenericFunge98' });
+ok(exists($$unef{ops}{m}), 'ops specified');
+$unef = Language::Befunge->new({
+    syntax => 'unefunge98',
+    dims   => 4 });
+is($$unef{dimensions}, 4, 'dims specified');
+BEGIN { $tests += 4 };
 
 # Basic reading.
 $unef = Language::Befunge->new( {syntax=>'unefunge98'} );
@@ -58,7 +79,7 @@ sel;
 $unef->read_file( "t/_resources/q.bf" );
 $unef->run_code;
 $out = slurp;
-ok( $out, "" );
+is( $out, "" );
 BEGIN { $tests += 1 };
 
 # Basic storing.
@@ -68,7 +89,7 @@ q
 END_OF_CODE
 $unef->run_code;
 $out = slurp;
-ok( $out, "" );
+is( $out, "" );
 BEGIN { $tests += 1 };
 
 # Interpreter must treat non-characters as if they were an 'r' instruction.
@@ -78,7 +99,7 @@ $unef->store_code( <<'END_OF_CODE' );
 END_OF_CODE
 $unef->run_code;
 $out = slurp;
-ok( $out, "1 2 " );
+is( $out, "1 2 " );
 BEGIN { $tests += 1 };
 
 # Interpreter must treat non-commands as if they were an 'r' instruction.
@@ -88,7 +109,7 @@ $unef->store_code( <<'END_OF_CODE' );
 END_OF_CODE
 $unef->run_code;
 $out = slurp;
-ok( $out, "1 2 " );
+is( $out, "1 2 " );
 BEGIN { $tests += 1 };
 
 # Unefunge Interpreter treats North/South instructions as unknown characters.
@@ -98,7 +119,11 @@ $unef->store_code( <<"END_OF_CODE" );
 END_OF_CODE
 $unef->run_code;
 $out = slurp;
-ok( $out, "1 2 " );
+is( $out, "1 2 " );
+BEGIN { $tests += 1 };
+
+# rectangle() just returns the original string again
+is($unef->storage->rectangle(LBV->new(0), LBV->new(9)), '1#q.2^3.q', 'rectangle works');
 BEGIN { $tests += 1 };
 
 BEGIN { plan tests => $tests };

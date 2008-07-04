@@ -88,28 +88,28 @@ sub new {
     my $lbw = 'Language::Befunge::Wrapping::';
     given ( $opts->{syntax} ) {
         when ('unefunge98') {
-            $opts->{dims}     //= 1;
-            $opts->{ops}      //= $lbo . 'Unefunge98';
-            $opts->{storage}  //= $lbs . 'Generic::AoA';
-            $opts->{wrapping} //= $lbw . 'LaheySpace';
+            $opts->{dims}     = 1                     unless defined $opts->{dims};
+            $opts->{ops}      = $lbo . 'Unefunge98'   unless defined $opts->{ops};
+            $opts->{storage}  = $lbs . 'Generic::AoA' unless defined $opts->{storage};
+            $opts->{wrapping} = $lbw . 'LaheySpace'   unless defined $opts->{wrapping};
         }
         when ('befunge98') {
-            $opts->{dims}     //= 2;
-            $opts->{ops}      //= $lbo . 'Befunge98';
-            $opts->{storage}  //= $lbs . '2D::Sparse';
-            $opts->{wrapping} //= $lbw . 'LaheySpace';
+            $opts->{dims}     = 2                     unless defined $opts->{dims};
+            $opts->{ops}      = $lbo . 'Befunge98'    unless defined $opts->{ops};
+            $opts->{storage}  = $lbs . '2D::Sparse'   unless defined $opts->{storage};
+            $opts->{wrapping} = $lbw . 'LaheySpace'   unless defined $opts->{wrapping};
         }
         when ('trefunge98') {
-            $opts->{dims}     //= 3;
-            $opts->{ops}      //= $lbo . 'GenericFunge98';
-            $opts->{storage}  //= $lbs . 'Generic::AoA';
-            $opts->{wrapping} //= $lbw . 'LaheySpace';
+            $opts->{dims}     = 3                       unless defined $opts->{dims};
+            $opts->{ops}      = $lbo . 'GenericFunge98' unless defined $opts->{ops};
+            $opts->{storage}  = $lbs . 'Generic::AoA'   unless defined $opts->{storage};
+            $opts->{wrapping} = $lbw . 'LaheySpace'     unless defined $opts->{wrapping};
         }
         when (/(\d+)funge98$/) { # accept values like "4funge98"
-            $opts->{dims}     //= $1;
-            $opts->{ops}      //= $lbo . 'GenericFunge98';
-            $opts->{storage}  //= $lbs . 'Generic::AoA';
-            $opts->{wrapping} //= $lbw . 'LaheySpace';
+            $opts->{dims}     = $1                      unless defined $opts->{dims};
+            $opts->{ops}      = $lbo . 'GenericFunge98' unless defined $opts->{ops};
+            $opts->{storage}  = $lbs . 'Generic::AoA'   unless defined $opts->{storage};
+            $opts->{wrapping} = $lbw . 'LaheySpace'     unless defined $opts->{wrapping};
         }
         default { croak "syntax '$opts->{syntax}' not recognized." }
     }

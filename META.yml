@@ -1,6 +1,6 @@
 ---
 name: Language-Befunge
-version: 4.02
+version: 4.03
 author:
   - 'Jerome Quelin <jquelin@cpan.org>'
 abstract: a generic funge interpreter
@@ -32,12 +32,13 @@ build_requires:
 recommends:
   Language::Befunge::Storage::Generic::Vec::XS: 0
   Language::Befunge::Vector::XS: 0.2.2
+  Test::Builder: 0
   Test::Pod: 0
   Test::Pod::Coverage: 0
 provides:
   Language::Befunge:
     file: lib/Language/Befunge.pm
-    version: 4.02
+    version: 4.03
   Language::Befunge::IP:
     file: lib/Language/Befunge/IP.pm
   Language::Befunge::Interpreter:

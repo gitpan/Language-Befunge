@@ -45,6 +45,7 @@ t/1-classes/storage-generic-sparse.t
 t/1-classes/storage-generic-vec.t
 t/1-classes/vector.t
 t/1-classes/wrapping-lahey.t
+t/1-classes/wrapping.t
 t/2-ops/block_close.t
 t/2-ops/block_open.t
 t/2-ops/decis_cmp.t
@@ -52,6 +53,7 @@ t/2-ops/decis_gt.t
 t/2-ops/decis_horiz_if.t
 t/2-ops/decis_neg.t
 t/2-ops/decis_vert_if.t
+t/2-ops/decis_z_if.t
 t/2-ops/dir_go_away.t
 t/2-ops/dir_go_east.t
 t/2-ops/dir_go_high.t

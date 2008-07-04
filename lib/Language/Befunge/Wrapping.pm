@@ -33,7 +33,7 @@ use base qw{ Class::Accessor::Fast };
 # LBW implements a wrapping that dies. It's meant to be overridden by
 # other wrapping classes.
 #
-sub wrap { die }
+sub wrap { die 'wrapping not implemented in LBW'; }
 
 1;
 __END__

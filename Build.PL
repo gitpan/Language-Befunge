@@ -33,6 +33,7 @@ my %build_requires = (
 my %recommends = (
     'Language::Befunge::Storage::Generic::Vec::XS' => 0,
     'Language::Befunge::Vector::XS'                => '0.2.2',
+    'Test::Builder'                                => 0, # TEST lib
     'Test::Pod'                                    => 0,
     'Test::Pod::Coverage'                          => 0,
 );

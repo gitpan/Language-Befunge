@@ -350,8 +350,6 @@ sub _labels_try {
 
     # Check if the comment matches the pattern.
     $comment =~ /^:(\w[^\s;]*)[^;]*;.$/;
-    return undef unless defined $1;
-    return undef unless length  $1;
     return ($1, $ip->get_position());
 }
 

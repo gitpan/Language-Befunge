@@ -416,6 +416,20 @@ sub decis_vert_if {
 }
 
 
+=item decis_z_if(  )
+
+=cut
+sub decis_z_if {
+    my ($lbi) = @_;
+    my $ip = $lbi->get_curip;
+
+    # Fetching value.
+    my $val = $ip->spop;
+    $val ? $ip->dir_go_low : $ip->dir_go_high;
+    $lbi->debug( "z if: going " . ( $val ? "low\n" : "high\n" ) );
+}
+
+
 =item decis_cmp(  )
 
 =cut

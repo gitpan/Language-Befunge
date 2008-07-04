@@ -16,7 +16,7 @@ use strict;
 use warnings;
 
 use Test::Exception;
-use Test::More tests => 122;
+use Test::More tests => 124;
 
 use Language::Befunge::Vector;
 
@@ -149,8 +149,11 @@ throws_ok(sub { $v1->bounds_check($v2, $v3d) },
 
 
 # rasterize
+
 $v1 = Language::Befunge::Vector->new(-1, -1, -1);
 $v2 = Language::Befunge::Vector->new(1, 1, 1);
+ok(!defined(Language::Befunge::Vector->new(2, 2, 2)->rasterize($v1, $v2)),
+    'rasterize returns undef right away if the vector is outside the range');
 my @expectations = (
     [-1, -1, -1], [ 0, -1, -1], [ 1, -1, -1],
     [-1,  0, -1], [ 0,  0, -1], [ 1,  0, -1],
@@ -257,3 +260,5 @@ foreach my $coords ( @coords ) {
 throws_ok(sub { $v2d != $v3d },
 	qr/uneven dimensions/, "misaligned vector arithmetic (!=)");
 
+# _xs_rasterize_ptr
+lives_ok(sub { Language::Befunge::Vector::_xs_rasterize_ptr() }, '_xs_rasterize_ptr');
