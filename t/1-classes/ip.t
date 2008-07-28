@@ -15,7 +15,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 133;
+use Test::More tests => 132;
 use Language::Befunge::IP;
 
 my ($ip, $clone);
@@ -54,8 +54,6 @@ $ip->set_string_mode( 1 );
 is( $ip->get_string_mode, 1 );
 $ip->set_end( 1 );
 is( $ip->get_end, 1 );
-$ip->set_input( "gnirts" );
-is( $ip->get_input, "gnirts" );
 $ip->set_data({}); # meaningless, only to test accessors
 $ip->set_libs([]); # meaningless, only to test accessors
 $ip->set_ss([]);   # meaningless, only to test accessors

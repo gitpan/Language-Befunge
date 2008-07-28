@@ -233,13 +233,13 @@ __END__
 
 =head1 NAME
 
-Language::Befunge::LaheySpace::Generic - a generic N-dimensional LaheySpace.
+Language::Befunge::Storage::Generic::Vec - a generic N-dimensional LaheySpace.
 
 
 =head1 SYNOPSIS
 
     # create a 3-dimensional LaheySpace.
-    my $torus = Language::Befunge::LaheySpace::Generic->new(3);
+    my $torus = Language::Befunge::Storage::Generic::Vec->new(3);
     $torus->clear();
     $torus->store(<<"EOF");
     12345

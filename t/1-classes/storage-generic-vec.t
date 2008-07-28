@@ -16,7 +16,7 @@ use strict;
 use warnings;
 
 use Test::Exception;
-use Test::More tests => 112;
+use Test::More tests => 116;
 
 use aliased 'Language::Befunge::Storage::Generic::Vec' => 'Storage';
 use Language::Befunge::Wrapping::LaheySpace;
@@ -155,6 +155,13 @@ is($v, "($l,1)", 'store_binary() does not treat \r as special');
 
 #- store()
 $s = Language::Befunge::Storage::Generic::Vec->new(2, Wrapping => $wrap);
+$s->store('');
+is($s->min, '(0,0)', 'store() with an empty string does nothing');
+is($s->max, '(0,0)', 'store() with an empty string does nothing');
+$s->store('  ');
+is($s->min, '(0,0)', 'store() with a whitespace string does nothing');
+is($s->max, '(0,0)', 'store() with a whitespace string does nothing');
+
 
 # basic store(), defaulting to origin
 $s->store( $str1 );

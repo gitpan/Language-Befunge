@@ -18,7 +18,7 @@ use Language::Befunge::IP;
 use UNIVERSAL::require;
 
 use base qw{ Class::Accessor::Fast };
-__PACKAGE__->mk_accessors( qw{ storage _wrapping } );
+__PACKAGE__->mk_accessors( qw{ storage _wrapping input } );
 
 # Public variables of the module.
 $| = 1;
@@ -125,6 +125,7 @@ sub new {
         dimensions => $opts->{dims},
         storage    => $opts->{storage}->new( $opts->{dims}, Wrapping => $wrapping ),
         file       => "STDIN",
+        input      => '',
         params     => [],
         retval     => 0,
         DEBUG      => 0,
@@ -260,6 +261,34 @@ sub debug {
     my $self = shift;
     $self->get_DEBUG or return;
     warn @_;
+}
+
+
+#
+# set_input( $string )
+#
+# Preload the input buffer with the given value.
+#
+sub set_input {
+    my ($self, $str) = @_;
+    $self->input($str);
+}
+
+
+#
+# get_input(  )
+#
+# Fetch a character of input from the input buffer, or else, directly
+# from stdin.
+#
+
+sub get_input {
+    my $self = shift;
+    return substr($$self{input}, 0, 1, '') if length $self->input;
+    my $char;
+    my $rv = sysread(STDIN, $char, 1);
+    return $char if length $char;
+    return undef;
 }
 
 
@@ -542,6 +571,17 @@ file and coordinate of the offending instruction.
 =item debug( LIST )
 
 Issue a warning if the interpreter has DEBUG enabled.
+
+
+=item set_input( $string )
+
+Preload the input buffer with the given value.
+
+
+=item get_input(  )
+
+Fetch a character of input from the input buffer, or else, directly
+from stdin.
 
 
 =back

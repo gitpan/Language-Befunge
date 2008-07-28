@@ -44,10 +44,11 @@ t/1-classes/storage-generic-aoa.t
 t/1-classes/storage-generic-sparse.t
 t/1-classes/storage-generic-vec.t
 t/1-classes/vector.t
+t/1-classes/wrapping-base.t
 t/1-classes/wrapping-lahey.t
-t/1-classes/wrapping.t
 t/2-ops/block_close.t
 t/2-ops/block_open.t
+t/2-ops/block_transfer.t
 t/2-ops/decis_cmp.t
 t/2-ops/decis_gt.t
 t/2-ops/decis_horiz_if.t
@@ -83,6 +84,8 @@ t/2-ops/stack_clear.t
 t/2-ops/stack_duplicate.t
 t/2-ops/stack_pop.t
 t/2-ops/stack_swap.t
+t/2-ops/stdio_in_ascii.t
+t/2-ops/stdio_in_num.t
 t/2-ops/str_enter_string_mode.t
 t/2-ops/str_fetch_char.t
 t/2-ops/str_store_char.t
@@ -102,6 +105,8 @@ t/5-befunge/j-storg.t
 t/5-befunge/k-system.t
 t/5-befunge/l-concur.t
 t/5-befunge/m-lib.t
+t/6-library/TEST-noplan.t
+t/6-library/TEST-plan.t
 t/9-author/pod-coverage.t
 t/9-author/pod.t
 t/_resources/exit3.pl

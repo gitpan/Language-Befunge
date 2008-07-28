@@ -17,6 +17,11 @@ High-level changelog
 Low-level changelog
 ===================
 
+4.04 Mon Jul 28 18:54:02 CEST 2008
+ - speeding LBS->store by 55+% (mg)
+ - input not cached per ip, but per interpreter (mg)
+ - bringing test coverage up to 100% (mg, jq)
+
 4.03 Fri Jul  4 12:14:45 CEST 2008
  - adding 'm' opcode (z if) (mg)
  - completing code coverage up to 97.5% (mg, jq)

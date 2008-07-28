@@ -17,8 +17,8 @@ use warnings;
 
 use Test::More tests => 3;
 use Test::Exception;
-use Language::Befunge::Wrapping;
 
+use Language::Befunge::Wrapping;
 
 #-- constructor
 
@@ -26,11 +26,4 @@ use Language::Befunge::Wrapping;
 my $w = Language::Befunge::Wrapping->new;
 isa_ok($w, 'Language::Befunge::Wrapping');
 can_ok($w, 'wrap');
-
-
-#-- public methods
-
-#- wrap()
-dies_ok { $w->wrap } 'virtual method not implemented in LBW';
-
-
+throws_ok(sub { $w->wrap }, qr/not implemented in LBW/, "stub wrap method");

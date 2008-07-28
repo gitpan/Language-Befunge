@@ -34,7 +34,6 @@ sub new {
         storage      => Language::Befunge::Vector->new_zeroes($dims),
         string_mode  => 0,
         end          => 0,
-        input        => "",
         data         => {},
         libs         => [],
       };
@@ -56,7 +55,7 @@ sub clone {
 # -- ACCESSORS
 
 BEGIN {
-    my @attrs = qw[ position data delta end id input libs
+    my @attrs = qw[ position data delta end id libs
                     ss storage string_mode toss ];
     foreach my $attr ( @attrs ) {
         my $code = qq[ sub get_$attr { return \$_[0]->{$attr} } ];
@@ -483,11 +482,6 @@ C<Language::Befunge::Vector> object).
 The library private storage space (a hash reference). Don't set this
 yourself.
 FIXME: not supposed to be accessible
-
-
-=item $ip->get_input() / $ip->set_input($str)
-
-The input cache (a string).
 
 
 =item $ip->get_string_mode() / set_string_mode($bool)

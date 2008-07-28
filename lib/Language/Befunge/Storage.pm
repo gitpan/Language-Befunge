@@ -61,36 +61,48 @@ sub store {
 
     my @separators = ("", "\n", "\f");
     push(@separators, "\0"x($_-3)) for (4..$nd); # , "\0", "\0\0", "\0\0\0"...
+    my $separators = join("", @separators);
+    my %separators = ( map { $separators[$_] => $_ } (1..@separators-1));
     my @sizes = map { 0 } (1..$nd);
-    sub _code_split_helper {
-        my ($d, $code, $sep, $sizes) = @_;
-        my $rv = [split($$sep[$d], $code)];
-        $rv = [ map { _code_split_helper($d-1,$_,$sep,$sizes) } (@$rv) ]
-            if $d > 0;
-        $$sizes[$d] = scalar @$rv if scalar @$rv > $$sizes[$d];
-        return $rv;
+    my @newvalues;
+    my $this = $base->copy;
+    while(length($code)) {
+        my $value = substr($code, 0, 1, '');
+        if(index($separators, $value) > -1) {
+            last unless length $code;
+            my $d = $separators{$value};
+            my $new = $this->get_component($d) + 1;
+            $this->set_component($d, $new);
+            $sizes[$d] = $new if $new > $sizes[$d];
+            foreach my $i (0..$d-1) {
+                my $last = $this->get_component($i);
+                $this->set_component($i, $base->get_component($i));
+                $sizes[$i] = $last if $last > $sizes[$i];
+            }
+        } else {
+            my $last = $this->get_component(0);
+            unless($value eq ' ') {
+                push(@newvalues, [$this->copy, ord($value)]);
+                $sizes[0] = $last if $last > $sizes[0];
+            }
+            $this->set_component(0, $last + 1);
+        }
     }
-    my $coderef = _code_split_helper($nd - 1, $code, \@separators, \@sizes);
+
+    return unless scalar @newvalues;
 
     # Figure out the rectangle size and the end-coordinate (max).
-    my $size = Language::Befunge::Vector->new(@sizes);
-    my $max  = Language::Befunge::Vector->new(map { $_ - 1 } (@sizes));
-    $max += $base;
+    my $size = Language::Befunge::Vector->new(map { $_ + 1 } @sizes);
+    my $max  = Language::Befunge::Vector->new(@sizes);
+    $size -= $base;
 
     # Enlarge torus to make sure our new values will fit.
     $self->expand( $base );
     $self->expand( $max );
 
     # Store code.
-    TOP: for(my $v = $base->copy; defined($v); $v = $v->rasterize($base, $max)) {
-        my $cv = $v - $base;
-        my $code = $coderef;
-        foreach my $ent (reverse $cv->get_all_components()) {
-            next TOP unless exists $$code[$ent];
-            $code = $$code[$ent];
-        }
-        next TOP if $code eq ' ';
-        $self->set_value($v, ord($code));
+    foreach my $pair (@newvalues) {
+        $self->set_value(@$pair);
     }
 
     return $size;

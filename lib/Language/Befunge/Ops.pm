@@ -779,18 +779,24 @@ sub stdio_out_ascii {
 sub stdio_in_num {
     my ($lbi) = @_;
     my $ip = $lbi->get_curip;
-    my ($in, $nb);
-    while ( not defined($nb) ) {
-        $in = $ip->get_input || <STDIN> while not $in;
-        if ( $in =~ s/^.*?(-?\d+)// ) {
-            $nb = $1;
+    my ($in, $nb) = ('', 0);
+    my $last = 0;
+    while(!$last) {
+        my $char = $lbi->get_input();
+        $in .= $char if defined $char;
+        my $overflow;
+        ($nb, $overflow) = $in =~ /(-?\d+)(\D*)$/;
+        if((defined($overflow) && length($overflow)) || !defined($char)) {
+            # either we found a non-digit character: $overflow
+            # or else we reached EOF: !$char
+            return $ip->dir_reverse() unless defined $nb;
             $nb < -2**31  and $nb = -2**31;
             $nb > 2**31-1 and $nb = 2**31-1;
-        } else {
-            $in = "";
+            $in = $overflow;
+            $last++;
         }
-        $ip->set_input( $in );
     }
+    $lbi->set_input( $in );
     $ip->spush( $nb );
     $lbi->debug( "numeric input: pushing $nb\n" );
 }
@@ -802,13 +808,11 @@ sub stdio_in_num {
 sub stdio_in_ascii {
     my ($lbi) = @_;
     my $ip = $lbi->get_curip;
-    my $in;
-    $in = $ip->get_input || <STDIN> while not $in;
-    my $chr = substr $in, 0, 1, "";
-    my $ord = ord $chr;
+    my $in = $lbi->get_input();
+    return $ip->dir_reverse unless defined $in;
+    my $ord = ord $in;
     $ip->spush( $ord );
-    $ip->set_input( $in );
-    $lbi->debug( "ascii input: pushing '$chr' (ord=$ord)\n" );
+    $lbi->debug( "ascii input: pushing $ord\n" );
 }
 
 
@@ -833,7 +837,7 @@ sub stdio_in_file {
         local $/; # slurp mode.
         $lines = <F>;
     }
-    close F or $ip->dir_reverse, return;
+    close F;
 
     # Store the code and the result vector.
     my ($size) = $flag % 2
@@ -871,7 +875,7 @@ sub stdio_out_file {
     # Write file.
     open F, ">", $path or $ip->dir_reverse, return;
     print F $data;
-    close F or $ip->dir_reverse, return;
+    close F;
 }
 
 

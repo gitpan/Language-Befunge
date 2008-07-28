@@ -91,7 +91,7 @@ is( $out, "15 " );
     $ip->set_delta( Language::Befunge::Vector->new(1,0) );
     $ip->spush( 65 );
     $bef->set_curip($ip);
-    $bef->get_ops->{","}->($bef);
+    $bef->get_ops->{"."}->($bef);
     is( $ip->get_delta, "(-1,0)", "output error reverse ip delta" );
 }
 BEGIN { $tests += 2 };
