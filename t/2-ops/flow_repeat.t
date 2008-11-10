@@ -17,8 +17,7 @@ use Language::Befunge::Interpreter;
 use Language::Befunge::IP;
 use Language::Befunge::Ops;
 use Language::Befunge::Vector;
-use Test::Exception;
-use Test::More tests => 8;
+use Test::More tests => 5;
 
 my ($lbi, $ip, $v);
 
@@ -75,29 +74,15 @@ $v   = Language::Befunge::Vector->new(0,0);
 $ip->set_position( $v );
 $lbi->store_code( '789q' );
 $ip->spush( -3 );
-throws_ok( sub { Language::Befunge::Ops::flow_repeat( $lbi ); },
-    qr/negative number/, 'flow_repeat cannot repeat negatively' );
+# no tests, it's just to use all code pathes
 
-# can't repeat forbidden instruction.
+
+# don't repeat forbidden instruction.
 $v   = Language::Befunge::Vector->new(1,0);
 $ip->set_delta( $v );
 $v   = Language::Befunge::Vector->new(0,0);
 $ip->set_position( $v );
 $lbi->store_code( '7;9q' );
 $ip->spush( 3 );
-throws_ok( sub { Language::Befunge::Ops::flow_repeat( $lbi ); },
-    qr/a forbidden instruction/,
-    'flow_repeat cannot repeat a forbidden instruction' );
-
-# can't repeat a k instruction.
-$v   = Language::Befunge::Vector->new(1,0);
-$ip->set_delta( $v );
-$v   = Language::Befunge::Vector->new(0,0);
-$ip->set_position( $v );
-$lbi->store_code( '7k9q' );
-$ip->spush( 3 );
-throws_ok( sub { Language::Befunge::Ops::flow_repeat( $lbi ); },
-    qr/a repeat instruction/,
-    'flow_repeat cannot repeat a repeat instruction' );
-
+# no tests, it's just to use all code pathes
 

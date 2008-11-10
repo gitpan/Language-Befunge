@@ -13,8 +13,8 @@
 #---------------------------------#
 
 use strict;
+use File::Spec::Functions qw{ catfile };
 use Language::Befunge;
-use Config;
 use POSIX qw! tmpnam !;
 use Test::More;
 
@@ -89,11 +89,13 @@ BEGIN { $tests += 1 };
 
 sel; # 3. handprint.
 $bef->store_code( <<'END_OF_CODE' );
-3y,,,,,,.q
+3y.q
 END_OF_CODE
 $bef->run_code;
 $out = slurp;
-is( $out, "JQBF980 " );
+my $handprint = 0;
+$handprint = $handprint*256 + ord($_) for split //, $bef->get_handprint;
+is( $out, "$handprint " );
 BEGIN { $tests += 1 };
 
 sel; # 4. version of interpreter.
@@ -122,7 +124,7 @@ $bef->store_code( <<'END_OF_CODE' );
 END_OF_CODE
 $bef->run_code;
 $out = slurp;
-is( $out, $Config{path_sep} );
+is( $out, catfile('','') );
 BEGIN { $tests += 1 };
 
 sel; # 7. size of funge (2D).
@@ -152,62 +154,63 @@ $out = slurp;
 is( $out, "0 " );
 BEGIN { $tests += 1 };
 
-sel; # 10. pos of IP.
+sel; # 10,11. pos of IP.
 $bef->store_code( <<'END_OF_CODE' );
-a v
-  > y..q
+bav
+  > y.y.q
 END_OF_CODE
 $bef->run_code;
 $out = slurp;
-is( $out, "1 4 " );
+is( $out, "1 6 " );
 BEGIN { $tests += 1 };
 
-sel; # 11. delta of IP.
+sel; # 12,13. delta of IP.
 $bef->store_code( <<'END_OF_CODE' );
-v .
-    q
->b  21x
-        y
-          .
+v y
+    .
+      q
+>dc 21  x
+          y
+            .
 END_OF_CODE
 $bef->run_code;
 $out = slurp;
 is( $out, "1 2 " );
 BEGIN { $tests += 1 };
 
-sel; # 12. Storage offset.
+sel; # 14,15. Storage offset.
 $bef->store_code( <<'END_OF_CODE' );
-   0   {  cy..q
+   0   {  fey.y.q
 END_OF_CODE
 $bef->run_code;
 $out = slurp;
 is( $out, "0 8 " );
 BEGIN { $tests += 1 };
 
-sel; # 13. top-left corner of Lahey space.
+sel; # 16,17. top-left corner of Lahey space.
 $bef->store_code( <<'END_OF_CODE' );
-6 03-04-p  dy..q
+6 03-04-p f1+f2+ y.y.q
 END_OF_CODE
 $bef->run_code;
 $out = slurp;
-is( $out, "-4 -3 " );
+is( $out, "-3 -4 " );
 BEGIN { $tests += 1 };
 
-sel; # 14. bottom-right corner of Lahey space.
+sel; # 18,19. bottom-right corner of Lahey space.
 $bef->store_code( <<'END_OF_CODE' );
-6 ff+8p 6 03-04-p ey..q
+6 ff+8p 6 03-04-p f3+f4+y.y.q
 END_OF_CODE
 $bef->run_code;
 $out = slurp;
-is( $out, "13 34 " );
+is( $out, "33 12 " );
 BEGIN { $tests += 1 };
 
-sel; # 15. Date.
+sel; # 20. Date.
 my ($s,$m,$h,$dd,$mm,$yy)=localtime;
 my $date = $yy*256*256+$mm*256+$dd;
 my $time = $h*256*256+$m*256+$s;
 $bef->store_code( <<'END_OF_CODE' );
-fy.q
+f5+y.q
 END_OF_CODE
 $bef->run_code;
 $out = slurp;
@@ -216,9 +219,9 @@ is( $out >= $date,   1); # There is a tiny little chance
 is( $out <= $date+1, 1); # that the date has changed.
 BEGIN { $tests += 2 };
 
-sel; # 16. Time.
+sel; # 21. Time.
 $bef->store_code( <<'END_OF_CODE' );
-88+y.q
+f6+y.q
 END_OF_CODE
 $bef->run_code;
 $out = slurp;
@@ -227,43 +230,43 @@ is( $out >= $time,   1);  # The two tests should not take
 is( $out <= $time+15, 1); # more than 15 seconds.
 BEGIN { $tests += 2 };
 
-sel; # 17. Size of stack stack.
+sel; # 21. Size of stack stack.
 $bef->store_code( <<'END_OF_CODE' );
-0{0{0{0{ 89+y. 0}0} 89+y.q
+0{0{0{0{ f7+y. 0}0} f7+y.q
 END_OF_CODE
 $bef->run_code;
 $out = slurp;
 is( $out, "5 3 " );
 BEGIN { $tests += 1 };
 
-sel; # 18. Size of each stack.
+sel; # 22(,23,24). Size of each stack.
 $bef->store_code( <<'END_OF_CODE' );
-123 0{ 12 0{ 987654 99+y...q
+123 0{ 12 0{ 987654 f8+y.f9+y.fa+y.q
 END_OF_CODE
 $bef->run_code;
 $out = slurp;
 is( $out, "6 4 5 " );
 BEGIN { $tests += 1 };
 
-sel; # 19. Args.
+sel; # 23+. Args.
 $bef->store_code( <<'END_OF_CODE' );
-a9+y >  :#, _ $a, :#v _q
-     ^              <
+yf7+k$ >  :#, _ $a, :#v _q
+       ^              <
 END_OF_CODE
 $bef->run_code( "foo", 7, "bar" );
 $out = slurp;
 is( $out, "STDIN\nfoo\n7\nbar\n" );
 BEGIN { $tests += 1 };
 
-sel; # 20. %ENV.
+sel; # 24+. %ENV.
 %ENV= ( LANG   => "C",
         LC_ALL => "C",
       );
 $bef->store_code( <<'END_OF_CODE' );
-v                > $ ;EOL; a,  v
-           > :! #^_ ,# #! #: <
->  2a*y  : | ;new pair;   :    <
-           q
+v                   > $ ;EOL; a,  v
+              > :! #^_ ,# #! #: <
+> y ff+k$   : | ;new pair;   :    <
+              q
 END_OF_CODE
 $bef->run_code;
 $out = slurp;
@@ -272,20 +275,21 @@ BEGIN { $tests += 1 };
 
 sel; # negative.
 $bef->store_code( <<'END_OF_CODE' );
-02-y..,,,,,,q
+02-y..q
 END_OF_CODE
 $bef->run_code;
 $out = slurp;
-is( $out, "15 4 JQBF98" );
+is( $out, "15 4 " );
 BEGIN { $tests += 1 };
 
 sel; # pick in stack.
+%ENV= ();
 $bef->store_code( <<'END_OF_CODE' );
-1234567 b2*y.q
+1234567 75*y.q
 END_OF_CODE
 $bef->run_code;
 $out = slurp;
-is( $out, "6 " );
+is( $out, "5 " );
 BEGIN { $tests += 1 };
 
 BEGIN { plan tests => $tests };

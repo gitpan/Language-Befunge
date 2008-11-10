@@ -105,7 +105,7 @@ BEGIN { $tests += 1 };
 sel;
 $bef->store_code( <<'END_OF_CODE' );
 #vtzzzzz2.@
- >1112k..@
+ >1112k.@
 END_OF_CODE
 $bef->run_code;
 $out = slurp;

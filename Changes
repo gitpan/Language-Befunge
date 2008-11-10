@@ -17,6 +17,12 @@ High-level changelog
 Low-level changelog
 ===================
 
+4.05 Mon Nov 10 15:46:00 CET 2008
+ - handprint changed to JQBF
+ - mycology compliance. this comes with some changes in unclear semantics:
+	. spaces and comments are now slurped in 0 tick
+	. k interprets the instructions at its position
+
 4.04 Mon Jul 28 18:54:02 CEST 2008
  - speeding LBS->store by 55+% (mg)
  - input not cached per ip, but per interpreter (mg)

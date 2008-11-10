@@ -13,7 +13,7 @@ require 5.010;
 use strict;
 use warnings;
 
-use Config;   # For the 'y' instruction.
+use File::Spec::Functions qw{ catfile };   # For the 'y' instruction.
 
 
 =head1 NAME
@@ -40,11 +40,11 @@ Push the current number onto the TOSS.
 
 =cut
 sub num_push_number {
-    my ($lbi) = @_;
+    my ($lbi, $char) = @_;
 
     # Fetching char.
     my $ip  = $lbi->get_curip;
-    my $num = hex( chr( $lbi->storage->get_value( $ip->get_position ) ) );
+    my $num = hex( $char );
 
     # Pushing value.
     $ip->spush( $num );
@@ -83,7 +83,7 @@ sub str_fetch_char {
     my $ip = $lbi->get_curip;
 
     # Moving pointer...
-    $lbi->move_ip($lbi->get_curip);
+    $lbi->_move_ip_once($lbi->get_curip);
 
    # .. then fetch value and push it.
     my $ord = $lbi->storage->get_value( $ip->get_position );
@@ -103,7 +103,7 @@ sub str_store_char {
     my $ip = $lbi->get_curip;
 
     # Moving pointer.
-    $lbi->move_ip($lbi->get_curip);
+    $lbi->_move_ip_once($lbi->get_curip);
 
     # Fetching value.
     my $val = $ip->spop;
@@ -467,8 +467,12 @@ A serie of spaces is to be treated as B<one> NO-OP.
 =cut
 sub flow_space {
     my ($lbi) = @_;
-    $lbi->move_ip( $lbi->get_curip, qr/ / );
-    $lbi->debug( "slurping serie of spaces\n" );
+    my $ip = $lbi->get_curip;
+    $lbi->_move_ip_till($ip, qr/ /);
+    $lbi->move_ip($lbi->get_curip);
+
+    my $char = $lbi->storage->get_char($ip->get_position);
+    $lbi->_do_instruction($char);
 }
 
 
@@ -483,15 +487,20 @@ sub flow_no_op {
 
 =item flow_comments(  )
 
-Bypass comments in one tick.
+Bypass comments in B<zero> tick.
 
 =cut
 sub flow_comments {
     my ($lbi) = @_;
-    $lbi->move_ip($lbi->get_curip);
-    $lbi->move_ip($lbi->get_curip, qr/[^;]/);
-    $lbi->move_ip($lbi->get_curip);
-    $lbi->debug( "skipping comments\n" );
+    my $ip = $lbi->get_curip;
+
+    $lbi->_move_ip_once($ip);             # skip comment ';'
+    $lbi->_move_ip_till( $ip, qr/[^;]/ ); # till just before matching ';'
+    $lbi->_move_ip_once($ip);             # till matching ';'
+    $lbi->_move_ip_once($ip);             # till just after matching ';'
+
+    my $char = $lbi->storage->get_char($ip->get_position);
+    $lbi->_do_instruction($char);
 }
 
 
@@ -500,7 +509,7 @@ sub flow_comments {
 =cut
 sub flow_trampoline {
     my ($lbi) = @_;
-    $lbi->move_ip($lbi->get_curip);
+    $lbi->_move_ip_once($lbi->get_curip);
     $lbi->debug( "trampoline! (skipping next instruction)\n" );
 }
 
@@ -515,9 +524,8 @@ sub flow_jump_to {
     $lbi->debug( "skipping $count instructions\n" );
     $count == 0 and return;
     $count < 0  and $ip->dir_reverse; # We can move backward.
-    $lbi->move_ip($lbi->get_curip) for (1..abs($count));
-    # don't forget that runloop will advance the ip next time.
-    $count < 0  and $lbi->move_ip($lbi->get_curip), $ip->dir_reverse;
+    $lbi->_move_ip_once($lbi->get_curip) for (1..abs($count));
+    $count < 0 and $ip->dir_reverse;
 }
 
 
@@ -526,28 +534,23 @@ sub flow_jump_to {
 =cut
 sub flow_repeat {
     my ($lbi) = @_;
-    my $ip = $lbi->get_curip;
+    my $ip  = $lbi->get_curip;
+    my $pos = $ip->get_position;
 
     my $kcounter = $ip->spop;
     $lbi->debug( "repeating next instruction $kcounter times.\n" );
+
+    # fetch instruction to repeat
     $lbi->move_ip($lbi->get_curip);
+    my $char = $lbi->storage->get_char($ip->get_position);
 
-    # Nothing to repeat.
-    $kcounter == 0 and return;
+    $char eq 'k' and return;     # k cannot be itself repeated
+    $kcounter == 0 and return;   # nothing to repeat
+    $kcounter  < 0 and return;   # oops, error
 
-    # Ooops, error.
-    $kcounter < 0 and $lbi->abort( "Attempt to repeat ('k') a negative number of times ($kcounter)" );
-
-    # Fetch instruction to repeat.
-    my $val = $lbi->storage->get_value( $ip->get_position );
-
-    # Check if we can repeat the instruction.
-    $val > 0 and $val < 256 and chr($val) =~ /([ ;])/ and
-      $lbi->abort( "Attempt to repeat ('k') a forbidden instruction ('$1')" );
-    $val > 0 and $val < 256 and chr($val) eq "k" and
-      $lbi->abort( "Attempt to repeat ('k') a repeat instruction ('k')" );
-
-    $lbi->process_ip(0) for (1..$kcounter);
+    # reset position back to where k is, and repeat instruction
+    $ip->set_position($pos);
+    $lbi->_do_instruction($char) for (1..$kcounter);
 }
 
 
@@ -649,10 +652,10 @@ sub block_open {
     $ip->soss_push( $ip->get_storage->get_all_components );
 
     # Set the new Storage Offset.
-    $lbi->move_ip($lbi->get_curip);
+    $lbi->_move_ip_once($lbi->get_curip);
     $ip->set_storage( $ip->get_position );
     $ip->dir_reverse;
-    $lbi->move_ip($lbi->get_curip);
+    $lbi->_move_ip_once($lbi->get_curip);
     $ip->dir_reverse;
 }
 
@@ -910,10 +913,10 @@ sub sys_info {
     my $storage = $lbi->storage;
 
     my $val = $ip->spop;
-    my @cells = ();
+    my @infos = ();
 
     # 1. flags
-    push @cells, 0x01  # 't' is implemented.
+    push @infos, 0x01  # 't' is implemented.
               |  0x02  # 'i' is implemented.
               |  0x04  # 'o' is implemented.
               |  0x08  # '=' is implemented.
@@ -921,77 +924,75 @@ sub sys_info {
 
     # 2. number of bytes per cell.
     # 32 bytes Funge: 4 bytes.
-    push @cells, 4;
+    push @infos, 4;
 
     # 3. implementation handprint.
-    my @hand = reverse map { ord } split //, $lbi->get_handprint . chr(0);
-    push @cells, \@hand;
+    my $handprint = 0;
+    $handprint = $handprint * 256 + ord($_) for split //, $lbi->get_handprint;
+    push @infos, $handprint;
 
     # 4. version number.
     my $ver = $Language::Befunge::VERSION;
     $ver =~ s/\D//g;
-    push @cells, $ver;
+    push @infos, $ver;
 
     # 5. ID code for Operating Paradigm.
-    push @cells, 1;             # C-language system() call behaviour.
+    push @infos, 1;             # C-language system() call behaviour.
 
     # 6. Path separator character.
-    push @cells, ord( $Config{path_sep} );
+    push @infos, ord( catfile('','') );
 
     # 7. Number of dimensions.
-    push @cells, $ip->get_dims;
+    push @infos, $ip->get_dims;
 
     # 8. Unique IP number.
-    push @cells, $ip->get_id;
+    push @infos, $ip->get_id;
 
-    # 9. Concurrent Funge (not implemented).
-    push @cells, 0;
+    # 9. Unique team number for the IP (NetFunge, not implemented).
+    push @infos, 0;
 
     # 10. Position of the curent IP.
     my @pos = ( $ip->get_position->get_all_components );
-    push @cells, \@pos;
+    push @infos, \@pos;
 
     # 11. Delta of the curent IP.
     my @delta = ( $ip->get_delta->get_all_components );
-    push @cells, \@delta;
+    push @infos, \@delta;
 
     # 12. Storage offset of the curent IP.
     my @stor = ( $ip->get_storage->get_all_components );
-    push @cells, \@stor;
+    push @infos, \@stor;
 
     # 13. Top-left point.
     my $min = $storage->min;
     # FIXME: multiple dims?
     my @topleft = ( $min->get_component(0), $min->get_component(1) );
-    push @cells, \@topleft;
+    push @infos, \@topleft;
 
     # 14. Dims of the storage.
     my $max = $storage->max;
     # FIXME: multiple dims?
-    my @dims = ( $max->get_component(0) - $min->get_component(0) + 1,
-                 $max->get_component(1) - $min->get_component(1) + 1 );
-    push @cells, \@dims;
+    my @dims = ( $max->get_component(0) - $min->get_component(0),
+                 $max->get_component(1) - $min->get_component(1) );
+    push @infos, \@dims;
 
     # 15/16. Current date/time.
     my ($s,$m,$h,$dd,$mm,$yy)=localtime;
-    push @cells, $yy*256*256 + $mm*256 + $dd;
-    push @cells, $h*256*256 + $m*256 + $s;
+    push @infos, $yy*256*256 + $mm*256 + $dd;
+    push @infos, $h*256*256 + $m*256 + $s;
 
     # 17. Size of stack stack.
-    push @cells, $ip->ss_count + 1;
+    push @infos, $ip->ss_count + 1;
 
     # 18. Size of each stack in the stack stack.
-    # !!FIXME!! Funge specs just tell to push onto the
-    # stack the size of the stacks, but nothing is
-    # said about how user will retrieve the number of
-    # stacks.
+    # note: the number of stack is given by previous value.
     my @sizes = reverse $ip->ss_sizes;
-    push @cells, \@sizes;
+    push @infos, \@sizes;
 
     # 19. $file + params.
-    my $str = join chr(0), $lbi->get_file, @{$lbi->get_params}, chr(0);
+    my $str = join chr(0), $lbi->get_file, @{$lbi->get_params}, chr(0)x2;
     my @cmdline = reverse map { ord } split //, $str;
-    push @cells, \@cmdline;
+    push @infos, \@cmdline;
 
     # 20. %ENV
     # 00EULAV=EMAN0EULAV=EMAN
@@ -999,26 +1000,24 @@ sub sys_info {
     $str .= "$_=$ENV{$_}".chr(0) foreach sort keys %ENV;
     $str .= chr(0);
     my @env = reverse map { ord } split //, $str;
-    push @cells, \@env;
+    push @infos, \@env;
+
+    my @cells = map { ref($_) eq 'ARRAY' ? (@$_) : ($_) } reverse @infos;
 
     # Okay, what to do with those cells.
     if ( $val <= 0 ) {
         # Blindly push them onto the stack.
         $lbi->debug( "system info: pushing the whole stuff\n" );
-        foreach my $cell ( reverse @cells ) {
-            $ip->spush( ref( $cell ) eq "ARRAY" ?
-                        @$cell : $cell );
-        }
+        $ip->spush(@cells);
 
-    } elsif ( $val <= 20 ) {
+    } elsif ( $val <= scalar(@cells) ) {
         # Only push the wanted value.
         $lbi->debug( "system info: pushing the ${val}th value\n" );
-        $ip->spush( ref( $cells[$val-1] ) eq "ARRAY" ?
-                    @{ $cells[$val-1] } : $cells[$val-1] );
+        $ip->spush( $cells[$#cells-$val+1] );
 
     } else {
         # Pick a given value in the stack and push it.
-        my $offset = $val - 20;
+        my $offset = $val - $#cells - 1;
         my $value  = $ip->svalue($offset);
         $lbi->debug( "system info: picking the ${offset}th value from the stack = $value\n" );
         $ip->spush( $value );

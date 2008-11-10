@@ -30,4 +30,4 @@ $lbi->set_curip( $ip );
 $lbi->store_code( '     q' );
 
 Language::Befunge::Ops::flow_space( $lbi );
-is( $ip->get_position, '(4,0)', 'flow_space slurps spaces' );
+is( $ip->get_position, '(5,0)', 'flow_space slurps spaces' );

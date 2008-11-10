@@ -1,6 +1,6 @@
 ---
 name: Language-Befunge
-version: 4.04
+version: 4.05
 author:
   - 'Jerome Quelin <jquelin@cpan.org>'
 abstract: a generic funge interpreter
@@ -11,6 +11,7 @@ requires:
   Carp: 0
   Class::Accessor::Fast: 0
   Config: 0
+  FindBin: 0
   Readonly: 0
   Storable: 0
   UNIVERSAL::require: 0
@@ -20,6 +21,7 @@ build_requires:
   Carp: 0
   Class::Accessor::Fast: 0
   Config: 0
+  FindBin: 0
   List::Util: 0
   POSIX: 0
   Readonly: 0
@@ -38,7 +40,7 @@ recommends:
 provides:
   Language::Befunge:
     file: lib/Language/Befunge.pm
-    version: 4.04
+    version: 4.05
   Language::Befunge::IP:
     file: lib/Language/Befunge/IP.pm
   Language::Befunge::Interpreter:

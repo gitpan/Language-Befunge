@@ -38,4 +38,4 @@ $ip->spush( -1, 3 );
 Language::Befunge::Ops::flow_jump_to( $lbi );
 is( $ip->get_position, '(3,0)', 'flow_jump_to can move forward' );
 Language::Befunge::Ops::flow_jump_to( $lbi );
-is( $ip->get_position, '(1,0)', 'flow_jump_to can move backward' );
+is( $ip->get_position, '(2,0)', 'flow_jump_to can move backward' );

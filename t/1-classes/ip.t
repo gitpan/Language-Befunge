@@ -136,16 +136,17 @@ $ip->ss_transfer( 2 );            # move elems from soss to toss (enough).
 is( $ip->scount, 3 );             # toss = (18,16,15)
 is( $ip->soss_count, 4 );         # soss = (11,12,13,14)
 is( $ip->spop, 15 );              # toss = (18,16)
-$ip->ss_create( -3 );             # create new toss, filled with zeroes.
-is( $ip->scount, 3 );             # toss = (0,0,0)
-is( $ip->soss_count, 2 );         # soss = (18,16)
+$ip->ss_create( -3 );             # create new toss, fill soss with zeroes.
+is( $ip->scount, 0 );             # toss = ()
+is( $ip->soss_count, 5 );         # soss = (18,16,0,0,0)
 is( $ip->ss_count, 2 );
-is( join("",$ip->ss_sizes), "324" );
-is( $ip->spop, 0 );               # toss = (0,0)
+is( join("",$ip->ss_sizes), "054" );
+is( $ip->spop, 0 );               # toss = ()
+$ip->spush(0, 0);
 $ip->ss_transfer( -10 );          # move elems from toss to soss (not enough).
 is( $ip->scount, 0 );             # toss = ()
-is( $ip->soss_count, 12 );        # soss = (18,17,0,0,0,0,0,0,0,0,0,0)
-$ip->soss_push( 15 );             # soss = (18,17,0,0,0,0,0,0,0,0,0,0,15)
+is( $ip->soss_count, 15 );        # soss = (18,17,0,0,0,0,0,0,0,0,0,0,0,0)
+$ip->soss_push( 15 );             # soss = (18,17,0,0,0,0,0,0,0,0,0,0,0,0,15)
 is( $ip->soss_pop, 15 );          # soss = (18,17,0,0,0,0,0,0,0,0,0,0)
 $ip->soss_clear;                  # soss = ()
 is( $ip->soss_pop, 0, "soss_pop returns a 0 on empty soss" );

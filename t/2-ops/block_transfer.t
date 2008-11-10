@@ -30,7 +30,7 @@ is($ip->scount, 0, 'toss is empty by default');
 is($ip->ss_count, 0, 'no soss by default');
 $ip->spush(6, 7, 8, 9, 0);
 $lbi->set_curip( $ip );
-$lbi->store_code('');
+$lbi->store_code('12345');
 Language::Befunge::Ops::block_open( $lbi );
 is($ip->scount, 0, 'new toss is empty');
 is($ip->ss_count, 1, 'soss exists');

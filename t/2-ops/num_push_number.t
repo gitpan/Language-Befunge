@@ -19,13 +19,9 @@ use Language::Befunge::Ops;
 use Language::Befunge::Vector;
 use Test::More tests => 1;
 
-my ($lbi, $ip, $v);
-
-
+my ($lbi, $ip);
 $lbi = Language::Befunge::Interpreter->new;
 $ip  = Language::Befunge::IP->new;
-$v   = Language::Befunge::Vector->new(0,0);
 $lbi->set_curip( $ip );
-$lbi->storage->set_value( $v, ord('e') );
-Language::Befunge::Ops::num_push_number( $lbi );
+Language::Befunge::Ops::num_push_number( $lbi, 'e' );
 is( $ip->spop, 14, 'num_push_number pushes current instruction on the stack as number' );

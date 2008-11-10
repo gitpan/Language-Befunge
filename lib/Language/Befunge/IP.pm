@@ -156,8 +156,8 @@ sub ss_create {
     my @new_toss;
 
     if ( $n < 0 ) {
-        # Push zeroes.
-        @new_toss = (0) x abs($n);
+        # Push zeroes on *current* toss (to-be soss).
+        $self->spush( (0) x abs($n) );
     } elsif ( $n > 0 ) {
         my $c = $n - $self->scount;
         if ( $c <= 0 ) {
