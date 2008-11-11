@@ -1,6 +1,6 @@
 ---
 name: Language-Befunge
-version: 4.05
+version: 4.06
 author:
   - 'Jerome Quelin <jquelin@cpan.org>'
 abstract: a generic funge interpreter
@@ -40,7 +40,7 @@ recommends:
 provides:
   Language::Befunge:
     file: lib/Language/Befunge.pm
-    version: 4.05
+    version: 4.06
   Language::Befunge::IP:
     file: lib/Language/Befunge/IP.pm
   Language::Befunge::Interpreter:
@@ -73,6 +73,16 @@ provides:
     file: lib/Language/Befunge/lib/FOO.pm
   Language::Befunge::lib::HELO:
     file: lib/Language/Befunge/lib/HELO.pm
+  Language::Befunge::lib::NULL:
+    file: lib/Language/Befunge/lib/NULL.pm
+  Language::Befunge::lib::ORTH:
+    file: lib/Language/Befunge/lib/ORTH.pm
+  Language::Befunge::lib::PERL:
+    file: lib/Language/Befunge/lib/PERL.pm
+  Language::Befunge::lib::REFC:
+    file: lib/Language/Befunge/lib/REFC.pm
+  Language::Befunge::lib::ROMA:
+    file: lib/Language/Befunge/lib/ROMA.pm
   Language::Befunge::lib::TEST:
     file: lib/Language/Befunge/lib/TEST.pm
 generated_by: Module::Build version 0.2808

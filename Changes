@@ -17,6 +17,13 @@ High-level changelog
 Low-level changelog
 ===================
 
+4.06 Tue Nov 11 17:50:47 CET 2008
+ - new fingerprint: NULL - Extension to opacify loaded extensions
+ - new fingerprint: ORTH - Orthogonal easement extension
+ - new fingerprint: PERL - Extension to embed Perl within Befunge
+ - new fingerprint: REFC - Referenced cells extension
+ - new fingerprint: ROMA - Roman numerals extension
+
 4.05 Mon Nov 10 15:46:00 CET 2008
  - handprint changed to JQBF
  - mycology compliance. this comes with some changes in unclear semantics:
