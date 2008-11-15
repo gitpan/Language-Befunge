@@ -17,7 +17,7 @@ use Carp;
 use Language::Befunge::Interpreter;
 
 # Public variables of the module.
-our $VERSION = '4.06';
+our $VERSION = '4.07';
 $| = 1;
 
 sub new {

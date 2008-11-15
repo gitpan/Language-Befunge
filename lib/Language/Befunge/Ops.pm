@@ -978,7 +978,7 @@ sub sys_info {
 
     # 15/16. Current date/time.
     my ($s,$m,$h,$dd,$mm,$yy)=localtime;
-    push @infos, $yy*256*256 + $mm*256 + $dd;
+    push @infos, $yy*256*256 + ($mm+1)*256 + $dd;
     push @infos, $h*256*256 + $m*256 + $s;
 
     # 17. Size of stack stack.

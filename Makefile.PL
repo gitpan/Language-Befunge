@@ -27,6 +27,7 @@ WriteMakefile(
         'Config'                => 0,
         'FindBin'               => 0,
         'List::Util'            => 0,
+        'Math::BaseCalc'        => 0,
         'POSIX'                 => 0,
         'Readonly'              => 0,
         'Storable'              => 0,
@@ -37,7 +38,7 @@ WriteMakefile(
     dist          => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean         => { FILES => [
                     'Language-Befunge-*',
-					map { ( '*/' x $_ ) . '*~' } 0..5 ] },
+                    map { ( '*/' x $_ ) . '*~' } 0..5 ] },
     test          => { TESTS => 't/*.t t/*/*.t' },
 );
 

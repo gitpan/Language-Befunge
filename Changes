@@ -17,6 +17,14 @@ High-level changelog
 Low-level changelog
 ===================
 
+4.07 Sat Nov 15 19:44:27 CET 2008
+ - fix month in y instruction
+ - new fingerprint: BASE - Non-standard math bases extension
+ - new fingerprint: BOOL - Boolean operations extension
+ - new fingerprint: EVAR - Environment variables extention
+ - new fingerprint: HRTI - High-Resolution Timer extension
+ - new fingerprint: MODU - Modulo Arithmetic extension
+
 4.06 Tue Nov 11 17:50:47 CET 2008
  - new fingerprint: NULL - Extension to opacify loaded extensions
  - new fingerprint: ORTH - Orthogonal easement extension

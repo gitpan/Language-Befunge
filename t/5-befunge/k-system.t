@@ -207,7 +207,7 @@ BEGIN { $tests += 1 };
 
 sel; # 20. Date.
 my ($s,$m,$h,$dd,$mm,$yy)=localtime;
-my $date = $yy*256*256+$mm*256+$dd;
+my $date = $yy*256*256+($mm+1)*256+$dd;
 my $time = $h*256*256+$m*256+$s;
 $bef->store_code( <<'END_OF_CODE' );
 f5+y.q

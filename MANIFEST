@@ -16,8 +16,13 @@ lib/Language/Befunge/doc/library.pod
 lib/Language/Befunge/doc/wrap.jpg
 lib/Language/Befunge/Interpreter.pm
 lib/Language/Befunge/IP.pm
+lib/Language/Befunge/lib/BASE.pm
+lib/Language/Befunge/lib/BOOL.pm
+lib/Language/Befunge/lib/EVAR.pm
 lib/Language/Befunge/lib/FOO.pm
 lib/Language/Befunge/lib/HELO.pm
+lib/Language/Befunge/lib/HRTI.pm
+lib/Language/Befunge/lib/MODU.pm
 lib/Language/Befunge/lib/NULL.pm
 lib/Language/Befunge/lib/ORTH.pm
 lib/Language/Befunge/lib/PERL.pm

@@ -1,6 +1,6 @@
 ---
 name: Language-Befunge
-version: 4.06
+version: 4.07
 author:
   - 'Jerome Quelin <jquelin@cpan.org>'
 abstract: a generic funge interpreter
@@ -12,6 +12,7 @@ requires:
   Class::Accessor::Fast: 0
   Config: 0
   FindBin: 0
+  Math::BaseCalc: 0
   Readonly: 0
   Storable: 0
   UNIVERSAL::require: 0
@@ -23,6 +24,7 @@ build_requires:
   Config: 0
   FindBin: 0
   List::Util: 0
+  Math::BaseCalc: 0
   POSIX: 0
   Readonly: 0
   Storable: 0
@@ -37,10 +39,11 @@ recommends:
   Test::Builder: 0
   Test::Pod: 0
   Test::Pod::Coverage: 0
+  Time::HiRes: 0
 provides:
   Language::Befunge:
     file: lib/Language/Befunge.pm
-    version: 4.06
+    version: 4.07
   Language::Befunge::IP:
     file: lib/Language/Befunge/IP.pm
   Language::Befunge::Interpreter:
@@ -69,10 +72,20 @@ provides:
     file: lib/Language/Befunge/Wrapping.pm
   Language::Befunge::Wrapping::LaheySpace:
     file: lib/Language/Befunge/Wrapping/LaheySpace.pm
+  Language::Befunge::lib::BASE:
+    file: lib/Language/Befunge/lib/BASE.pm
+  Language::Befunge::lib::BOOL:
+    file: lib/Language/Befunge/lib/BOOL.pm
+  Language::Befunge::lib::EVAR:
+    file: lib/Language/Befunge/lib/EVAR.pm
   Language::Befunge::lib::FOO:
     file: lib/Language/Befunge/lib/FOO.pm
   Language::Befunge::lib::HELO:
     file: lib/Language/Befunge/lib/HELO.pm
+  Language::Befunge::lib::HRTI:
+    file: lib/Language/Befunge/lib/HRTI.pm
+  Language::Befunge::lib::MODU:
+    file: lib/Language/Befunge/lib/MODU.pm
   Language::Befunge::lib::NULL:
     file: lib/Language/Befunge/lib/NULL.pm
   Language::Befunge::lib::ORTH:
@@ -85,7 +98,7 @@ provides:
     file: lib/Language/Befunge/lib/ROMA.pm
   Language::Befunge::lib::TEST:
     file: lib/Language/Befunge/lib/TEST.pm
-generated_by: Module::Build version 0.2808
+generated_by: Module::Build version 0.3
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.2.html
   version: 1.2
