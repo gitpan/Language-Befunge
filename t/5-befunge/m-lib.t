@@ -115,12 +115,11 @@ is( $out, "fooHello world!\n" );
 
 sel; # unloading under stack.
 $bef->store_code( <<'END_OF_CODE' );
-"OLEH" 4 ( "OOF" 3 ( P "OLEH" 4 ) P #v S 2.q
-                                q.1  <
+"AMOR" 4 ( "UDOM" 4 ( "AMOR" 4 ) M .q
 END_OF_CODE
 $bef->run_code;
 $out = slurp;
-is( $out, "foofoo1 " );
+is( $out, "1000 " );
 
 sel; # unloading non-loaded extension.
 $bef->store_code( <<'END_OF_CODE' );

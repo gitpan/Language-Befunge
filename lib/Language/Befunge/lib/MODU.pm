@@ -49,7 +49,7 @@ sub U {
     my $y = $ip->spop;
     my $x = $ip->spop;
     if ( $y == 0 ) {
-        $ip->push(0);
+        $ip->spush(0);
         return;
     }
     my $mod = $x % $y;
@@ -70,7 +70,7 @@ sub R {
     my $y = $ip->spop;
     my $x = $ip->spop;
     if ( $y == 0 ) {
-        $ip->push(0);
+        $ip->spush(0);
         return;
     }
 

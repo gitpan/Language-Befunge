@@ -55,7 +55,7 @@ sub N {
 	if ( $b == 0 || $b == 1 || $b > scalar(@digits) ) {
 		# bases 0 and 1 are not valid.
 		# bases greater than 36 require too much chars.
-		$ip->dir_reflect;
+		$ip->dir_reverse;
 		return;
 	}
 	my $bc = Math::BaseCalc->new(digits=> [ @digits[0..$b-1] ]);

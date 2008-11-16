@@ -17,6 +17,10 @@ High-level changelog
 Low-level changelog
 ===================
 
+4.08 Sun Nov 16 11:23:13 CET 2008
+ - change libs semantics when unloading under stack
+ - fix on some extensions
+
 4.07 Sat Nov 15 19:44:27 CET 2008
  - fix month in y instruction
  - new fingerprint: BASE - Non-standard math bases extension

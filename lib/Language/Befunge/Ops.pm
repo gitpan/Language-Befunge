@@ -1090,7 +1090,7 @@ sub lib_load {
         $ip->dir_reverse;
     } else {
         $lbi->debug( sprintf("extension $lib (0x%x) loaded\n", $fgrprt) );
-        my $obj = new $lib;
+        my $obj = $lib->new;
         $ip->load( $obj );
         $ip->spush( $fgrprt, 1 );
     }
@@ -1124,13 +1124,15 @@ sub lib_unload {
     }
     $lib = "Language::Befunge::lib::" . reverse $lib;
 
-    # Unload the library.
-    if ( defined( $ip->unload($lib) ) ) {
-        $lbi->debug( sprintf("unloading library $lib (0x%x)\n", $fgrprt) );
-    } else {
-        # The library wasn't loaded.
-        $lbi->debug( sprintf("library $lib (0x%x) wasn't loaded\n", $fgrprt) );
+    # Checking if library exists.
+    eval "require $lib";
+    if ( $@ ) {
+        $lbi->debug( sprintf("unknown extension $lib (0x%x): reversing\n", $fgrprt) );
         $ip->dir_reverse;
+    } else {
+        # Unload the library.
+        $lbi->debug( sprintf("unloading library $lib (0x%x)\n", $fgrprt) );
+        $ip->unload($lib);
     }
 }
 
@@ -1145,23 +1147,17 @@ sub lib_run_instruction {
 
     # Maybe a library semantics.
     $lbi->debug( "library semantics\n" );
+    my $stack = $ip->get_libs->{$char};
 
-    foreach my $obj ( @{ $ip->get_libs } ) {
-        # Try the loaded libraries in order.
-        eval "\$obj->$char(\$lbi)";
-        if( $@ ) {
-            $lbi->debug( ref($obj) . "->$char failed: $@" );
-            next;
-        }
-
-        # We manage to get a library.
+    if ( scalar @$stack ) {
+        my $obj = $stack->[-1];
         $lbi->debug( "library semantics processed by ".ref($obj)."\n" );
-        return;
+        $obj->$char( $lbi );
+    } else {
+        # Non-overloaded capitals default to reverse.
+        $lbi->debug("no library semantics found: reversing\n");
+        $ip->dir_reverse;
     }
-
-    # Non-overloaded capitals default to reverse.
-    $lbi->debug("no library semantics found: reversing\n");
-    $ip->dir_reverse;
 }
 
 =back

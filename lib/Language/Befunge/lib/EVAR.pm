@@ -66,7 +66,7 @@ sub V {
     my $ip   = $lbi->get_curip;
     my $n = $ip->spop;
     if ( $n >= scalar keys %ENV ) {
-        $ip->dir_reflect;
+        $ip->dir_reverse;
         return;
     }
     my @keys = sort keys %ENV;

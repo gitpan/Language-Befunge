@@ -35,7 +35,7 @@ sub new {
         string_mode  => 0,
         end          => 0,
         data         => {},
-        libs         => [],
+        libs         => { map { $_=>[] } 'A'..'Z' },
       };
     # go right by default
     $self->{delta}->set_component(0, 1);
@@ -368,19 +368,22 @@ sub dir_reverse {
 
 sub load {
     my ($self, $lib) = @_;
-    unshift @{ $self->get_libs }, $lib;
+
+    my $libs = $self->get_libs;
+    foreach my $letter ( 'A' .. 'Z' ) {
+        next unless $lib->can($letter);
+        push @{ $libs->{$letter} }, $lib;
+    }
 }
 
 sub unload {
     my ($self, $lib) = @_;
 
-    my $offset = -1;
-    foreach my $i ( 0..$#{$self->get_libs} ) {
-        $offset = $i, last if ref($self->get_libs->[$i]) eq $lib;
+    my $libs = $self->get_libs;
+    foreach my $letter ( 'A' .. 'Z' ) {
+        next unless $lib->can($letter);
+        pop @{ $libs->{$letter} };
     }
-    $offset == -1 and return undef;
-    splice @{ $self->get_libs }, $offset, 1;
-    return $lib;
 }
 
 sub extdata {

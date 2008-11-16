@@ -61,7 +61,7 @@ sub T {
     my $ip = $lbi->get_curip;
     my $id = $ip->get_id;
     if ( not exists $mark{$id} ) {
-        $ip->dir_reflect;
+        $ip->dir_reverse;
         return;
     }
     my $secs = gettimeofday() - $mark{$id};
