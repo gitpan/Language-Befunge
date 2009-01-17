@@ -17,8 +17,37 @@ use Carp;
 use Language::Befunge::IP;
 use UNIVERSAL::require;
 
-use base qw{ Class::Accessor::Fast };
-__PACKAGE__->mk_accessors( qw{ storage _wrapping input } );
+# FIXME: wtf? always use get_/set_ or mutators, but not a mix of them!
+use Class::XSAccessor
+    getters => {
+        get_dimensions => 'dimensions',
+        get_file       => 'file',
+        get_params     => 'params',
+        get_retval     => 'retval',
+        get_storage    => 'storage',
+        get_DEBUG      => 'DEBUG',
+        get_curip      => 'curip',
+        get_ips        => 'ips',
+        get_newips     => 'newips',
+        get_ops        => 'ops',
+        get_handprint  => 'handprint',
+        get_wrapping   => '_wrapping',
+        _get_input     => '_input',
+    },
+    setters => {
+        set_dimensions => 'dimensions',
+        set_file       => 'file',
+        set_params     => 'params',
+        set_retval     => 'retval',
+        set_DEBUG      => 'DEBUG',
+        set_curip      => 'curip',
+        set_ips        => 'ips',
+        set_newips     => 'newips',
+        set_ops        => 'ops',
+        set_handprint  => 'handprint',
+        _set_input     => '_input',
+    };
+
 
 # Public variables of the module.
 $| = 1;
@@ -125,7 +154,7 @@ sub new {
         dimensions => $opts->{dims},
         storage    => $opts->{storage}->new( $opts->{dims}, Wrapping => $wrapping ),
         file       => "STDIN",
-        input      => '',
+        _input     => '',
         params     => [],
         retval     => 0,
         DEBUG      => 0,
@@ -147,54 +176,6 @@ sub new {
 
 
 
-# -- ACCESSORS
-
-# The following is a list of attributes of a Language::Befunge
-# object. For each of them, a method C<get_foobar> and C<set_foobar>
-# exists, which does what you can imagine - and if you can't, then i
-# wonder why you are reading this! :-)
-#
-# get_curip() / set_curip()
-# the current Instruction Pointer processed (a L::B::IP object)
-#
-# get_DEBUG() / set_DEBUG()
-# wether the interpreter should output debug messages (a boolean)
-#
-# get_dimensions() / set_dimensions()
-# the number of dimensions this interpreter works in.
-#
-# get_file() / set_file()
-# the script filename (a string)
-#
-# get_handprint() / set_handprint()
-# the handprint of the interpreter
-#
-# get_ips() / set_ips()
-# the current set of IPs travelling in the Lahey space (an array
-# reference)
-#
-# get_newips() / set_newips()
-# the set of IPs that B<will> travel in the Lahey space B<after> the
-# current tick (an array reference)
-#
-# get_ops() / set_ops()
-# the current supported operations set.
-#
-# get_params() / set_params()
-# the parameters of the script (an array reference)
-#
-# get_retval() / set_retval()
-# the current return value of the interpreter (an integer)
-#
-BEGIN {
-    my @attrs = qw[ dimensions file params retval DEBUG curip ips newips ops handprint ];
-    foreach my $attr ( @attrs ) {
-        my $code = qq[ sub get_$attr { return \$_[0]->{$attr} } ];
-        $code .= qq[ sub set_$attr { \$_[0]->{$attr} = \$_[1] } ];
-        eval $code;
-    }
-}
-
 
 # -- PUBLIC METHODS
 
@@ -210,7 +191,7 @@ BEGIN {
 sub move_ip {
     my ($self, $ip) = @_;
 
-    my $storage = $self->storage;
+    my $storage = $self->get_storage;
     my $orig = $ip->get_position;
     $self->_move_ip_once($ip);
     my $char;
@@ -273,7 +254,7 @@ sub debug {
 #
 sub set_input {
     my ($self, $str) = @_;
-    $self->input($str);
+    $self->_set_input($str);
 }
 
 
@@ -286,7 +267,7 @@ sub set_input {
 
 sub get_input {
     my $self = shift;
-    return substr($$self{input}, 0, 1, '') if length $self->input;
+    return substr($$self{_input}, 0, 1, '') if length $self->_get_input;
     my $char;
     my $rv = sysread(STDIN, $char, 1);
     return $char if length $char;
@@ -331,8 +312,8 @@ sub read_file {
 sub store_code {
     my ($self, $code) = @_;
     $self->debug( "Storing code\n" );
-    $self->storage->clear;
-    $self->storage->store( $code );
+    $self->get_storage->clear;
+    $self->get_storage->store( $code );
 }
 
 
@@ -398,8 +379,8 @@ sub process_ip {
 
     # Fetch values for this IP.
     my $v  = $ip->get_position;
-    my $ord  = $self->storage->get_value( $v );
-    my $char = $self->storage->get_char( $v );
+    my $ord  = $self->get_storage->get_value( $v );
+    my $char = $self->get_storage->get_char( $v );
 
     # Cosmetics.
     $self->debug( "#".$ip->get_id.":$v: $char (ord=$ord)  Stack=(@{$ip->get_toss})\n" );
@@ -472,7 +453,7 @@ sub _do_instruction {
 #
 sub _move_ip_once {
     my ($self, $ip) = @_;
-    my $storage = $self->storage;
+    my $storage = $self->get_storage;
 
     # fetch the current position of the ip.
     my $v = $ip->get_position;
@@ -486,7 +467,7 @@ sub _move_ip_once {
         $ip->set_position( $v );
     } else {
         # wrap needed - this will update the position.
-        $self->_wrapping->wrap( $storage, $ip );
+        $self->get_wrapping->wrap( $storage, $ip );
     }
 }
 
@@ -503,7 +484,7 @@ sub _move_ip_once {
 #
 sub _move_ip_till {
     my ($self, $ip, $re) = @_;
-    my $storage = $self->storage;
+    my $storage = $self->get_storage;
 
     my $orig = $ip->get_position;
     # moving as long as we did not reach the condition.
@@ -586,6 +567,14 @@ the parameters of the script (an array reference)
 =item get_retval() / set_retval()
 
 the current return value of the interpreter (an integer)
+
+=item get_storage()
+
+the C<LB::Storage> object containing the playfield.
+
+=item get_wrapping()
+
+the C<LB::Wrapping> object driving wrapping policy. Private.
 
 =back
 

@@ -58,11 +58,11 @@ BEGIN { $tests += 1 };
 $unef = Language::Befunge->new({
     syntax  => 'unefunge98',
     storage => 'Language::Befunge::Storage::Generic::Vec' });
-is(ref($unef->storage), 'Language::Befunge::Storage::Generic::Vec', 'storage specified');
+is(ref($unef->get_storage), 'Language::Befunge::Storage::Generic::Vec', 'storage specified');
 $unef = Language::Befunge->new({
     syntax   => 'unefunge98',
     wrapping => 'Language::Befunge::Wrapping::LaheySpace' });
-is(ref($unef->_wrapping), 'Language::Befunge::Wrapping::LaheySpace', 'wrapping specified');
+is(ref($unef->get_wrapping), 'Language::Befunge::Wrapping::LaheySpace', 'wrapping specified');
 $unef = Language::Befunge->new({
     syntax => 'unefunge98',
     ops    => 'Language::Befunge::Ops::GenericFunge98' });
@@ -123,7 +123,7 @@ is( $out, "1 2 " );
 BEGIN { $tests += 1 };
 
 # rectangle() just returns the original string again
-is($unef->storage->rectangle(LBV->new(0), LBV->new(9)), '1#q.2^3.q', 'rectangle works');
+is($unef->get_storage->rectangle(LBV->new(0), LBV->new(9)), '1#q.2^3.q', 'rectangle works');
 BEGIN { $tests += 1 };
 
 BEGIN { plan tests => $tests };

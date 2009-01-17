@@ -26,38 +26,38 @@ my $interp = Language::Befunge::Interpreter->new();
 isa_ok($interp, "Language::Befunge::Interpreter");
 is($interp->get_dimensions, 2, "default number of dimensions");
 is(scalar @{$interp->get_ips()}, 0, "starts out with no IPs");
-isa_ok($interp->storage, 'Language::Befunge::Storage::2D::Sparse', "storage object");
-is($interp->storage->get_dims, 2, "storage has same number of dimensions");
+isa_ok($interp->get_storage, 'Language::Befunge::Storage::2D::Sparse', "storage object");
+is($interp->get_storage->get_dims, 2, "storage has same number of dimensions");
 
 # templates
 $interp = Language::Befunge::Interpreter->new({ syntax => 'befunge98' });
 isa_ok($interp, "Language::Befunge::Interpreter");
 is($interp->get_dimensions, 2, "default number of dimensions");
 is(scalar @{$interp->get_ips()}, 0, "starts out with no IPs");
-isa_ok($interp->storage, 'Language::Befunge::Storage::2D::Sparse', "storage object");
-is($interp->storage->get_dims, 2, "storage has same number of dimensions");
+isa_ok($interp->get_storage, 'Language::Befunge::Storage::2D::Sparse', "storage object");
+is($interp->get_storage->get_dims, 2, "storage has same number of dimensions");
 
 $interp = Language::Befunge::Interpreter->new({ syntax => 'unefunge98' });
 isa_ok($interp, "Language::Befunge::Interpreter");
 is($interp->get_dimensions, 1, "correct number of dimensions");
 is(scalar @{$interp->get_ips()}, 0, "starts out with no IPs");
-isa_ok($interp->storage, 'Language::Befunge::Storage::Generic::AoA', "storage object");
-is($interp->storage->get_dims, 1, "storage has same number of dimensions");
+isa_ok($interp->get_storage, 'Language::Befunge::Storage::Generic::AoA', "storage object");
+is($interp->get_storage->get_dims, 1, "storage has same number of dimensions");
 
 $interp = Language::Befunge::Interpreter->new({ syntax => 'trefunge98' });
 isa_ok($interp, "Language::Befunge::Interpreter");
 is($interp->get_dimensions, 3, "correct number of dimensions");
 is(scalar @{$interp->get_ips()}, 0, "starts out with no IPs");
-isa_ok($interp->storage, 'Language::Befunge::Storage::Generic::AoA', "storage object");
-is($interp->storage->get_dims, 3, "storage has same number of dimensions");
+isa_ok($interp->get_storage, 'Language::Befunge::Storage::Generic::AoA', "storage object");
+is($interp->get_storage->get_dims, 3, "storage has same number of dimensions");
 
 # by dims
 $interp = Language::Befunge::Interpreter->new({ dims => 5 });
 isa_ok($interp, "Language::Befunge::Interpreter");
 is($interp->get_dimensions, 5, "correct number of dimensions");
 is(scalar @{$interp->get_ips()}, 0, "starts out with no IPs");
-isa_ok($interp->storage, 'Language::Befunge::Storage::Generic::AoA', "storage object");
-is($interp->storage->get_dims, 5, "storage has same number of dimensions");
+isa_ok($interp->get_storage, 'Language::Befunge::Storage::Generic::AoA', "storage object");
+is($interp->get_storage->get_dims, 5, "storage has same number of dimensions");
 
 # special storage requirement
 $interp = Language::Befunge::Interpreter->new({
@@ -66,21 +66,21 @@ $interp = Language::Befunge::Interpreter->new({
 isa_ok($interp, "Language::Befunge::Interpreter");
 is($interp->get_dimensions, 2, "correct number of dimensions");
 is(scalar @{$interp->get_ips()}, 0, "starts out with no IPs");
-isa_ok($interp->storage, 'Language::Befunge::Storage::Generic::Vec', "storage object");
-is($interp->storage->get_dims, 2, "storage has same number of dimensions");
+isa_ok($interp->get_storage, 'Language::Befunge::Storage::Generic::Vec', "storage object");
+is($interp->get_storage->get_dims, 2, "storage has same number of dimensions");
 
 # syntax combinations like "4funge98" are supported
 $interp = Language::Befunge::Interpreter->new({
     syntax  => '4funge98',
     storage => 'Language::Befunge::Storage::Generic::Vec' });
-is(ref($interp->storage), 'Language::Befunge::Storage::Generic::Vec', 'storage specified');
+is(ref($interp->get_storage), 'Language::Befunge::Storage::Generic::Vec', 'storage specified');
 is($$interp{dimensions}, 4, 'dims inferred from syntax name');
 ok(exists($$interp{ops}{m}), 'GenericFunge98 ops used');
 $interp = Language::Befunge::Interpreter->new({
     syntax   => '4funge98',
     wrapping => 'Language::Befunge::Wrapping::LaheySpace' });
-is(ref($interp->_wrapping), 'Language::Befunge::Wrapping::LaheySpace', 'wrapping specified');
-is(ref($interp->storage), 'Language::Befunge::Storage::Generic::AoA', 'default storage');
+is(ref($interp->get_wrapping), 'Language::Befunge::Wrapping::LaheySpace', 'wrapping specified');
+is(ref($interp->get_storage), 'Language::Befunge::Storage::Generic::AoA', 'default storage');
 $interp = Language::Befunge::Interpreter->new({
     syntax => '4funge98',
     ops    => 'Language::Befunge::Ops::Unefunge98' });

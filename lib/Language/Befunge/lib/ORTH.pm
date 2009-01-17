@@ -88,7 +88,7 @@ sub G {
     my $x = $ip->spop;
     my $y = $ip->spop;
 	my $v = Language::Befunge::Vector->new($x,$y);
-    my $val = $lbi->storage->get_value( $v );
+    my $val = $lbi->get_storage->get_value( $v );
     $ip->spush( $val );
 }
 
@@ -107,7 +107,7 @@ sub P {
     my $y = $ip->spop;
 	my $v = Language::Befunge::Vector->new($x,$y);
 	my $val = $ip->spop;
-    $lbi->storage->set_value( $v, $val );
+    $lbi->get_storage->set_value( $v, $val );
 }
 
 

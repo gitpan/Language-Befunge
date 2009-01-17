@@ -58,11 +58,11 @@ BEGIN { $tests += 1 };
 $tref = Language::Befunge->new({
     syntax  => 'trefunge98',
     storage => 'Language::Befunge::Storage::Generic::Vec' });
-is(ref($tref->storage), 'Language::Befunge::Storage::Generic::Vec', 'storage specified');
+is(ref($tref->get_storage), 'Language::Befunge::Storage::Generic::Vec', 'storage specified');
 $tref = Language::Befunge->new({
     syntax   => 'trefunge98',
     wrapping => 'Language::Befunge::Wrapping::LaheySpace' });
-is(ref($tref->_wrapping), 'Language::Befunge::Wrapping::LaheySpace', 'wrapping specified');
+is(ref($tref->get_wrapping), 'Language::Befunge::Wrapping::LaheySpace', 'wrapping specified');
 $tref = Language::Befunge->new({
     syntax => 'trefunge98',
     ops    => 'Language::Befunge::Ops::GenericFunge98' });
@@ -129,7 +129,7 @@ BEGIN { $tests += 1 };
 
 # rectangle() returns the original box again
 chomp $code;
-is($tref->storage->rectangle(LBV->new(0,0,0), LBV->new(9,2,2)), $code, 'rectangle works');
+is($tref->get_storage->rectangle(LBV->new(0,0,0), LBV->new(9,2,2)), $code, 'rectangle works');
 BEGIN { $tests += 1 };
 
 BEGIN { plan tests => $tests };

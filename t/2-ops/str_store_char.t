@@ -28,9 +28,9 @@ $v   = Language::Befunge::Vector->new(1,0);
 $ip->set_delta( $v );
 $ip->spush( ord('A') );
 $lbi->set_curip( $ip );
-$lbi->storage->set_value( $v, ord('B') ); # to enlarge storage
+$lbi->get_storage->set_value( $v, ord('B') ); # to enlarge storage
 Language::Befunge::Ops::str_store_char( $lbi );
 is( $ip->get_position, '(1,0)', 'str_store_char moves ip' );
 is( $ip->spop, 0, 'str_store_char pops value from ip' );
-is( $lbi->storage->get_value( $v ), ord('A'),
+is( $lbi->get_storage->get_value( $v ), ord('A'),
     'str_store_char oversrites next instruction from the char on the stack' );

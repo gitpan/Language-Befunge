@@ -135,7 +135,7 @@ v qiv# "t/_resources/hello.bf"0  <
 END_OF_CODE
 $bef->run_code;
 $out = slurp;
-is( $bef->storage->rectangle
+is( $bef->get_storage->rectangle
     ( Language::Befunge::Vector->new( 6, 9),
       Language::Befunge::Vector->new( 71, 1) ),
     qq{v q  ,,,,,,,,,,,,,"hello world!"a <\n>                                 ^} );

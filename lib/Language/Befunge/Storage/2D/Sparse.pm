@@ -16,8 +16,16 @@ use Carp;
 use aliased 'Language::Befunge::Vector' => 'LBV';
 use Readonly;
 
-use base qw{ Class::Accessor::Fast Language::Befunge::Storage };
-__PACKAGE__->mk_accessors( qw{ _storage _xmin _xmax _ymin _ymax } );
+use base qw{ Language::Befunge::Storage };
+
+use Class::XSAccessor
+    accessors => {
+        _storage => '_storage',
+        _xmin    => '_xmin',
+        _xmax    => '_xmax',
+        _ymin    => '_ymin',
+        _ymax    => '_ymax',
+    };
 
 Readonly my $SPACE => ' ';
 

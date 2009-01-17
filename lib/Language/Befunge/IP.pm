@@ -18,6 +18,33 @@ use Carp;
 use Language::Befunge::Vector;
 use Storable qw(dclone);
 
+use Class::XSAccessor
+    getters => {
+        get_position    => 'position',
+        get_data        => 'data',
+        get_delta       => 'delta',
+        get_dims        => 'dims',
+        get_end         => 'end',
+        get_id          => 'id',
+        get_libs        => 'libs',
+        get_ss          => 'ss',
+        get_storage     => 'storage',
+        get_string_mode => 'string_mode',
+        get_toss        => 'toss',
+    },
+    setters => {
+        set_position    => 'position',
+        set_data        => 'data',
+        set_delta       => 'delta',
+        set_end         => 'end',
+        set_id          => 'id',
+        set_libs        => 'libs',
+        set_ss          => 'ss',
+        set_storage     => 'storage',
+        set_string_mode => 'string_mode',
+        set_toss        => 'toss',
+    };
+
 
 # -- CONSTRUCTORS
 
@@ -54,17 +81,6 @@ sub clone {
 
 # -- ACCESSORS
 
-BEGIN {
-    my @attrs = qw[ position data delta end id libs
-                    ss storage string_mode toss ];
-    foreach my $attr ( @attrs ) {
-        my $code = qq[ sub get_$attr { return \$_[0]->{$attr} } ];
-        $code .= qq[ sub set_$attr { \$_[0]->{$attr} = \$_[1] } ];
-        eval $code;
-    }
-}
-
-sub get_dims { return $_[0]->{dims} };
 
 sub soss {
     my $self = shift;

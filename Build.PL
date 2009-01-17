@@ -17,7 +17,7 @@ my %requires = (
     'perl'                  => '5.010',
     'aliased'               => '0.22',
     'Carp'                  => 0,
-    'Class::Accessor::Fast' => 0,
+    'Class::XSAccessor'     => 0,
     'Config'                => 0,
     'FindBin'               => 0,
     'Math::BaseCalc'        => 0,
@@ -52,7 +52,7 @@ my $builder = Module::Build->new
     recommends           => \%recommends,
     script_files         => [ 'bin/jqbef98' ],
     add_to_cleanup       =>
-      [ 'Language-Befunge-*', map { ( '*/' x $_ ) . '*~' } 0..5 ],
+      [ 'Language-Befunge-*', '*.tmp', '*.bak', map { ( '*/' x $_ ) . '*~' } 0..5 ],
     recursive_test_files => 1,
   );
 $builder->create_build_script;

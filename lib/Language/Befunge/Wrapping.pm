@@ -12,13 +12,9 @@ package Language::Befunge::Wrapping;
 use strict;
 use warnings;
 
-use base qw{ Class::Accessor::Fast };
-
 # -- CONSTRUCTOR
 
-#
-# provided by Class::Accessor::Fast
-#
+use Class::XSAccessor constructor => 'new';
 
 
 # -- PUBLIC METHODS

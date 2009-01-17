@@ -27,7 +27,7 @@ $ip  = Language::Befunge::IP->new;
 $v   = Language::Befunge::Vector->new(1,0);
 $ip->set_delta( $v );
 $lbi->set_curip( $ip );
-$lbi->storage->set_value( $v, ord('A') );
+$lbi->get_storage->set_value( $v, ord('A') );
 Language::Befunge::Ops::str_fetch_char( $lbi );
 is( $ip->get_position, '(1,0)', 'str_fetch_char moves ip' );
 is( $ip->spop, 65, 'str_fetch_char pushes value on ip' );

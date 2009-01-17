@@ -86,8 +86,8 @@ sub str_fetch_char {
     $lbi->_move_ip_once($lbi->get_curip);
 
    # .. then fetch value and push it.
-    my $ord = $lbi->storage->get_value( $ip->get_position );
-    my $chr = $lbi->storage->get_char( $ip->get_position );
+    my $ord = $lbi->get_storage->get_value( $ip->get_position );
+    my $chr = $lbi->get_storage->get_char( $ip->get_position );
     $ip->spush( $ord );
 
     # Cosmetics.
@@ -109,8 +109,8 @@ sub str_store_char {
     my $val = $ip->spop;
 
     # Storing value.
-    $lbi->storage->set_value( $ip->get_position, $val );
-    my $chr = $lbi->storage->get_char( $ip->get_position );
+    $lbi->get_storage->set_value( $ip->get_position, $val );
+    my $chr = $lbi->get_storage->get_char( $ip->get_position );
 
     # Cosmetics.
     $lbi->debug( "storing value $val (char='$chr')\n" );
@@ -471,7 +471,7 @@ sub flow_space {
     $lbi->_move_ip_till($ip, qr/ /);
     $lbi->move_ip($lbi->get_curip);
 
-    my $char = $lbi->storage->get_char($ip->get_position);
+    my $char = $lbi->get_storage->get_char($ip->get_position);
     $lbi->_do_instruction($char);
 }
 
@@ -499,7 +499,7 @@ sub flow_comments {
     $lbi->_move_ip_once($ip);             # till matching ';'
     $lbi->_move_ip_once($ip);             # till just after matching ';'
 
-    my $char = $lbi->storage->get_char($ip->get_position);
+    my $char = $lbi->get_storage->get_char($ip->get_position);
     $lbi->_do_instruction($char);
 }
 
@@ -542,7 +542,7 @@ sub flow_repeat {
 
     # fetch instruction to repeat
     $lbi->move_ip($lbi->get_curip);
-    my $char = $lbi->storage->get_char($ip->get_position);
+    my $char = $lbi->get_storage->get_char($ip->get_position);
 
     $char eq 'k' and return;     # k cannot be itself repeated
     $kcounter == 0 and return;   # nothing to repeat
@@ -714,7 +714,7 @@ sub store_get {
     $v += $ip->get_storage;
 
     # Fetching char.
-    my $val = $lbi->storage->get_value( $v );
+    my $val = $lbi->get_storage->get_value( $v );
     $ip->spush( $val );
 
     $lbi->debug( "fetching value at $v: pushing $val\n" );
@@ -734,7 +734,7 @@ sub store_put {
 
     # Fetching char.
     my $val = $ip->spop;
-    $lbi->storage->set_value( $v, $val );
+    $lbi->get_storage->set_value( $v, $val );
 
     $lbi->debug( "storing value $val at $v\n" );
 }
@@ -844,8 +844,8 @@ sub stdio_in_file {
 
     # Store the code and the result vector.
     my ($size) = $flag % 2
-        ? ( $lbi->storage->store_binary( $lines, $vin ) )
-        : ( $lbi->storage->store( $lines, $vin ) );
+        ? ( $lbi->get_storage->store_binary( $lines, $vin ) )
+        : ( $lbi->get_storage->store( $lines, $vin ) );
     $ip->spush_vec( $size, $vin );
 }
 
@@ -863,7 +863,7 @@ sub stdio_out_file {
     my ($vin) = $ip->spop_vec;
     $vin += $ip->get_storage;
     my ($size) = $ip->spop_vec;
-    my $data = $lbi->storage->rectangle( $vin, $size );
+    my $data = $lbi->get_storage->rectangle( $vin, $size );
 
     # Cosmetics.
     my $vend = $vin + $size;
@@ -910,7 +910,7 @@ sub stdio_sys_exec {
 sub sys_info {
     my ($lbi) = @_;
     my $ip      = $lbi->get_curip;
-    my $storage = $lbi->storage;
+    my $storage = $lbi->get_storage;
 
     my $val = $ip->spop;
     my @infos = ();
@@ -1143,7 +1143,7 @@ sub lib_unload {
 sub lib_run_instruction {
     my ($lbi) = @_;
     my $ip   = $lbi->get_curip;
-    my $char = $lbi->storage->get_char( $ip->get_position );
+    my $char = $lbi->get_storage->get_char( $ip->get_position );
 
     # Maybe a library semantics.
     $lbi->debug( "library semantics\n" );

@@ -1,6 +1,6 @@
 ---
 name: Language-Befunge
-version: 4.08
+version: 4.09
 author:
   - 'Jerome Quelin <jquelin@cpan.org>'
 abstract: a generic funge interpreter
@@ -9,7 +9,7 @@ resources:
   license: http://dev.perl.org/licenses/
 requires:
   Carp: 0
-  Class::Accessor::Fast: 0
+  Class::XSAccessor: 0
   Config: 0
   FindBin: 0
   Math::BaseCalc: 0
@@ -20,7 +20,7 @@ requires:
   perl: 5.010
 build_requires:
   Carp: 0
-  Class::Accessor::Fast: 0
+  Class::XSAccessor: 0
   Config: 0
   FindBin: 0
   List::Util: 0
@@ -43,7 +43,7 @@ recommends:
 provides:
   Language::Befunge:
     file: lib/Language/Befunge.pm
-    version: 4.08
+    version: 4.09
   Language::Befunge::IP:
     file: lib/Language/Befunge/IP.pm
   Language::Befunge::Interpreter:
@@ -98,7 +98,7 @@ provides:
     file: lib/Language/Befunge/lib/ROMA.pm
   Language::Befunge::lib::TEST:
     file: lib/Language/Befunge/lib/TEST.pm
-generated_by: Module::Build version 0.3
+generated_by: Module::Build version 0.31
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.2.html
   version: 1.2
