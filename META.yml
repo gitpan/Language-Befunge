@@ -1,6 +1,6 @@
 ---
 name: Language-Befunge
-version: 4.09
+version: 4.10
 author:
   - 'Jerome Quelin <jquelin@cpan.org>'
 abstract: a generic funge interpreter
@@ -43,7 +43,7 @@ recommends:
 provides:
   Language::Befunge:
     file: lib/Language/Befunge.pm
-    version: 4.09
+    version: 4.10
   Language::Befunge::IP:
     file: lib/Language/Befunge/IP.pm
   Language::Befunge::Interpreter:
@@ -98,7 +98,7 @@ provides:
     file: lib/Language/Befunge/lib/ROMA.pm
   Language::Befunge::lib::TEST:
     file: lib/Language/Befunge/lib/TEST.pm
-generated_by: Module::Build version 0.31
+generated_by: Module::Build version 0.32
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.2.html
   version: 1.2

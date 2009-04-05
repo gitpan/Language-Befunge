@@ -192,7 +192,21 @@ eval {
 };
 $out = slurp;
 ok( $@, qr/infinite loop/ );
-BEGIN { $tests += 7 };
+sel;
+$bef->store_code( <<'END_OF_CODE' );
+ ; 
+END_OF_CODE
+$bef->set_curip( Language::Befunge::IP->new );
+$bef->get_curip->set_position( Language::Befunge::Vector->new_zeroes(2) );
+eval {
+    local $SIG{ALRM} = sub { die "timeout\n" };
+    alarm 10;
+    $bef->move_ip($bef->get_curip, qr/ /);
+    alarm 0;
+};
+$out = slurp;
+ok( $@, qr/infinite loop/ );
+BEGIN { $tests += 8 };
 
 
 

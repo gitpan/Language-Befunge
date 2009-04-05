@@ -192,12 +192,15 @@ sub move_ip {
     my ($self, $ip) = @_;
 
     my $storage = $self->get_storage;
-    my $orig = $ip->get_position;
     $self->_move_ip_once($ip);
     my $char;
+    my %seen_before;
     MOVE: while (1) {
         # sanity check
         my $pos = $ip->get_position;
+        $self->abort("infinite loop")
+            if exists($seen_before{$pos});
+        $seen_before{$pos} = 1;
         $char = $storage->get_char($pos);
 
         # skip spaces
