@@ -1,115 +1,70 @@
 #!perl
 #
 # This file is part of Language::Befunge.
-# Copyright (c) 2001-2008 Jerome Quelin, all rights reserved.
+# Copyright (c) 2001-2009 Jerome Quelin, all rights reserved.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the same terms as Perl itself.
 #
 #
 
-#-------------------------------------#
-#          Concurrent Funge.          #
-#-------------------------------------#
+# -- concurrent funge
 
 use strict;
+use warnings;
+
+use Test::More tests => 6;
+use Test::Output;
+
 use Language::Befunge;
-use Config;
-use POSIX qw! tmpnam !;
-use Test;
-
-# Vars.
-my $file;
-my $fh;
-my $tests;
-my $out;
 my $bef = Language::Befunge->new;
-BEGIN { $tests = 0 };
 
-# In order to see what happens...
-sub sel () {
-    $file = tmpnam();
-    open OUT, ">$file" or die $!;
-    $fh = select OUT;
-}
-sub slurp () {
-    select $fh;
-    close OUT;
-    open OUT, "<$file" or die $!;
-    my $content;
-    {
-        local $/;
-        $content = <OUT>;
-    }
-    close OUT;
-    unlink $file;
-    return $content;
-}
 
-# Basic concurrency.
-sel;
+# basic concurrency
 $bef->store_code( <<'END_OF_CODE' );
 #vtzz1.@
  >2.@
 END_OF_CODE
-$bef->run_code;
-$out = slurp;
-ok( $out, "2 1 " );
-BEGIN { $tests += 1 };
+stdout_is { $bef->run_code } '2 1 ', 'basic concurrency';
 
-# q kills all IPs $bef->running.
-sel;
+
+# q kills all ips running
 $bef->store_code( <<'END_OF_CODE' );
 #vtq
  >123...@
 END_OF_CODE
-$bef->run_code;
-$out = slurp;
-ok( $out, "" );
-BEGIN { $tests += 1 };
+stdout_is { $bef->run_code } '', 'q kills all ips running';
 
-# Cloning the stack.
-sel;
+
+# cloning the stack
 $bef->store_code( <<'END_OF_CODE' );
 123 #vtzz...@
      >...@
 END_OF_CODE
-$bef->run_code;
-$out = slurp;
-ok( $out, "3 3 2 2 1 1 " );
-BEGIN { $tests += 1 };
+stdout_is { $bef->run_code } '3 3 2 2 1 1 ', 'threading clones the stack';
 
-# Spaces are one no-op.
-sel;
+
+# spaces are one no-op
 $bef->store_code( <<'END_OF_CODE' );
 #vtzzz2.@
  >         1.@
 END_OF_CODE
-$bef->run_code;
-$out = slurp;
-ok( $out, "1 2 " );
-BEGIN { $tests += 1 };
+stdout_is { $bef->run_code } '1 2 ', 'spaces are one no-op';
 
-# Comments are one no-op.
-sel;
+
+# comments are one no-op
 $bef->store_code( <<'END_OF_CODE' );
 #vtzzz2.@
  >;this is a comment;1.@
 END_OF_CODE
-$bef->run_code;
-$out = slurp;
-ok( $out, "1 2 " );
-BEGIN { $tests += 1 };
+stdout_is { $bef->run_code } '1 2 ', 'comments are one no-op';
 
-# Repeat instructions are one op.
-sel;
+
+# repeat instructions are one op
 $bef->store_code( <<'END_OF_CODE' );
 #vtzzzzz2.@
  >1112k.@
 END_OF_CODE
-$bef->run_code;
-$out = slurp;
-ok( $out, "1 1 2 1 " );
-BEGIN { $tests += 1 };
+stdout_is { $bef->run_code } '1 1 2 1 ', 'repeat instr is one op';
 
-BEGIN { plan tests => $tests };
+

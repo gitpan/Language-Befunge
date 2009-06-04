@@ -1,7 +1,7 @@
 #!perl
 #
 # This file is part of Language::Befunge.
-# Copyright (c) 2001-2008 Jerome Quelin, all rights reserved.
+# Copyright (c) 2001-2009 Jerome Quelin, all rights reserved.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the same terms as Perl itself.
@@ -27,10 +27,12 @@ my %requires = (
 );
 my %build_requires = (
     %requires,
+    'IO::Handle'            => 0,
     'List::Util'            => 0,
     'POSIX'                 => 0,
     'Test::Exception'       => 0,
     'Test::More'            => 0,
+    'Test::Output'          => 0,
 );
 my %recommends = (
     'Language::Befunge::Storage::Generic::Vec::XS' => 0,
@@ -54,6 +56,14 @@ my $builder = Module::Build->new
     add_to_cleanup       =>
       [ 'Language-Befunge-*', '*.tmp', '*.bak', map { ( '*/' x $_ ) . '*~' } 0..5 ],
     recursive_test_files => 1,
+    meta_merge           => {
+        resources => {
+            bugtracker  => 'http://rt.cpan.org/NoAuth/Bugs.html?Dist=Language-Befunge',
+            homepage    => 'http://search.cpan.org/dist/Language-Befunge',
+            repository  => 'http://repo.or.cz/w/language-befunge.git',
+            MailingList => 'http://listes.mongueurs.net/mailman/listinfo/language-befunge'
+        },
+    },
   );
 $builder->create_build_script;
 

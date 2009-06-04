@@ -9,6 +9,7 @@ examples/prime.bef
 examples/tpr00.bef
 examples/tpr01.bef
 lib/Language/Befunge.pm
+lib/Language/Befunge/Debug.pm
 lib/Language/Befunge/doc/bf98-specs.html
 lib/Language/Befunge/doc/instr.txt
 lib/Language/Befunge/doc/laheys.jpg
@@ -18,7 +19,11 @@ lib/Language/Befunge/Interpreter.pm
 lib/Language/Befunge/IP.pm
 lib/Language/Befunge/lib/BASE.pm
 lib/Language/Befunge/lib/BOOL.pm
+lib/Language/Befunge/lib/CPLI.pm
+lib/Language/Befunge/lib/DIRF.pm
 lib/Language/Befunge/lib/EVAR.pm
+lib/Language/Befunge/lib/FILE.pm
+lib/Language/Befunge/lib/FIXP.pm
 lib/Language/Befunge/lib/FOO.pm
 lib/Language/Befunge/lib/HELO.pm
 lib/Language/Befunge/lib/HRTI.pm
@@ -28,7 +33,10 @@ lib/Language/Befunge/lib/ORTH.pm
 lib/Language/Befunge/lib/PERL.pm
 lib/Language/Befunge/lib/REFC.pm
 lib/Language/Befunge/lib/ROMA.pm
+lib/Language/Befunge/lib/STRN.pm
+lib/Language/Befunge/lib/SUBR.pm
 lib/Language/Befunge/lib/TEST.pm
+lib/Language/Befunge/lib/TIME.pm
 lib/Language/Befunge/Ops.pm
 lib/Language/Befunge/Ops/Befunge98.pm
 lib/Language/Befunge/Ops/GenericFunge98.pm
@@ -99,6 +107,7 @@ t/2-ops/stdio_in_num.t
 t/2-ops/str_enter_string_mode.t
 t/2-ops/str_fetch_char.t
 t/2-ops/str_store_char.t
+t/3-misc/debug.t
 t/4-interpreter/befunge.t
 t/4-interpreter/trefunge.t
 t/4-interpreter/unefunge.t

@@ -1,6 +1,6 @@
 #
 # This file is part of Language::Befunge.
-# Copyright (c) 2001-2008 Jerome Quelin, all rights reserved.
+# Copyright (c) 2001-2009 Jerome Quelin, all rights reserved.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the same terms as Perl itself.
@@ -13,11 +13,10 @@ require 5.010;
 use strict;
 use warnings;
 
-use Carp;
 use Language::Befunge::Interpreter;
 
 # Public variables of the module.
-our $VERSION = '4.10';
+our $VERSION = '4.11';
 $| = 1;
 
 sub new {
@@ -33,6 +32,7 @@ __END__
 Language::Befunge - a generic funge interpreter
 
 
+
 =head1 SYNOPSIS
 
     use Language::Befunge;
@@ -45,6 +45,7 @@ Language::Befunge - a generic funge interpreter
     < @,,,,"foo"a
     END_OF_CODE
     $interp->run_code;
+
 
 
 =head1 DESCRIPTION
@@ -76,6 +77,7 @@ Lahey-Space topology to be more precise) looks like the following:
 This module also implements the Concurrent Funge semantics.
 
 
+
 =head1 PUBLIC METHODS
 
 =head2 new( [params] )
@@ -84,24 +86,19 @@ Call directly the C<Language::Befunge::Interpreter> constructor. Refer
 to L<Language::Befunge::Interpreter> for more information.
 
 
-=head1 TODO
-
-=over 4
-
-=item o
-
-Write standard libraries.
-
-=back
-
 
 =head1 BUGS
 
-Although this module comes with a full set of tests, maybe there are
-subtle bugs - or maybe even I misinterpreted the Funge-98
-specs. Please report them to me.
+Although this module comes with a full set of tests, there may be subtle bugs
+remaining - or maybe I misinterpreted the Funge-98 specs. Please report any
+bugs or feature requests to "bug-language-befunge at rt.cpan.org", or through
+the web interface at
+<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Language-Befunge>. I will be
+notified, and then you'll automatically be notified of progress on your bug as
+I make changes.
 
-There are some bugs anyway, but they come from the specs:
+
+Here is a list of known "bugs", coming from the specs:
 
 =over 4
 
@@ -127,35 +124,57 @@ numbers greater than C<0xffffffff>.
 =back
 
 
+
 =head1 ACKNOWLEDGEMENTS
 
 I would like to thank Chris Pressey, creator of Befunge, who gave a
 whole new dimension to both coding and obfuscating.
 
+Thanks also to Matti Niemenmaa for his mycology test suite, available at
+L<http://users.tkk.fi/~mniemenm/befunge/mycology.html>
+
+
 
 =head1 SEE ALSO
 
+You can find more information on Befunge at
+L<http://www.catseye.mb.ca/esoteric/befunge/>.
+
+Our git repository is located at L<git://repo.or.cz/language-befunge.git>, and
+can be browsed at L<http://repo.or.cz/w/language-befunge.git>.
+
+You can also look for information on this module at:
+
+
 =over 4
 
-=item L<perl>
+=item * AnnoCPAN: Annotated CPAN documentation
 
-=item L<http://www.catseye.mb.ca/esoteric/befunge/>
+L<http://annocpan.org/dist/Language-Befunge>
 
-=item L<http://dufflebunk.iwarp.com/JSFunge/spec98.html>
+=item * CPAN Ratings
+
+L<http://cpanratings.perl.org/d/Language-Befunge>
+
+=item * Open bugs
+
+L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=Language-Befunge>
 
 =back
 
 
+
 =head1 AUTHOR
 
-Jerome Quelin, E<lt>jquelin@cpan.orgE<gt>
+Jerome Quelin, C<< <jquelin@cpan.org> >>
 
-Development is discussed on E<lt>language-befunge@mongueurs.netE<gt>
+Development is discussed on C<< <language-befunge@mongueurs.net> >>
+
 
 
 =head1 COPYRIGHT & LICENSE
 
-Copyright (c) 2001-2008 Jerome Quelin, all rights reserved.
+Copyright (c) 2001-2009 Jerome Quelin, all rights reserved.
 
 This program is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.

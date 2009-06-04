@@ -1,6 +1,6 @@
 #
 # This file is part of Language::Befunge.
-# Copyright (c) 2001-2008 Jerome Quelin, all rights reserved.
+# Copyright (c) 2001-2009 Jerome Quelin, all rights reserved.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the same terms as Perl itself.
@@ -14,6 +14,7 @@ use strict;
 use warnings;
 
 use File::Spec::Functions qw{ catfile };   # For the 'y' instruction.
+use Language::Befunge::Debug;
 
 
 =head1 NAME
@@ -50,7 +51,7 @@ sub num_push_number {
     $ip->spush( $num );
 
     # Cosmetics.
-    $lbi->debug( "pushing number '$num'\n" );
+    debug( "pushing number '$num'\n" );
 }
 
 =back
@@ -68,7 +69,7 @@ sub str_enter_string_mode {
     my ($lbi) = @_;
 
     # Cosmetics.
-    $lbi->debug( "entering string mode\n" );
+    debug( "entering string mode\n" );
 
     # Entering string-mode.
     $lbi->get_curip->set_string_mode(1);
@@ -91,7 +92,7 @@ sub str_fetch_char {
     $ip->spush( $ord );
 
     # Cosmetics.
-    $lbi->debug( "pushing value $ord (char='$chr')\n" );
+    debug( "pushing value $ord (char='$chr')\n" );
 }
 
 
@@ -113,7 +114,7 @@ sub str_store_char {
     my $chr = $lbi->get_storage->get_char( $ip->get_position );
 
     # Cosmetics.
-    $lbi->debug( "storing value $val (char='$chr')\n" );
+    debug( "storing value $val (char='$chr')\n" );
 }
 
 =back
@@ -133,7 +134,7 @@ sub math_addition {
 
     # Fetching values.
     my ($v1, $v2) = $ip->spop_mult(2);
-    $lbi->debug( "adding: $v1+$v2\n" );
+    debug( "adding: $v1+$v2\n" );
     my $res = $v1 + $v2;
 
     # Checking over/underflow.
@@ -154,7 +155,7 @@ sub math_substraction {
 
     # Fetching values.
     my ($v1, $v2) = $ip->spop_mult(2);
-    $lbi->debug( "substracting: $v1-$v2\n" );
+    debug( "substracting: $v1-$v2\n" );
     my $res = $v1 - $v2;
 
     # checking over/underflow.
@@ -175,7 +176,7 @@ sub math_multiplication {
 
     # Fetching values.
     my ($v1, $v2) = $ip->spop_mult(2);
-    $lbi->debug( "multiplicating: $v1*$v2\n" );
+    debug( "multiplicating: $v1*$v2\n" );
     my $res = $v1 * $v2;
 
     # checking over/underflow.
@@ -196,7 +197,7 @@ sub math_division {
 
     # Fetching values.
     my ($v1, $v2) = $ip->spop_mult(2);
-    $lbi->debug( "dividing: $v1/$v2\n" );
+    debug( "dividing: $v1/$v2\n" );
     my $res = $v2 == 0 ? 0 : int($v1 / $v2);
 
     # Can't do over/underflow with integer division.
@@ -215,7 +216,7 @@ sub math_remainder {
 
     # Fetching values.
     my ($v1, $v2) = $ip->spop_mult(2);
-    $lbi->debug( "remainder: $v1%$v2\n" );
+    debug( "remainder: $v1%$v2\n" );
     my $res = $v2 == 0 ? 0 : int($v1 % $v2);
 
     # Can't do over/underflow with integer remainder.
@@ -237,7 +238,7 @@ sub math_remainder {
 =cut
 sub dir_go_east {
     my ($lbi) = @_;
-    $lbi->debug( "going east\n" );
+    debug( "going east\n" );
     $lbi->get_curip->dir_go_east;
 }
 
@@ -247,7 +248,7 @@ sub dir_go_east {
 =cut
 sub dir_go_west {
     my ($lbi) = @_;
-    $lbi->debug( "going west\n" );
+    debug( "going west\n" );
     $lbi->get_curip->dir_go_west;
 }
 
@@ -257,7 +258,7 @@ sub dir_go_west {
 =cut
 sub dir_go_north {
     my ($lbi) = @_;
-    $lbi->debug( "going north\n" );
+    debug( "going north\n" );
     $lbi->get_curip->dir_go_north;
 }
 
@@ -267,7 +268,7 @@ sub dir_go_north {
 =cut
 sub dir_go_south {
     my ($lbi) = @_;
-    $lbi->debug( "going south\n" );
+    debug( "going south\n" );
     $lbi->get_curip->dir_go_south;
 }
 
@@ -277,7 +278,7 @@ sub dir_go_south {
 =cut
 sub dir_go_high {
     my ($lbi) = @_;
-    $lbi->debug( "going high\n" );
+    debug( "going high\n" );
     $lbi->get_curip->dir_go_high;
 }
 
@@ -287,7 +288,7 @@ sub dir_go_high {
 =cut
 sub dir_go_low {
     my ($lbi) = @_;
-    $lbi->debug( "going low\n" );
+    debug( "going low\n" );
     $lbi->get_curip->dir_go_low;
 }
 
@@ -297,7 +298,7 @@ sub dir_go_low {
 =cut
 sub dir_go_away {
     my ($lbi) = @_;
-    $lbi->debug( "going away!\n" );
+    debug( "going away!\n" );
     $lbi->get_curip->dir_go_away;
 }
 
@@ -310,7 +311,7 @@ is _so_ fast that we can speak about cars ;) ).
 =cut
 sub dir_turn_left {
     my ($lbi) = @_;
-    $lbi->debug( "turning on the left\n" );
+    debug( "turning on the left\n" );
     $lbi->get_curip->dir_turn_left;
 }
 
@@ -323,7 +324,7 @@ is _so_ fast that we can speak about cars ;) ).
 =cut
 sub dir_turn_right {
     my ($lbi) = @_;
-    $lbi->debug( "turning on the right\n" );
+    debug( "turning on the right\n" );
     $lbi->get_curip->dir_turn_right;
 }
 
@@ -333,7 +334,7 @@ sub dir_turn_right {
 =cut
 sub dir_reverse {
     my ($lbi) = @_;
-    $lbi->debug( "180 deg!\n" );
+    debug( "180 deg!\n" );
     $lbi->get_curip->dir_reverse;
 }
 
@@ -347,7 +348,7 @@ sub dir_set_delta {
     my ($lbi) = @_;
     my $ip = $lbi->get_curip;
     my ($new_d) = $ip->spop_vec;
-    $lbi->debug( "setting delta to $new_d\n" );
+    debug( "setting delta to $new_d\n" );
     $ip->set_delta( $new_d );
 }
 
@@ -370,7 +371,7 @@ sub decis_neg {
     my $val = $ip->spop ? 0 : 1;
     $ip->spush( $val );
 
-    $lbi->debug( "logical not: pushing $val\n" );
+    debug( "logical not: pushing $val\n" );
 }
 
 
@@ -383,7 +384,7 @@ sub decis_gt {
 
     # Fetching values.
     my ($v1, $v2) = $ip->spop_mult(2);
-    $lbi->debug( "comparing $v1 vs $v2\n" );
+    debug( "comparing $v1 vs $v2\n" );
     $ip->spush( ($v1 > $v2) ? 1 : 0 );
 }
 
@@ -398,7 +399,7 @@ sub decis_horiz_if {
     # Fetching value.
     my $val = $ip->spop;
     $val ? $ip->dir_go_west : $ip->dir_go_east;
-    $lbi->debug( "horizontal if: going " . ( $val ? "west\n" : "east\n" ) );
+    debug( "horizontal if: going " . ( $val ? "west\n" : "east\n" ) );
 }
 
 
@@ -412,7 +413,7 @@ sub decis_vert_if {
     # Fetching value.
     my $val = $ip->spop;
     $val ? $ip->dir_go_north : $ip->dir_go_south;
-    $lbi->debug( "vertical if: going " . ( $val ? "north\n" : "south\n" ) );
+    debug( "vertical if: going " . ( $val ? "north\n" : "south\n" ) );
 }
 
 
@@ -426,7 +427,7 @@ sub decis_z_if {
     # Fetching value.
     my $val = $ip->spop;
     $val ? $ip->dir_go_low : $ip->dir_go_high;
-    $lbi->debug( "z if: going " . ( $val ? "low\n" : "high\n" ) );
+    debug( "z if: going " . ( $val ? "low\n" : "high\n" ) );
 }
 
 
@@ -439,7 +440,7 @@ sub decis_cmp {
 
     # Fetching value.
     my ($v1, $v2) = $ip->spop_mult(2);
-    $lbi->debug( "comparing $v1 with $v2: straight forward!\n"), return if $v1 == $v2;
+    debug( "comparing $v1 with $v2: straight forward!\n"), return if $v1 == $v2;
 
     my $dir;
     if ( $v1 < $v2 ) {
@@ -449,7 +450,7 @@ sub decis_cmp {
         $ip->dir_turn_right;
         $dir = "right";
     }
-    $lbi->debug( "comparing $v1 with $v2: turning: $dir\n" );
+    debug( "comparing $v1 with $v2: turning: $dir\n" );
 }
 
 =back
@@ -481,7 +482,7 @@ sub flow_space {
 =cut
 sub flow_no_op {
     my ($lbi) = @_;
-    $lbi->debug( "no-op\n" );
+    debug( "no-op\n" );
 }
 
 
@@ -510,7 +511,7 @@ sub flow_comments {
 sub flow_trampoline {
     my ($lbi) = @_;
     $lbi->_move_ip_once($lbi->get_curip);
-    $lbi->debug( "trampoline! (skipping next instruction)\n" );
+    debug( "trampoline! (skipping next instruction)\n" );
 }
 
 
@@ -521,7 +522,7 @@ sub flow_jump_to {
     my ($lbi) = @_;
     my $ip = $lbi->get_curip;
     my $count = $ip->spop;
-    $lbi->debug( "skipping $count instructions\n" );
+    debug( "skipping $count instructions\n" );
     $count == 0 and return;
     $count < 0  and $ip->dir_reverse; # We can move backward.
     $lbi->_move_ip_once($lbi->get_curip) for (1..abs($count));
@@ -538,7 +539,7 @@ sub flow_repeat {
     my $pos = $ip->get_position;
 
     my $kcounter = $ip->spop;
-    $lbi->debug( "repeating next instruction $kcounter times.\n" );
+    debug( "repeating next instruction $kcounter times.\n" );
 
     # fetch instruction to repeat
     $lbi->move_ip($lbi->get_curip);
@@ -559,7 +560,7 @@ sub flow_repeat {
 =cut
 sub flow_kill_thread {
     my ($lbi) = @_;
-    $lbi->debug( "end of Instruction Pointer\n" );
+    debug( "end of Instruction Pointer\n" );
     $lbi->get_curip->set_end('@');
 }
 
@@ -569,7 +570,7 @@ sub flow_kill_thread {
 =cut
 sub flow_quit {
     my ($lbi) = @_;
-    $lbi->debug( "end program\n" );
+    debug( "end program\n" );
     $lbi->set_newips( [] );
     $lbi->set_ips( [] );
     $lbi->get_curip->set_end('q');
@@ -589,7 +590,7 @@ sub flow_quit {
 =cut
 sub stack_pop {
     my ($lbi) = @_;
-    $lbi->debug( "popping a value\n" );
+    debug( "popping a value\n" );
     $lbi->get_curip->spop;
 }
 
@@ -601,7 +602,7 @@ sub stack_duplicate {
     my ($lbi) = @_;
     my $ip = $lbi->get_curip;
     my $value = $ip->spop;
-    $lbi->debug( "duplicating value '$value'\n" );
+    debug( "duplicating value '$value'\n" );
     $ip->spush( $value );
     $ip->spush( $value );
 }
@@ -614,7 +615,7 @@ sub stack_swap {
     my ($lbi) = @_;
     my $ ip = $lbi->get_curip;
     my ($v1, $v2) = $ip->spop_mult(2);
-    $lbi->debug( "swapping $v1 and $v2\n" );
+    debug( "swapping $v1 and $v2\n" );
     $ip->spush( $v2 );
     $ip->spush( $v1 );
 }
@@ -625,7 +626,7 @@ sub stack_swap {
 =cut
 sub stack_clear {
     my ($lbi) = @_;
-    $lbi->debug( "clearing stack\n" );
+    debug( "clearing stack\n" );
     $lbi->get_curip->sclear;
 }
 
@@ -643,7 +644,7 @@ sub stack_clear {
 sub block_open {
     my ($lbi) = @_;
     my $ip = $lbi->get_curip;
-    $lbi->debug( "block opening\n" );
+    debug( "block opening\n" );
 
     # Create new TOSS.
     $ip->ss_create( $ip->spop );
@@ -668,9 +669,9 @@ sub block_close {
     my $ip = $lbi->get_curip;
 
     # No opened block.
-    $ip->ss_count <= 0 and $ip->dir_reverse, $lbi->debug("no opened block\n"), return;
+    $ip->ss_count <= 0 and $ip->dir_reverse, debug("no opened block\n"), return;
 
-    $lbi->debug( "block closing\n" );
+    debug( "block closing\n" );
 
     # Restore Storage offset.
     $ip->set_storage( $ip->soss_pop_vec );
@@ -687,10 +688,10 @@ sub bloc_transfer {
     my ($lbi) = @_;
     my $ip = $lbi->get_curip;
 
-    $ip->ss_count <= 0 and $ip->dir_reverse, $lbi->debug("no SOSS available\n"), return;
+    $ip->ss_count <= 0 and $ip->dir_reverse, debug("no SOSS available\n"), return;
 
     # Transfering values.
-    $lbi->debug( "transfering values\n" );
+    debug( "transfering values\n" );
     $ip->ss_transfer( $ip->spop );
 }
 
@@ -717,7 +718,7 @@ sub store_get {
     my $val = $lbi->get_storage->get_value( $v );
     $ip->spush( $val );
 
-    $lbi->debug( "fetching value at $v: pushing $val\n" );
+    debug( "fetching value at $v: pushing $val\n" );
 }
 
 
@@ -736,7 +737,7 @@ sub store_put {
     my $val = $ip->spop;
     $lbi->get_storage->set_value( $v, $val );
 
-    $lbi->debug( "storing value $val at $v\n" );
+    debug( "storing value $val at $v\n" );
 }
 
 =back
@@ -756,7 +757,7 @@ sub stdio_out_num {
 
     # Fetch value and print it.
     my $val = $ip->spop;
-    $lbi->debug( "numeric output: $val\n");
+    debug( "numeric output: $val\n");
     print( "$val " ) or $ip->dir_reverse;
 }
 
@@ -771,7 +772,7 @@ sub stdio_out_ascii {
     # Fetch value and print it.
     my $val = $ip->spop;
     my $chr = chr $val;
-    $lbi->debug( "ascii output: '$chr' (ord=$val)\n");
+    debug( "ascii output: '$chr' (ord=$val)\n");
     print( $chr ) or $ip->dir_reverse;
 }
 
@@ -801,7 +802,7 @@ sub stdio_in_num {
     }
     $lbi->set_input( $in );
     $ip->spush( $nb );
-    $lbi->debug( "numeric input: pushing $nb\n" );
+    debug( "numeric input: pushing $nb\n" );
 }
 
 
@@ -815,7 +816,7 @@ sub stdio_in_ascii {
     return $ip->dir_reverse unless defined $in;
     my $ord = ord $in;
     $ip->spush( $ord );
-    $lbi->debug( "ascii input: pushing $ord\n" );
+    debug( "ascii input: pushing $ord\n" );
 }
 
 
@@ -833,7 +834,7 @@ sub stdio_in_file {
     $vin += $ip->get_storage;
 
     # Read file.
-    $lbi->debug( "input file '$path' at $vin\n" );
+    debug( "input file '$path' at $vin\n" );
     open F, "<", $path or $ip->dir_reverse, return;
     my $lines;
     {
@@ -867,7 +868,7 @@ sub stdio_out_file {
 
     # Cosmetics.
     my $vend = $vin + $size;
-    $lbi->debug( "output $vin-$vend to '$path'\n" );
+    debug( "output $vin-$vend to '$path'\n" );
 
     # Treat the data chunk as text file?
     if ( $flag & 0x1 ) {
@@ -891,7 +892,7 @@ sub stdio_sys_exec {
 
     # Fetching command.
     my $path = $ip->spop_gnirts;
-    $lbi->debug( "spawning external command: $path\n" );
+    debug( "spawning external command: $path\n" );
     system( $path );
     $ip->spush( $? == -1 ? -1 : $? >> 8 );
 }
@@ -1007,19 +1008,19 @@ sub sys_info {
     # Okay, what to do with those cells.
     if ( $val <= 0 ) {
         # Blindly push them onto the stack.
-        $lbi->debug( "system info: pushing the whole stuff\n" );
+        debug( "system info: pushing the whole stuff\n" );
         $ip->spush(@cells);
 
     } elsif ( $val <= scalar(@cells) ) {
         # Only push the wanted value.
-        $lbi->debug( "system info: pushing the ${val}th value\n" );
+        debug( "system info: pushing the ${val}th value\n" );
         $ip->spush( $cells[$#cells-$val+1] );
 
     } else {
         # Pick a given value in the stack and push it.
         my $offset = $val - $#cells - 1;
         my $value  = $ip->svalue($offset);
-        $lbi->debug( "system info: picking the ${offset}th value from the stack = $value\n" );
+        debug( "system info: picking the ${offset}th value from the stack = $value\n" );
         $ip->spush( $value );
     }
 }
@@ -1039,7 +1040,7 @@ sub spawn_ip {
     my ($lbi) = @_;
 
     # Cosmetics.
-    $lbi->debug( "spawning new IP\n" );
+    debug( "spawning new IP\n" );
 
     # Cloning and storing new IP.
     my $newip = $lbi->get_curip->clone;
@@ -1086,10 +1087,10 @@ sub lib_load {
     # Checking if library exists.
     eval "require $lib";
     if ( $@ ) {
-        $lbi->debug( sprintf("unknown extension $lib (0x%x): reversing\n", $fgrprt) );
+        debug( sprintf("unknown extension $lib (0x%x): reversing\n", $fgrprt) );
         $ip->dir_reverse;
     } else {
-        $lbi->debug( sprintf("extension $lib (0x%x) loaded\n", $fgrprt) );
+        debug( sprintf("extension $lib (0x%x) loaded\n", $fgrprt) );
         my $obj = $lib->new;
         $ip->load( $obj );
         $ip->spush( $fgrprt, 1 );
@@ -1127,11 +1128,11 @@ sub lib_unload {
     # Checking if library exists.
     eval "require $lib";
     if ( $@ ) {
-        $lbi->debug( sprintf("unknown extension $lib (0x%x): reversing\n", $fgrprt) );
+        debug( sprintf("unknown extension $lib (0x%x): reversing\n", $fgrprt) );
         $ip->dir_reverse;
     } else {
         # Unload the library.
-        $lbi->debug( sprintf("unloading library $lib (0x%x)\n", $fgrprt) );
+        debug( sprintf("unloading library $lib (0x%x)\n", $fgrprt) );
         $ip->unload($lib);
     }
 }
@@ -1146,16 +1147,16 @@ sub lib_run_instruction {
     my $char = $lbi->get_storage->get_char( $ip->get_position );
 
     # Maybe a library semantics.
-    $lbi->debug( "library semantics\n" );
+    debug( "library semantics\n" );
     my $stack = $ip->get_libs->{$char};
 
     if ( scalar @$stack ) {
         my $obj = $stack->[-1];
-        $lbi->debug( "library semantics processed by ".ref($obj)."\n" );
+        debug( "library semantics processed by ".ref($obj)."\n" );
         $obj->$char( $lbi );
     } else {
         # Non-overloaded capitals default to reverse.
-        $lbi->debug("no library semantics found: reversing\n");
+        debug("no library semantics found: reversing\n");
         $ip->dir_reverse;
     }
 }
@@ -1182,7 +1183,7 @@ Development is discussed on E<lt>language-befunge@mongueurs.netE<gt>
 
 =head1 COPYRIGHT & LICENSE
 
-Copyright (c) 2001-2008 Jerome Quelin, all rights reserved.
+Copyright (c) 2001-2009 Jerome Quelin, all rights reserved.
 
 This program is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.

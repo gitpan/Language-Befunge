@@ -1,202 +1,129 @@
 #!perl
 #
 # This file is part of Language::Befunge.
-# Copyright (c) 2001-2008 Jerome Quelin, all rights reserved.
+# Copyright (c) 2001-2009 Jerome Quelin, all rights reserved.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the same terms as Perl itself.
 #
 #
 
-#---------------------------------------#
-#          Direction changing.          #
-#---------------------------------------#
+# -- direction changing
 
 use strict;
+use warnings;
+
+use Test::More tests => 19;
+use Test::Output;
+
 use Language::Befunge;
-use POSIX qw! tmpnam !;
-use Test;
-
-# Vars.
-my $file;
-my $fh;
-my $tests;
-my $out;
 my $bef = Language::Befunge->new;
-BEGIN { $tests = 0 };
 
-# In order to see what happens...
-sub sel () {
-    $file = tmpnam();
-    open OUT, ">$file" or die $!;
-    $fh = select OUT;
-}
-sub slurp () {
-    select $fh;
-    close OUT;
-    open OUT, "<$file" or die $!;
-    my $content;
-    {
-        local $/;
-        $content = <OUT>;
-    }
-    close OUT;
-    unlink $file;
-    return $content;
-}
 
-# Go west.
-sel;
-$bef->store_code( <<'END_OF_CODE' );
-<q.a
-END_OF_CODE
-$bef->run_code;
-$out = slurp;
-ok( $out, "10 " );
-BEGIN { $tests += 1 };
+# go west
+$bef->store_code( '<q.a' );
+stdout_is { $bef->run_code } '10 ', 'go west';
 
-# Go south.
-sel;
+
+# go south
 $bef->store_code( <<'END_OF_CODE' );
 v
 a
 .
 q
 END_OF_CODE
-$bef->run_code;
-$out = slurp;
-ok( $out, "10 " );
-BEGIN { $tests += 1 };
+stdout_is { $bef->run_code } '10 ', 'go south';
 
-# Go north.
-sel;
+
+# go north
 $bef->store_code( <<'END_OF_CODE' );
 ^
 q
 .
 a
 END_OF_CODE
-$bef->run_code;
-$out = slurp;
-ok( $out, "10 " );
-BEGIN { $tests += 1 };
+stdout_is { $bef->run_code } '10 ', 'go north';
 
-# Go east.
-sel;
+
+# go east
 $bef->store_code( <<'END_OF_CODE' );
 v   > a . q
 >   ^
 END_OF_CODE
-$bef->run_code;
-$out = slurp;
-ok( $out, "10 " );
-BEGIN { $tests += 1 };
+stdout_is { $bef->run_code } '10 ', 'go east';
 
-# Go away.
-sel;
+
+# go away
 $bef->store_code( <<'END_OF_CODE' );
 v    > 2.q
 >  #v? 1.q
      > 3.q
     >  4.q
 END_OF_CODE
-$bef->run_code;
-$out = slurp;
-ok( $out, qr/^[1-4] $/ );
-BEGIN { $tests += 1 };
+stdout_like { $bef->run_code } qr/^[1-4] $/, 'go away';
 
-# Turn left.
-sel; # from west.
+
+# turn left
 $bef->store_code( <<'END_OF_CODE' );
 v  > 1.q
 >  [
    > 2.q
 END_OF_CODE
-$bef->run_code;
-$out = slurp;
-ok( $out, "1 " );
-sel; # from east.
+stdout_is { $bef->run_code } '1 ', 'turn left, from west';
 $bef->store_code( <<'END_OF_CODE' );
 v  > 1.q
 <  [
    > 2.q
 END_OF_CODE
-$bef->run_code;
-$out = slurp;
-ok( $out, "2 " );
-sel; # from north.
+stdout_is { $bef->run_code } '2 ', 'turn left, from east';
 $bef->store_code( <<'END_OF_CODE' );
 >     v
   q.2 [ 1.q
 END_OF_CODE
-$bef->run_code;
-$out = slurp;
-ok( $out, "1 " );
-sel; # from south.
+stdout_is { $bef->run_code } '1 ', 'turn left, from north';
 $bef->store_code( <<'END_OF_CODE' );
 >     ^
   q.2 [ 1.q
 END_OF_CODE
-$bef->run_code;
-$out = slurp;
-ok( $out, "2 " );
-BEGIN { $tests += 4 };
+stdout_is { $bef->run_code } '2 ', 'turn left, from south';
 
-# Turn right.
-sel; # from west.
+
+# turn right
 $bef->store_code( <<'END_OF_CODE' );
 v  > 1.q
 >  ]
    > 2.q
 END_OF_CODE
-$bef->run_code;
-$out = slurp;
-ok( $out, "2 " );
-sel; # from east.
+stdout_is { $bef->run_code } '2 ', 'turn right, from west';
 $bef->store_code( <<'END_OF_CODE' );
 v  > 1.q
 <  ]
    > 2.q
 END_OF_CODE
-$bef->run_code;
-$out = slurp;
-ok( $out, "1 " );
-sel; # from north.
+stdout_is { $bef->run_code } '1 ', 'turn right, from east';
 $bef->store_code( <<'END_OF_CODE' );
 >     v
   q.2 ] 1.q
 END_OF_CODE
-$bef->run_code;
-$out = slurp;
-ok( $out, "2 " );
-sel; # from south.
+stdout_is { $bef->run_code } '2 ', 'turn right, from north';
 $bef->store_code( <<'END_OF_CODE' );
 >     ^
   q.2 ] 1.q
 END_OF_CODE
-$bef->run_code;
-$out = slurp;
-ok( $out, "1 " );
-BEGIN { $tests += 4 };
+stdout_is { $bef->run_code } '1 ', 'turn right, from south';
 
-# Reverse.
-sel; # from west.
+
+# reverse
 $bef->store_code( <<'END_OF_CODE' );
 >  #vr 2.q
     >  1.q
 END_OF_CODE
-$bef->run_code;
-$out = slurp;
-ok( $out, "1 " );
-sel; # from east.
+stdout_is { $bef->run_code } '1 ', 'reverse, from west';
 $bef->store_code( <<'END_OF_CODE' );
 <  q.2  rv#
    q.1   <
 END_OF_CODE
-$bef->run_code;
-$out = slurp;
-ok( $out, "1 " );
-sel; # from north.
+stdout_is { $bef->run_code } '1 ', 'reverse, from east';
 $bef->store_code( <<'END_OF_CODE' );
 >     v
       #
@@ -204,10 +131,7 @@ $bef->store_code( <<'END_OF_CODE' );
       r
       > 2.q
 END_OF_CODE
-$bef->run_code;
-$out = slurp;
-ok( $out, "1 " );
-sel; # from south.
+stdout_is { $bef->run_code } '1 ', 'reverse, from north';
 $bef->store_code( <<'END_OF_CODE' );
 >     ^
       > 2.q
@@ -215,34 +139,23 @@ $bef->store_code( <<'END_OF_CODE' );
       > 1.q
       #
 END_OF_CODE
-$bef->run_code;
-$out = slurp;
-ok( $out, "1 " );
-BEGIN { $tests += 4 };
+stdout_is { $bef->run_code } '1 ', 'reverse, from south';
 
-# Absolute vector.
-sel; # diagonal.
+
+# absolute vector
 $bef->store_code( <<'END_OF_CODE' );
 11x
    1
     .
      q
 END_OF_CODE
-$bef->run_code;
-$out = slurp;
-ok( $out, "1 " );
-sel; # diagonal/out-of-bounds.
+stdout_is { $bef->run_code } '1 ', 'absolute vectore, diagonal';
 $bef->store_code( <<'END_OF_CODE' );
 101-x
    q
   .
  1
 END_OF_CODE
+stdout_is { $bef->run_code } '1 ', 'absolute vectore, diagonal out of bounds';
 $bef->run_code;
-$out = slurp;
-ok( $out, "1 " );
-BEGIN { $tests += 2 };
-
-
-BEGIN { plan tests => $tests };
 

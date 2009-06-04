@@ -1,214 +1,99 @@
 #!perl
 #
 # This file is part of Language::Befunge.
-# Copyright (c) 2001-2008 Jerome Quelin, all rights reserved.
+# Copyright (c) 2001-2009 Jerome Quelin, all rights reserved.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the same terms as Perl itself.
 #
 #
 
-#---------------------------------#
-#          Flow control.          #
-#---------------------------------#
+# -- flow control
 
 use strict;
+use warnings;
+
+use Test::More tests => 17;
+use Test::Exception;
+use Test::Output;
+
 use Language::Befunge;
 use Language::Befunge::IP;
 use Language::Befunge::Vector;
-use POSIX qw! tmpnam !;
-use Test;
-
-# Vars.
-my $file;
-my $fh;
-my $tests;
-my $out;
 my $bef = Language::Befunge->new;
-BEGIN { $tests = 0 };
 
-# In order to see what happens...
-sub sel () {
-    $file = tmpnam();
-    open OUT, ">$file" or die $!;
-    $fh = select OUT;
-}
-sub slurp () {
-    select $fh;
-    close OUT;
-    open OUT, "<$file" or die $!;
-    my $content;
-    {
-        local $/;
-        $content = <OUT>;
-    }
-    close OUT;
-    unlink $file;
-    return $content;
-}
 
-# Space is a no-op.
-sel;
-$bef->store_code( <<'END_OF_CODE' );
-   f   f  +     7       +  ,   q
-END_OF_CODE
-$bef->run_code;
-$out = slurp;
-ok( $out, "%" );
-BEGIN { $tests += 1 };
+# space is a no-op
+$bef->store_code( 'f   f  +     7       +  ,   q' );
+stdout_is { $bef->run_code } '%', 'space is a no-op';
 
-# z is a true no-op.
-sel;
-$bef->store_code( <<'END_OF_CODE' );
-zzzfzzzfzz+zzzzz7zzzzzzz+zz,zzzq
-END_OF_CODE
-$bef->run_code;
-$out = slurp;
-ok( $out, "%" );
-BEGIN { $tests += 1 };
 
-# Trampoline.
-sel;
-$bef->store_code( <<'END_OF_CODE' );
-1#2.q
-END_OF_CODE
-$bef->run_code;
-$out = slurp;
-ok( $out, "1 " );
-BEGIN { $tests += 1 };
+# z is a true no-op
+$bef->store_code( 'zzzfzzzfzz+zzzzz7zzzzzzz+zz,zzzq' );
+stdout_is { $bef->run_code } '%', 'z is a true no-op';
 
-# Stop.
-sel;
-$bef->store_code( <<'END_OF_CODE' );
-1.@
-END_OF_CODE
-$bef->run_code;
-$out = slurp;
-ok( $out, "1 " );
-BEGIN { $tests += 1 };
 
-# Comments / Jump over.
-sel;
-$bef->store_code( <<'END_OF_CODE' );
-2;this is a comment;1+.@
-END_OF_CODE
-$bef->run_code;
-$out = slurp;
-ok( $out, "3 " );
-BEGIN { $tests += 1 };
+# trampoline
+$bef->store_code( '1#2.q' );
+stdout_is { $bef->run_code } '1 ', 'trampoline';
 
-# Jump to.
-sel; # Positive.
-$bef->store_code( <<'END_OF_CODE' );
-2j123..q
-END_OF_CODE
-$bef->run_code;
-$out = slurp;
-ok( $out, "3 0 " );
-sel; # Null.
-$bef->store_code( <<'END_OF_CODE' );
-0j1.q
-END_OF_CODE
-$bef->run_code;
-$out = slurp;
-ok( $out, "1 " );
-sel; # Negative.
+
+# stop
+$bef->store_code( '1.@' );
+stdout_is { $bef->run_code } '1 ', 'stop';
+
+
+# comments / jump over
+$bef->store_code( '2;this is a comment;1+.@' );
+stdout_is { $bef->run_code } '3 ', 'comments are jumped over';
+
+
+# jump to
+$bef->store_code( '2j123..q' );
+stdout_is { $bef->run_code } '3 0 ', 'jump to, positive';
+$bef->store_code( '0j1.q' );
+stdout_is { $bef->run_code } '1 ', 'jump to, null';
 $bef->store_code( <<'END_OF_CODE' );
 v   q.1 <>06-j2.q
 >        ^
 END_OF_CODE
-$bef->run_code;
-$out = slurp;
-ok( $out, "1 " );
-BEGIN { $tests += 3 };
+stdout_is { $bef->run_code } '1 ', 'jump to, negative';
 
-# Quit instruction.
-sel;
-$bef->store_code( <<'END_OF_CODE' );
-af.q
-END_OF_CODE
+
+# quit instruction
+$bef->store_code( 'aq' );
 my $rv = $bef->run_code;
-$out = slurp;
-ok( $out, "15 " );
-ok( $rv, 10 );
-BEGIN { $tests += 2 };
+is( $rv, 10, 'exit return value' );
 
-# Repeat instruction (glurps).
-sel; # normal repeat.
-$bef->store_code( <<'END_OF_CODE' );
-3572k.q
-END_OF_CODE
-$bef->run_code;
-$out = slurp;
-ok( $out, "7 5 3 " );
-sel; # null repeat.
-$bef->store_code( <<'END_OF_CODE' );
-0k.q
-END_OF_CODE
-$bef->run_code;
-$out = slurp;
-ok( $out, "" );
-sel; # useless repeat.
+
+# repeat instruction (glurps)
+$bef->store_code( '3572k.q' );
+stdout_is { $bef->run_code } '7 5 3 ', 'repeat, normal';
+$bef->store_code( '0k.q' );
+stdout_is { $bef->run_code } '', 'repeat, null';
 $bef->store_code( <<'END_OF_CODE' );
 5kv
  > 1.q
   >2.q
 END_OF_CODE
-$bef->run_code;
-$out = slurp;
-ok( $out, "1 " );
-sel; # repeat negative.
-$bef->store_code( <<'END_OF_CODE' );
-5-k43.q
-END_OF_CODE
-eval { $bef->run_code; };
-$out = slurp;
-ok( $out, "3 " );
-sel; # repeat forbidden char.
-$bef->store_code( <<'END_OF_CODE' );
-5k;q
-END_OF_CODE
-eval { $bef->run_code; };
-$out = slurp;
-ok( $out eq '' );
-sel; # repeat repeat.
-$bef->store_code( <<'END_OF_CODE' );
-5kkq
-END_OF_CODE
-eval { $bef->run_code; };
-$out = slurp;
-ok( $out eq '' );
-sel; # move_ip() short circuits on a dead end
-$bef->store_code( <<'END_OF_CODE' );
+stdout_is { $bef->run_code } '1 ', 'repeat, useless';
+$bef->store_code( '5-k43.q' );
+stdout_is { $bef->run_code } '3 ', 'repeat, negative';
+$bef->store_code( '5k;q' );
+stdout_is { $bef->run_code } '', 'repeat, forbidden char';
+$bef->store_code( '5kkq' );
+stdout_is { $bef->run_code } '', 'repeat, repeat instruction';
 
-END_OF_CODE
+# short circuit
+$bef->store_code( '' );
 $bef->set_curip( Language::Befunge::IP->new );
 $bef->get_curip->set_position( Language::Befunge::Vector->new_zeroes(2) );
-eval {
-    local $SIG{ALRM} = sub { die "timeout\n" };
-    alarm 10;
-    $bef->move_ip($bef->get_curip, qr/ /);
-    alarm 0;
-};
-$out = slurp;
-ok( $@, qr/infinite loop/ );
-sel;
-$bef->store_code( <<'END_OF_CODE' );
- ; 
-END_OF_CODE
+throws_ok { $bef->move_ip( $bef->get_curip, qr/ / ) } qr/infinite loop/,
+    'move_ip() short circuit on a dead end';
+$bef->store_code( ' ;' );
 $bef->set_curip( Language::Befunge::IP->new );
 $bef->get_curip->set_position( Language::Befunge::Vector->new_zeroes(2) );
-eval {
-    local $SIG{ALRM} = sub { die "timeout\n" };
-    alarm 10;
-    $bef->move_ip($bef->get_curip, qr/ /);
-    alarm 0;
-};
-$out = slurp;
-ok( $@, qr/infinite loop/ );
-BEGIN { $tests += 8 };
+throws_ok { $bef->move_ip( $bef->get_curip, qr/ / ) } qr/infinite loop/,
+    'move_ip() short circuit on non closed comment';
 
-
-
-BEGIN { plan tests => $tests };
 

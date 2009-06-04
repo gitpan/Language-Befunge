@@ -1,202 +1,110 @@
 #!perl
 #
 # This file is part of Language::Befunge.
-# Copyright (c) 2001-2008 Jerome Quelin, all rights reserved.
+# Copyright (c) 2001-2009 Jerome Quelin, all rights reserved.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the same terms as Perl itself.
 #
 #
 
-#-------------------------------------------------#
-#          Decision making instructions.          #
-#-------------------------------------------------#
+# -- decision making instructions
 
 use strict;
+use warnings;
+
+use Test::More tests => 17;
+use Test::Output;
+
 use Language::Befunge;
-use POSIX qw! tmpnam !;
-use Test;
-
-# Vars.
-my $file;
-my $fh;
-my $tests;
-my $out;
 my $bef = Language::Befunge->new;
-BEGIN { $tests = 0 };
 
-# In order to see what happens...
-sub sel () {
-    $file = tmpnam();
-    open OUT, ">$file" or die $!;
-    $fh = select OUT;
-}
-sub slurp () {
-    select $fh;
-    close OUT;
-    open OUT, "<$file" or die $!;
-    my $content;
-    {
-        local $/;
-        $content = <OUT>;
-    }
-    close OUT;
-    unlink $file;
-    return $content;
-}
 
-# Logical not.
-sel; # true.
-$bef->store_code( <<'END_OF_CODE' );
-a!.q
-END_OF_CODE
-$bef->run_code;
-$out = slurp;
-ok( $out, "0 " );
-sel; # negative.
-$bef->store_code( <<'END_OF_CODE' );
-05-!.q
-END_OF_CODE
-$bef->run_code;
-$out = slurp;
-ok( $out, "0 " );
-sel; # false.
-$bef->store_code( <<'END_OF_CODE' );
-0!.q
-END_OF_CODE
-$bef->run_code;
-$out = slurp;
-ok( $out, "1 " );
-BEGIN { $tests += 3 };
+# logical not
+$bef->store_code( 'a!.q' );
+stdout_is { $bef->run_code } '0 ', 'logical not';
+$bef->store_code( '05-!.q' );
+stdout_is { $bef->run_code } '0 ', 'logical not, negative';
+$bef->store_code( '0!.q' );
+stdout_is { $bef->run_code } '1 ', 'logical not, false';
 
-# Comparison.
-sel; # greater.
-$bef->store_code( <<'END_OF_CODE' );
-53`.q
-END_OF_CODE
-$bef->run_code;
-$out = slurp;
-ok( $out, "1 " );
-sel; # equal.
-$bef->store_code( <<'END_OF_CODE' );
-55`.q
-END_OF_CODE
-$bef->run_code;
-$out = slurp;
-ok( $out, "0 " );
-sel; # smaller.
-$bef->store_code( <<'END_OF_CODE' );
-35`.q
-END_OF_CODE
-$bef->run_code;
-$out = slurp;
-ok( $out, "0 " );
-BEGIN { $tests += 3 };
 
-# Horizontal if.
-sel; # left from north.
+# comparison
+$bef->store_code( '53`.q' );
+stdout_is { $bef->run_code } '1 ', 'comparison, greater';
+$bef->store_code( '55`.q' );
+stdout_is { $bef->run_code } '0 ', 'comparison, equal';
+$bef->store_code( '35`.q' );
+stdout_is { $bef->run_code } '0 ', 'comparison, smaller';
+
+
+# horizontal if
 $bef->store_code( <<'END_OF_CODE' );
 1    v
  q.3 _ 4.q
 END_OF_CODE
-$bef->run_code;
-$out = slurp;
-ok( $out, "3 " );
-sel; # right from north
+stdout_is { $bef->run_code } '3 ', 'horizontal if, left from north';
 $bef->store_code( <<'END_OF_CODE' );
 0    v
  q.3 _ 4.q
 END_OF_CODE
-$bef->run_code;
-$out = slurp;
-ok( $out, "4 " );
-sel; # left from south.
+stdout_is { $bef->run_code } '4 ', 'horizontal if, right from north';
 $bef->store_code( <<'END_OF_CODE' );
 1    ^
  q.3 _ 4.q
 END_OF_CODE
-$bef->run_code;
-$out = slurp;
-ok( $out, "3 " );
-sel; # right from south
+stdout_is { $bef->run_code } '3 ', 'horizontal if, left from south';
 $bef->store_code( <<'END_OF_CODE' );
 0    ^
  q.3 _ 4.q
 END_OF_CODE
-$bef->run_code;
-$out = slurp;
-ok( $out, "4 " );
-BEGIN { $tests += 4 };
+stdout_is { $bef->run_code } '4 ', 'horizontal if, right from south';
 
-# Vertical if.
-sel; # north from left.
+
+# vertical if
 $bef->store_code( <<'END_OF_CODE' );
 1 v   >3.q
   >   |
       >4.q
 END_OF_CODE
-$bef->run_code;
-$out = slurp;
-ok( $out, "3 " );
-sel; # south from left.
+stdout_is { $bef->run_code } '3 ', 'vertical if, north from left';
 $bef->store_code( <<'END_OF_CODE' );
 0 v   >3.q
   >   |
       >4.q
 END_OF_CODE
-$bef->run_code;
-$out = slurp;
-ok( $out, "4 " );
-sel; # north from right.
+stdout_is { $bef->run_code } '4 ', 'vertical if, south from left';
 $bef->store_code( <<'END_OF_CODE' );
 1 v   >3.q
   <   |
       >4.q
 END_OF_CODE
-$bef->run_code;
-$out = slurp;
-ok( $out, "3 " );
-sel; # south from right.
+stdout_is { $bef->run_code } '3 ', 'vertical if, north from right';
 $bef->store_code( <<'END_OF_CODE' );
 0 v   >3.q
   <   |
       >4.q
 END_OF_CODE
-$bef->run_code;
-$out = slurp;
-ok( $out, "4 " );
-BEGIN { $tests += 4 };
+stdout_is { $bef->run_code } '4 ', 'vertical if, south from right';
 
-# Compare (3 branches if).
-sel; # greater.
+
+# compare (3 branches if)
 $bef->store_code( <<'END_OF_CODE' );
 34     v
  q..1  w  01-..q
        > 0..q
 END_OF_CODE
-$bef->run_code;
-$out = slurp;
-ok( $out, "-1 0 " );
-sel; # equal.
+stdout_is { $bef->run_code } '-1 0 ', 'compare, greater';
 $bef->store_code( <<'END_OF_CODE' );
 33     v
  q..1  w  01-..q
        > 0..q
 END_OF_CODE
-$bef->run_code;
-$out = slurp;
-ok( $out, "0 0 " );
-sel; # smaller.
+stdout_is { $bef->run_code } '0 0 ', 'compare, equal';
 $bef->store_code( <<'END_OF_CODE' );
 43     v
  q..1  w  01-..q
        > 0..q
 END_OF_CODE
-$bef->run_code;
-$out = slurp;
-ok( $out, "1 0 " );
-BEGIN { $tests += 3 };
-
-
-BEGIN { plan tests => $tests };
+stdout_is { $bef->run_code } '1 0 ', 'compare, smaller';
 

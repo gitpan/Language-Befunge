@@ -1,52 +1,26 @@
 #!perl
 #
 # This file is part of Language::Befunge.
-# Copyright (c) 2001-2008 Jerome Quelin, all rights reserved.
+# Copyright (c) 2001-2009 Jerome Quelin, all rights reserved.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the same terms as Perl itself.
 #
 #
 
-#----------------------------------------------#
-#          Stack of stack operations.          #
-#----------------------------------------------#
+# -- stack of stack operations
 
 use strict;
+use warnings;
+
+use Test::More tests => 4;
+use Test::Output;
+
 use Language::Befunge;
-use POSIX qw! tmpnam !;
-use Test;
-
-# Vars.
-my $file;
-my $fh;
-my $tests;
-my $out;
 my $bef = Language::Befunge->new;
-BEGIN { $tests = 0 };
 
-# In order to see what happens...
-sub sel () {
-    $file = tmpnam();
-    open OUT, ">$file" or die $!;
-    $fh = select OUT;
-}
-sub slurp () {
-    select $fh;
-    close OUT;
-    open OUT, "<$file" or die $!;
-    my $content;
-    {
-        local $/;
-        $content = <OUT>;
-    }
-    close OUT;
-    unlink $file;
-    return $content;
-}
 
-# The big fat one.
-sel;
+# the big fat one
 $bef->store_code( <<'END_OF_CODE' );
 123 2 { ... 3 { .... 0 { 3 .. 987 01- { . 3 u ... 4 u .. v
 0u... 456 02- u 56 04- u 163 2 } .......   2 01-u 2 }  v >
@@ -103,43 +77,28 @@ $exp .= "7 0 ";
 #   * bef: ( [-2] [1 0 0 4 0 0] ) Storage (0,4)
 #   * aft: ( [1 0] )          Storage (0,0)
 $exp .= "0 1 ";
-$bef->run_code;
-$out = slurp;
-ok( $out, $exp );
-BEGIN { $tests += 1 };
+stdout_is { $bef->run_code } $exp, 'stack of stack operations';
 
-# Checking storage offset.
-sel; # New storage offset.
+
+# checking storage offset
 $bef->store_code( <<'END_OF_CODE' );
 0      {  01+a*1+a*8+ 11p v
     q.2                   <
          >  1.q
 END_OF_CODE
-$bef->run_code;
-$out = slurp;
-ok( $out, "1 " );
-sel; # Retrieving old storage offset.
+stdout_is { $bef->run_code } '1 ', 'new storage offset';
 $bef->store_code( <<'END_OF_CODE' );
 0      { 22+ 0 } 01+a*1+a*8+ 61p v
  q.2                             <
       >  1.q
 END_OF_CODE
-$bef->run_code;
-$out = slurp;
-ok( $out, "1 " );
-BEGIN { $tests += 2 };
+stdout_is { $bef->run_code } '1 ', 'retrieving old storage offset';
 
-# Checking non-valid end-of-block.
-sel; # Retrieving old storage offset.
+
+# checking invalid end-of-block.
 $bef->store_code( <<'END_OF_CODE' );
    #v  } 2.q
     > 1.q
 END_OF_CODE
-$bef->run_code;
-$out = slurp;
-ok( $out, "1 " );
-BEGIN { $tests += 1};
-
-
-BEGIN { plan tests => $tests };
+stdout_is { $bef->run_code } '1 ', 'invalid end of block';
 

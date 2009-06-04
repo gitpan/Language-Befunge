@@ -1,117 +1,94 @@
 #!perl
 #
 # This file is part of Language::Befunge.
-# Copyright (c) 2001-2008 Jerome Quelin, all rights reserved.
+# Copyright (c) 2001-2009 Jerome Quelin, all rights reserved.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the same terms as Perl itself.
 #
 #
 
-#----------------------------------#
-#          The basic I/O.          #
-#----------------------------------#
+# -- basic i/o
 
 use strict;
+use warnings;
+
+use Test::More tests => 13;
+use Test::Output;
+
+use IO::Handle;
 use Language::Befunge;
 use Language::Befunge::IP;
-use POSIX qw! tmpnam !;
-use Test::More;
-
-# Vars.
-my $file;
-my $fh;
-my $tests;
-my $out;
-my $slurp;
 my $bef = Language::Befunge->new;
-BEGIN { $tests = 0 };
 
-# In order to see what happens...
-sub sel () {
-    $file = tmpnam();
-    open OUT, ">$file" or die $!;
-    $fh = select OUT;
-}
-sub slurp () {
-    select $fh;
-    close OUT;
-    open OUT, "<$file" or die $!;
-    my $content;
-    {
-        local $/;
-        $content = <OUT>;
-    }
-    close OUT;
-    unlink $file;
-    return $content;
-}
 
-# ascii output.
-sel;
+# ascii output
 $bef->store_code( <<'END_OF_CODE' );
 ff+7+,q
 END_OF_CODE
-$bef->run_code;
-$out = slurp;
-is( $out, "%" );
+stdout_is { $bef->run_code } '%', 'ascii output';
+# output error
 {
-    # testing output error.
-    local $SIG{__WARN__} = sub{};
-    $file = tmpnam();
-    open OUT, ">$file" or die $!;
-    $fh = select OUT;
-    close OUT;
+    # printing to a closed filehandle issues a warning
+    local $SIG{__WARN__} = sub {};
+
+    # change stdout to a closed filehandle
+    my $fh = IO::Handle->new;
+    $fh->close;
+    my $stdout = select $fh;
+
+    # try to print, which should raise an error
     my $ip = Language::Befunge::IP->new;
     $ip->set_delta( Language::Befunge::Vector->new(1,0) );
     $ip->spush( 65 );
     $bef->set_curip($ip);
-    $bef->get_ops->{","}->($bef);
-    is( $ip->get_delta, "(-1,0)", "output error reverse ip delta" );
+    $bef->get_ops->{','}->($bef);
+    is( $ip->get_delta, '(-1,0)', 'output error reverse ip delta' );
+
+    # select back the old stdout
+    select $stdout;
 }
-BEGIN { $tests += 2 };
 
 
-# number output.
-sel;
+# number output
 $bef->store_code( <<'END_OF_CODE' );
 f.q
 END_OF_CODE
-$bef->run_code;
-$out = slurp;
-is( $out, "15 " );
+stdout_is { $bef->run_code } '15 ', 'number output';
+# output error
 {
-    # testing output error.
-    local $SIG{__WARN__} = sub{};
-    $file = tmpnam();
-    open OUT, ">$file" or die $!;
-    $fh = select OUT;
-    close OUT;
+    # printing to a closed filehandle issues a warning
+    local $SIG{__WARN__} = sub {};
+
+    # change stdout to a closed filehandle
+    my $fh = IO::Handle->new;
+    $fh->close;
+    my $stdout = select $fh;
+
+    # try to print, which should raise an error
     my $ip = Language::Befunge::IP->new;
     $ip->set_delta( Language::Befunge::Vector->new(1,0) );
     $ip->spush( 65 );
     $bef->set_curip($ip);
-    $bef->get_ops->{"."}->($bef);
-    is( $ip->get_delta, "(-1,0)", "output error reverse ip delta" );
+    $bef->get_ops->{'.'}->($bef);
+    is( $ip->get_delta, '(-1,0)', 'output error reverse ip delta' );
+
+    # select back the old stdout
+    select $stdout;
 }
-BEGIN { $tests += 2 };
 
 
-# Not testing input.
-# If somebody know how to test input automatically...
+# not testing input.
+# if somebody know how to test input programatically...
 
 
-# file input.
-sel; # unknown file.
+# file input
 $bef->store_code( <<'END_OF_CODE' );
 v q.2 i v# "/dev/a_file_that_probably_does_not_exist"0 <
 >                 ;vector; 3 6   ;flag; 0              ^
         > 1.q
 END_OF_CODE
-$bef->run_code;
-$out = slurp;
-is( $out, "1 " );
-sel; # existant file.
+stdout_is { $bef->run_code } '1 ', 'file input, non-existing file';
 $bef->store_code( <<'END_OF_CODE' );
 v v i "t/_resources/hello.bf"0   <
 >     ;vector; 3 6  ;flag; 0     ^
@@ -121,39 +98,30 @@ v v i "t/_resources/hello.bf"0   <
   .
   >
 END_OF_CODE
-$bef->run_code;
-$out = slurp;
-is( $out, "6 3 2 35 hello world!\n" );
-BEGIN { $tests += 2 };
+stdout_is { $bef->run_code } "6 3 2 35 hello world!\n", 'file input, existing file';
+
 
 # binary file input
-sel;
 $bef->store_code( <<'END_OF_CODE' );
 v qiv# "t/_resources/hello.bf"0  <
 >     ;vector; 6 9 ;flag; 1      ^
     <q ,,,,,,,,,"IO Error"a
 END_OF_CODE
-$bef->run_code;
-$out = slurp;
-is( $bef->get_storage->rectangle
-    ( Language::Befunge::Vector->new( 6, 9),
-      Language::Befunge::Vector->new( 71, 1) ),
-    qq{v q  ,,,,,,,,,,,,,"hello world!"a <\n>                                 ^} );
-is( $out, "" );
-BEGIN { $tests += 2 };
+stdout_is { $bef->run_code } '', 'binary file input';
+is( $bef->get_storage->rectangle(
+        Language::Befunge::Vector->new( 6, 9),
+        Language::Befunge::Vector->new( 71, 1) ),
+    qq{v q  ,,,,,,,,,,,,,"hello world!"a <\n>                                 ^},
+    'binary file input' );
 
 
-# File output.
-sel; # unknown file.
+# file output
 $bef->store_code( <<'END_OF_CODE' );
 v q.2 o v# "/ved/a_file_that_probably_does_not_exist"0 <
 >          ;size; 4 5   ;offset; 7 8       ;flag; 0    ^
     q.1 <
 END_OF_CODE
-$bef->run_code;
-$out = slurp;
-is( $out, "1 " );
-sel; # valid file.
+stdout_is { $bef->run_code } '1 ', 'file output, invalid file';
 $bef->store_code( <<'END_OF_CODE' );
 v q o "t/foo.txt"0  0 ;flag;     <
 >     ;size; 4 4   ;offset; 3 2  ^
@@ -161,17 +129,14 @@ v q o "t/foo.txt"0  0 ;flag;     <
 
    ;-)
 END_OF_CODE
-$bef->run_code;
-$out = slurp;
-is( $out, "" );
-open FOO, "<t/foo.txt" or die $!;
+stdout_is { $bef->run_code } '', 'file output, valid file';
 {
+    my $file = 't/foo.txt';
+    open my $fh, '<', $file or die $!;
     local $/;
-    $slurp = <FOO>;
+    is( <$fh>, "foo!\n    \n;-) \n    ", 'file output, valid file' );
+    unlink $file;
 }
-is( $slurp, "foo!\n    \n;-) \n    " );
-unlink "t/foo.txt";
-sel; # flag: text file.
 $bef->store_code( <<'END_OF_CODE' );
 v q o "t/foo.txt"0  1 ;flag;     <
 >     ;size; 4 4   ;offset; 3 2  ^
@@ -179,20 +144,12 @@ v q o "t/foo.txt"0  1 ;flag;     <
 
    ;-)
 END_OF_CODE
-$bef->run_code;
-$out = slurp;
-is( $out, "" );
-open FOO, "<t/foo.txt" or die $!;
+stdout_is { $bef->run_code } '', 'file output, text flag';
 {
+    my $file = 't/foo.txt';
+    open my $fh, '<', $file or die $!;
     local $/;
-    $slurp = <FOO>;
+    is( <$fh>, "foo!\n\n;-)\n", 'file output, text flag' );
+    unlink $file;
 }
-is( $slurp, "foo!\n\n;-)\n" );
-unlink "t/foo.txt";
-BEGIN { $tests += 5 };
-
-# testing unability to
-
-
-BEGIN { plan tests => $tests };
 

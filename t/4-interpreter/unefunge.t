@@ -1,60 +1,31 @@
 #!perl
 #
 # This file is part of Language::Befunge.
-# Copyright (c) 2001-2008 Jerome Quelin, all rights reserved.
+# Copyright (c) 2001-2009 Jerome Quelin, all rights reserved.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the same terms as Perl itself.
 #
 #
 
-#-----------------------------------#
-#          Exported funcs.          #
-#-----------------------------------#
-
 use strict;
+use warnings;
+
 use Language::Befunge;
 use aliased 'Language::Befunge::Vector' => 'LBV';
 
-use POSIX qw! tmpnam !;
-use Test::More;
+use Test::More tests => 11;
+use Test::Output;
 
-# Vars.
-my ($file, $fh);
-my $tests;
-my $out;
-my $unef = Language::Befunge->new( {syntax=>'unefunge98'} );
-BEGIN { $tests = 0 };
+my $unef;
 
-# In order to see what happens...
-sub sel () {
-    $file = tmpnam();
-    open OUT, ">$file" or die $!;
-    $fh = select OUT;
-}
-sub slurp () {
-    select $fh;
-    close OUT;
-    open OUT, "<$file" or die $!;
-    my $content;
-    {
-        local $/;
-        $content = <OUT>;
-    }
-    close OUT;
-    unlink $file;
-    return $content;
-}
 
-# Basic constructor.
-sel;
+# basic constructor.
 $unef = Language::Befunge->new( {file=>'t/_resources/q.bf', syntax=>'unefunge98'} );
-$unef->run_code;
-$out = slurp;
-is( $out, "" );
-BEGIN { $tests += 1 };
+stdout_is { $unef->run_code } '', 'basic constructor';
 
-# Custom constructor.
+
+# custom constructor.
 $unef = Language::Befunge->new({
     syntax  => 'unefunge98',
     storage => 'Language::Befunge::Storage::Generic::Vec' });
@@ -71,59 +42,43 @@ $unef = Language::Befunge->new({
     syntax => 'unefunge98',
     dims   => 4 });
 is($$unef{dimensions}, 4, 'dims specified');
-BEGIN { $tests += 4 };
 
-# Basic reading.
+
+# basic reading.
 $unef = Language::Befunge->new( {syntax=>'unefunge98'} );
-sel;
 $unef->read_file( "t/_resources/q.bf" );
-$unef->run_code;
-$out = slurp;
-is( $out, "" );
-BEGIN { $tests += 1 };
+stdout_is { $unef->run_code } '', 'basic reading';
 
-# Basic storing.
-sel;
+
+# basic storing.
 $unef->store_code( <<'END_OF_CODE' );
 q
 END_OF_CODE
-$unef->run_code;
-$out = slurp;
-is( $out, "" );
-BEGIN { $tests += 1 };
+stdout_is { $unef->run_code } '', 'basic storing';
 
-# Interpreter must treat non-characters as if they were an 'r' instruction.
-sel;
+
+# interpreter must treat non-characters as if they were an 'r' instruction.
 $unef->store_code( <<'END_OF_CODE' );
 01-ap#q1.2 q
 END_OF_CODE
-$unef->run_code;
-$out = slurp;
-is( $out, "1 2 " );
-BEGIN { $tests += 1 };
+stdout_is { $unef->run_code } '1 2 ', 'non-chars treated as "r" instruction';
 
-# Interpreter must treat non-commands as if they were an 'r' instruction.
-sel;
+
+# interpreter must treat non-commands as if they were an 'r' instruction.
 $unef->store_code( <<'END_OF_CODE' );
 01+ap#q1.2 q
 END_OF_CODE
-$unef->run_code;
-$out = slurp;
-is( $out, "1 2 " );
-BEGIN { $tests += 1 };
+stdout_is { $unef->run_code } '1 2 ', 'non-commands treated as "r" instruction';
 
-# Unefunge Interpreter treats North/South instructions as unknown characters.
-sel;
+
+# unefunge interpreter treats north/south instructions as unknown characters.
 $unef->store_code( <<"END_OF_CODE" );
 1#q.2^3.q
 END_OF_CODE
-$unef->run_code;
-$out = slurp;
-is( $out, "1 2 " );
-BEGIN { $tests += 1 };
+stdout_is { $unef->run_code } '1 2 ', 'north/south treated as "r" instruction';
+
 
 # rectangle() just returns the original string again
-is($unef->get_storage->rectangle(LBV->new(0), LBV->new(9)), '1#q.2^3.q', 'rectangle works');
-BEGIN { $tests += 1 };
+is( $unef->get_storage->rectangle( LBV->new(0), LBV->new(9) ),
+    '1#q.2^3.q', 'rectangle works' );
 
-BEGIN { plan tests => $tests };

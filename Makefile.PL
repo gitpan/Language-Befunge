@@ -1,7 +1,7 @@
 #!perl
 #
 # This file is part of Language::Befunge.
-# Copyright (c) 2001-2008 Jerome Quelin, all rights reserved.
+# Copyright (c) 2001-2009 Jerome Quelin, all rights reserved.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the same terms as Perl itself.
@@ -26,6 +26,7 @@ WriteMakefile(
         'Class::XSAccessor'     => 0,
         'Config'                => 0,
         'FindBin'               => 0,
+        'IO::Handle'            => 0,
         'List::Util'            => 0,
         'Math::BaseCalc'        => 0,
         'POSIX'                 => 0,
@@ -33,6 +34,7 @@ WriteMakefile(
         'Storable'              => 0,
         'Test::Exception'       => 0,
         'Test::More'            => 0,
+        'Test::Output'          => 0,
         'UNIVERSAL::require'    => 0,
     },
     dist          => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },

@@ -1,170 +1,78 @@
 #!perl
 #
 # This file is part of Language::Befunge.
-# Copyright (c) 2001-2008 Jerome Quelin, all rights reserved.
+# Copyright (c) 2001-2009 Jerome Quelin, all rights reserved.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the same terms as Perl itself.
 #
 #
 
-#---------------------------------#
-#          System stuff.          #
-#---------------------------------#
+# -- system stuff
 
 use strict;
+use warnings;
+
+use Test::More tests => 24;
+use Test::Output;
+
 use File::Spec::Functions qw{ catfile };
 use Language::Befunge;
-use POSIX qw! tmpnam !;
-use Test::More;
-
-# Vars.
-my $file;
-my $fh;
-my $tests;
-my $out;
 my $bef = Language::Befunge->new;
-BEGIN { $tests = 0 };
 
-# In order to see what happens...
-sub sel () {
-    $file = tmpnam();
-    open OUT, ">$file" or die $!;
-    $fh = select OUT;
-}
-sub slurp () {
-    select $fh;
-    close OUT;
-    open OUT, "<$file" or die $!;
-    my $content;
-    {
-        local $/;
-        $content = <OUT>;
-    }
-    close OUT;
-    unlink $file;
-    return $content;
-}
 
-# exec instruction.
+# exec instruction
 SKIP: {
     skip 'will barf on windows...', 1 if $^O eq 'MSWin32';
 
-    sel; # unknown file.
+    # this will warn on unix systems
+    local $SIG{__WARN__} = sub {};
+
     $bef->store_code( '< q . = "a_file_unlikely_to_exist"0' );
-    {
-        local $SIG{__WARN__} = sub {};
-        $bef->run_code;
-    }
-    $out = slurp;
-    is( $out, "-1 " );
+    stdout_is { $bef->run_code } '-1 ', 'exec, non-existing file';
 }
-sel; # normal system-ing.
-$bef->store_code( <<'END_OF_CODE' );
-< q . = "perl t/_resources/exit3.pl"0
-END_OF_CODE
-$bef->run_code;
-$out = slurp;
-is( $out, "3 " );
-BEGIN { $tests += 2 };
+$bef->store_code( '< q . = "perl t/_resources/exit3.pl"0' );
+stdout_is { $bef->run_code } '3 ', 'exec, regular';
 
-# System info retrieval.
-sel; # 1. flags.
-$bef->store_code( <<'END_OF_CODE' );
-1y.q
-END_OF_CODE
-$bef->run_code;
-$out = slurp;
-is( $out, "15 " );
-BEGIN { $tests += 1 };
 
-sel; # 2. size of funge integers in bytes.
-$bef->store_code( <<'END_OF_CODE' );
-2y.q
-END_OF_CODE
-$bef->run_code;
-$out = slurp;
-is( $out, "4 " );
-BEGIN { $tests += 1 };
+# system info retrieval
+$bef->store_code( '1y.q' );
+stdout_is { $bef->run_code } '15 ', 'sysinfo, 1. flags';
 
-sel; # 3. handprint.
-$bef->store_code( <<'END_OF_CODE' );
-3y.q
-END_OF_CODE
-$bef->run_code;
-$out = slurp;
+$bef->store_code( '2y.q' );
+stdout_is { $bef->run_code } '4 ', 'sysinfo, 2. size of funge integers in bytes';
+
+$bef->store_code( '3y.q' );
 my $handprint = 0;
 $handprint = $handprint*256 + ord($_) for split //, $bef->get_handprint;
-is( $out, "$handprint " );
-BEGIN { $tests += 1 };
+stdout_is { $bef->run_code } "$handprint ", 'sysinfo, 3. handprint';
 
-sel; # 4. version of interpreter.
-$bef->store_code( <<'END_OF_CODE' );
-4y.q
-END_OF_CODE
-$bef->run_code;
-$out = slurp;
+$bef->store_code( '4y.q' );
 my $ver = $Language::Befunge::VERSION;
 $ver =~ s/\.//g;
-is( $out, "$ver " );
-BEGIN { $tests += 1 };
+stdout_is { $bef->run_code } "$ver ", 'sysingo, 4. interpreter version';
 
-sel; # 5. ID Code
-$bef->store_code( <<'END_OF_CODE' );
-5y.q
-END_OF_CODE
-$bef->run_code;
-$out = slurp;
-is( $out, "1 " );
-BEGIN { $tests += 1 };
+$bef->store_code( '5y.q' );
+stdout_is { $bef->run_code } '1 ', 'sysinfo, 5. id code';
 
-sel; # 6. path separator.
-$bef->store_code( <<'END_OF_CODE' );
-6y,q
-END_OF_CODE
-$bef->run_code;
-$out = slurp;
-is( $out, catfile('','') );
-BEGIN { $tests += 1 };
+$bef->store_code( '6y,q' );
+stdout_is { $bef->run_code } catfile('',''), 'sysinfo, 6. path separator';
 
-sel; # 7. size of funge (2D).
-$bef->store_code( <<'END_OF_CODE' );
-7y.q
-END_OF_CODE
-$bef->run_code;
-$out = slurp;
-is( $out, "2 " );
-BEGIN { $tests += 1 };
+$bef->store_code( '7y.q' );
+stdout_is { $bef->run_code } '2 ', 'sysinfo, 7. size of funge (2d)';
 
-sel; # 8. IP id.
-$bef->store_code( <<'END_OF_CODE' );
-8y.q
-END_OF_CODE
-$bef->run_code;
-$out = slurp;
-like( $out, qr/^\d+ $/ );
-BEGIN { $tests += 1 };
+$bef->store_code( '8y.q' );
+stdout_like { $bef->run_code } qr/^\d+ $/, 'sysinfo, 8. ip id';
 
-sel; # 9. NetFunge (unimplemented).
-$bef->store_code( <<'END_OF_CODE' );
-9y.q
-END_OF_CODE
-$bef->run_code;
-$out = slurp;
-is( $out, "0 " );
-BEGIN { $tests += 1 };
+$bef->store_code( '9y.q' );
+stdout_is { $bef->run_code } '0 ', 'sysinfo, 9. netfunge (unimplemented)';
 
-sel; # 10,11. pos of IP.
 $bef->store_code( <<'END_OF_CODE' );
 bav
   > y.y.q
 END_OF_CODE
-$bef->run_code;
-$out = slurp;
-is( $out, "1 6 " );
-BEGIN { $tests += 1 };
+stdout_is { $bef->run_code } '1 6 ', 'sysinfo, 10-11. ip position';
 
-sel; # 12,13. delta of IP.
 $bef->store_code( <<'END_OF_CODE' );
 v y
     .
@@ -173,92 +81,41 @@ v y
           y
             .
 END_OF_CODE
-$bef->run_code;
-$out = slurp;
-is( $out, "1 2 " );
-BEGIN { $tests += 1 };
+stdout_is { $bef->run_code } '1 2 ', 'sysinfo, 12-13. ip delta';
 
-sel; # 14,15. Storage offset.
-$bef->store_code( <<'END_OF_CODE' );
-   0   {  fey.y.q
-END_OF_CODE
-$bef->run_code;
-$out = slurp;
-is( $out, "0 8 " );
-BEGIN { $tests += 1 };
+$bef->store_code( '   0   {  fey.y.q' );
+stdout_is { $bef->run_code } '0 8 ', 'sysinfo, 14-15. storage offset';
 
-sel; # 16,17. top-left corner of Lahey space.
-$bef->store_code( <<'END_OF_CODE' );
-6 03-04-p f1+f2+ y.y.q
-END_OF_CODE
-$bef->run_code;
-$out = slurp;
-is( $out, "-3 -4 " );
-BEGIN { $tests += 1 };
+$bef->store_code( '6 03-04-p f1+f2+ y.y.q' );
+stdout_is { $bef->run_code } '-3 -4 ', 'sysinfo, 16-17. top-left corner of lahey space';
 
-sel; # 18,19. bottom-right corner of Lahey space.
-$bef->store_code( <<'END_OF_CODE' );
-6 ff+8p 6 03-04-p f3+f4+y.y.q
-END_OF_CODE
-$bef->run_code;
-$out = slurp;
-is( $out, "33 12 " );
-BEGIN { $tests += 1 };
+$bef->store_code( '6 ff+8p 6 03-04-p f3+f4+y.y.q' );
+stdout_is { $bef->run_code } '33 12 ', 'sysinfo, 18-19. bottom-right corner of lahey space';
 
-sel; # 20. Date.
 my ($s,$m,$h,$dd,$mm,$yy)=localtime;
-my $date = $yy*256*256+($mm+1)*256+$dd;
+my $date1 = $yy*256*256+($mm+1)*256+$dd;
+my $date2 = $date1 + 1; # tiny little chance that the date has changed
+$bef->store_code( 'f5+y.q' );
+stdout_like { $bef->run_code } qr/^($date1|$date2) $/, 'sysinfo, 20. date';
+
+$bef->store_code( 'f6+y.q' );
 my $time = $h*256*256+$m*256+$s;
-$bef->store_code( <<'END_OF_CODE' );
-f5+y.q
-END_OF_CODE
-$bef->run_code;
-$out = slurp;
-chop($out); # remove trailing space.
-is( $out >= $date,   1); # There is a tiny little chance
-is( $out <= $date+1, 1); # that the date has changed.
-BEGIN { $tests += 2 };
+# the 2 tests should not take more than 15 seconds
+my $regex = join '|', map { $time+$_ } 0..15;
+stdout_like { $bef->run_code } qr/^($regex) $/, 'sysinfo, 21. time';
 
-sel; # 21. Time.
-$bef->store_code( <<'END_OF_CODE' );
-f6+y.q
-END_OF_CODE
-$bef->run_code;
-$out = slurp;
-chop($out); # remove trailing space.
-is( $out >= $time,   1);  # The two tests should not take
-is( $out <= $time+15, 1); # more than 15 seconds.
-BEGIN { $tests += 2 };
+$bef->store_code( '0{0{0{0{ f7+y. 0}0} f7+y.q' );
+stdout_is { $bef->run_code } '5 3 ', 'sysinfo, 22. size of stack stack';
 
-sel; # 21. Size of stack stack.
-$bef->store_code( <<'END_OF_CODE' );
-0{0{0{0{ f7+y. 0}0} f7+y.q
-END_OF_CODE
-$bef->run_code;
-$out = slurp;
-is( $out, "5 3 " );
-BEGIN { $tests += 1 };
+$bef->store_code( '123 0{ 12 0{ 987654 f8+y.f9+y.fa+y.q' );
+stdout_is { $bef->run_code } '6 4 5 ', 'sysinfo, 23-24. size of each stack';
 
-sel; # 22(,23,24). Size of each stack.
-$bef->store_code( <<'END_OF_CODE' );
-123 0{ 12 0{ 987654 f8+y.f9+y.fa+y.q
-END_OF_CODE
-$bef->run_code;
-$out = slurp;
-is( $out, "6 4 5 " );
-BEGIN { $tests += 1 };
-
-sel; # 23+. Args.
 $bef->store_code( <<'END_OF_CODE' );
 yf7+k$ >  :#, _ $a, :#v _q
        ^              <
 END_OF_CODE
-$bef->run_code( "foo", 7, "bar" );
-$out = slurp;
-is( $out, "STDIN\nfoo\n7\nbar\n" );
-BEGIN { $tests += 1 };
+stdout_is { $bef->run_code( "foo", 7, "bar" ) } "STDIN\nfoo\n7\nbar\n", 'sysinfo, 23+ args';
 
-sel; # 24+. %ENV.
 %ENV= ( LANG   => "C",
         LC_ALL => "C",
       );
@@ -268,28 +125,12 @@ v                   > $ ;EOL; a,  v
 > y ff+k$   : | ;new pair;   :    <
               q
 END_OF_CODE
-$bef->run_code;
-$out = slurp;
-is( $out, "LANG=C\nLC_ALL=C\n" );
-BEGIN { $tests += 1 };
+stdout_is { $bef->run_code } "LANG=C\nLC_ALL=C\n", 'sysinfo, 24+ %ENV';
 
-sel; # negative.
-$bef->store_code( <<'END_OF_CODE' );
-02-y..q
-END_OF_CODE
-$bef->run_code;
-$out = slurp;
-is( $out, "15 4 " );
-BEGIN { $tests += 1 };
+$bef->store_code( '02-y..q' );
+stdout_is { $bef->run_code } '15 4 ', 'sysinfo, negative';
 
-sel; # pick in stack.
 %ENV= ();
-$bef->store_code( <<'END_OF_CODE' );
-1234567 75*y.q
-END_OF_CODE
-$bef->run_code;
-$out = slurp;
-is( $out, "5 " );
-BEGIN { $tests += 1 };
+$bef->store_code( '1234567 75*y.q' );
+stdout_is { $bef->run_code } '5 ', 'sysinfo, pick in stack';
 
-BEGIN { plan tests => $tests };

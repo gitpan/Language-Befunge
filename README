@@ -1,70 +1,46 @@
-NAME
+Language::Befunge
+=================
 
-    Language::Befunge - a Befunge-98 interpreter.
-
-
-DESCRIPTION
-
-    Enter the realm of topological languages!
-
-    This module implements the Funge-98 specifications on a 2D field (also
-    called Befunge). It can also work as a Trefunge implementation (3D).
-
-    This Befunge-98 interpreters assumes the stack and Funge-Space cells of
-    this implementation are 32 bits signed integers (I hope your os
-    understand those integers). This means that the torus (or Cartesian
-    Lahey-Space topology to be more precise) looks like the following:
-
-                  32-bit Befunge-98
-                  =================
-                          ^
-                          |-2,147,483,648
-                          |
-                          |         x
-              <-----------+----------->
-      -2,147,483,648      |      2,147,483,647
-                          |
-                         y|2,147,483,647
-                          v
-
-    This implementation is meant to work on unix-like systems, because this
-    interpreters only handle the character which ordinal value is 10 (also
-    known as \n) as an End-Of-Line chars. In particular, no warranty is made
-    neither for Microsoft systems (\r\n) nor for Macs (\r).
-
-    This module also implements the Concurrent Funge semantics.
+A Befunge-98 interpreter written in Perl.
 
 
 INSTALLATION
+============
 
-    To install this module type the following (you should be familiar
-    with those instructions ;) ):
+To install this module, run the following commands:
 
-       perl Makefile.PL
-       make
-       make test
-       make install
-
-
-DEPENDENCIES
-
-    I decided to require at least perl v5.6 in order to have a clean
-    programming style (use diagnostics, our, etc.).
-
-    This module requires Storable in order to be a proper Concurrent
-    Funge (or you can cut in the sources the relevant parts).
+    perl Build.PL
+    ./Build
+    ./Build test
+    ./Build install
 
 
-AUTHOR
+SUPPORT AND DOCUMENTATION
+=========================
 
-    Jerome Quelin, <jquelin@cpan.org>
+After installing, you can find documentation for this module with the perldoc
+command.
 
-    Development is discussed on <language-befunge@mongueurs.net>
+    perldoc Language::Befunge
+
+You can also look for information at:
+  . Search CPAN
+        http://search.cpan.org/dist/Language-Befunge
+  . CPAN Request Tracker:
+        http://rt.cpan.org/NoAuth/Bugs.html?Dist=Language-Befunge
+  . AnnoCPAN, annotated CPAN documentation:
+        http://annocpan.org/dist/Language-Befunge
+  . CPAN Ratings:
+        http://cpanratings.perl.org/d/Language-Befunge
+
+Development is discussed on <language-befunge@mongueurs.net>
 
 
-COPYRIGHT
+COPYRIGHT AND LICENCE
+=====================
 
-    Copyright (c) 2001-2008 Jerome Quelin, all rights reserved.
+Copyright (c) 2001-2009 Jerome Quelin, all rights reserved.
 
-    This program is free software; you can redistribute it and/or modify
-    it under the same terms as Perl itself.
+This program is free software; you can redistribute it and/or modify it under
+the same terms as Perl itself.
+

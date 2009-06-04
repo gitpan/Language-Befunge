@@ -3,7 +3,7 @@ Revision history for Language::Befunge.
 High-level changelog
 ====================
 
-4.0x    LB:LS split in LBS/LBW
+4.0x    LB:LS split in LBS/LBW, extensions
 3.0x    multidims, multiops possibilities
 2.0x    optimizing + test coverage
 1.2x    real LaheySpace support
@@ -17,8 +17,19 @@ High-level changelog
 Low-level changelog
 ===================
 
+4.11 Thu Jun  4 20:24:49 CEST 2009
+ - new fingerprint: CPLI - complex numbers extension
+ - new fingerprint: DIRF - directory operations
+ - new fingerprint: FILE - file i/o operations
+ - new fingerprint: FIXP - fixed point operations
+ - new fingerprint: STRN - string operations
+ - new fingerprint: SUBR - subroutines extension
+ - new fingerprint: TIME - date/time operations
+ - debug() now a plain sub in Language::Befunge::Debug, for a ~20% speedup
+ - tests sanitized (ported to test::more, test::output and test::exception)
+
 4.10 Sun Apr  5 15:44:57 CEST 2009
- - new infinite loop detection (mg)
+ - new infinite loop detection (mark)
 
 4.09 Sat Jan 17 14:34:08 CET 2009
  - using class::xsaccessor internally, for a 10% speedup
@@ -29,18 +40,18 @@ Low-level changelog
 
 4.07 Sat Nov 15 19:44:27 CET 2008
  - fix month in y instruction
- - new fingerprint: BASE - Non-standard math bases extension
- - new fingerprint: BOOL - Boolean operations extension
- - new fingerprint: EVAR - Environment variables extention
- - new fingerprint: HRTI - High-Resolution Timer extension
- - new fingerprint: MODU - Modulo Arithmetic extension
+ - new fingerprint: BASE - non-standard math bases extension
+ - new fingerprint: BOOL - boolean operations extension
+ - new fingerprint: EVAR - environment variables extention
+ - new fingerprint: HRTI - high-resolution timer extension
+ - new fingerprint: MODU - modulo arithmetic extension
 
 4.06 Tue Nov 11 17:50:47 CET 2008
- - new fingerprint: NULL - Extension to opacify loaded extensions
- - new fingerprint: ORTH - Orthogonal easement extension
- - new fingerprint: PERL - Extension to embed Perl within Befunge
- - new fingerprint: REFC - Referenced cells extension
- - new fingerprint: ROMA - Roman numerals extension
+ - new fingerprint: NULL - extension to opacify loaded extensions
+ - new fingerprint: ORTH - orthogonal easement extension
+ - new fingerprint: PERL - extension to embed perl within bBefunge
+ - new fingerprint: REFC - referenced cells extension
+ - new fingerprint: ROMA - roman numerals extension
 
 4.05 Mon Nov 10 15:46:00 CET 2008
  - handprint changed to JQBF
@@ -49,13 +60,13 @@ Low-level changelog
 	. k interprets the instructions at its position
 
 4.04 Mon Jul 28 18:54:02 CEST 2008
- - speeding LBS->store by 55+% (mg)
- - input not cached per ip, but per interpreter (mg)
- - bringing test coverage up to 100% (mg, jq)
+ - speeding LBS->store by 55+% (mark)
+ - input not cached per ip, but per interpreter (mark)
+ - bringing test coverage up to 100% (mark, jq)
 
 4.03 Fri Jul  4 12:14:45 CEST 2008
- - adding 'm' opcode (z if) (mg)
- - completing code coverage up to 97.5% (mg, jq)
+ - adding 'm' opcode (z if) (mark)
+ - completing code coverage up to 97.5% (mark, jq)
  - adding optional module for TEST lib (jq)
 
 4.02 Thu Jul  3 20:44:11 CEST 2008
@@ -66,25 +77,25 @@ Low-level changelog
  - Test::Exception now a hard prereq of the module
 
 4.00 Sun Jun  8 17:08:22 CEST 2008
- - split LB::LaheySpace in LB::Storage and LB::Wrapping (jq, mg)
+ - split LB::LaheySpace in LB::Storage and LB::Wrapping (jq, mark)
  - first storage implementations:
     . LBS:2D:Sparse      2-dims, sparse hash (jq)
-    . LBS:Generic:AoA    n-dims, array of arrays (jq, mg)
-    . LBS:Generic:Vec    n-dims, vec-based, supporting lbsgvxs (mg)
-    . LBS:Generic:Sparse n-dims, sparse hash (mg)
+    . LBS:Generic:AoA    n-dims, array of arrays (jq, mark)
+    . LBS:Generic:Vec    n-dims, vec-based, supporting lbsgvxs (mark)
+    . LBS:Generic:Sparse n-dims, sparse hash (mark)
  - first wrapping implementations:
     . LBW:LaheySpace    funge98 wrapping (jq)
  - LBI->new:
     . stricter params checking (jq)
     . easier to expand with syntaxes (jq)
-    . new alternative syntaxes (mg)
- - requiring perl 5.10 (jq, mg)
+    . new alternative syntaxes (mark)
+ - requiring perl 5.10 (jq, mark)
  - API changes:
-    . LBV has additional rasterize method (moved and expanded from LBGSGA) (mg)
-    . LBV supports accelerated rasterize method in LBVXS > 1.0.0 (mg)
-    . labels_lookup should return Vector objects. (mg)
-    . expand() should exist for all Storage modules. (mg)
-    . add get_dims() to the Storage API. (mg)
+    . LBV has additional rasterize method (moved and expanded from LBGSGA) (mark)
+    . LBV supports accelerated rasterize method in LBVXS > 1.0.0 (mark)
+    . labels_lookup should return Vector objects (mark)
+    . expand() should exist for all Storage modules (mark)
+    . add get_dims() to the Storage API (mark)
  - new befunge lib: TEST (book)
 
 **
@@ -110,8 +121,8 @@ Low-level changelog
  - fixing stricture
 
 3.00 Fri Sep 28 17:41:27 CEST 2007
- - new LB::Vector class for abstracting dimension (courtesy of Mark Glines)
- - new LB::LaheySpace::Generic, a n-dims laheyspace (courtesy of Mark Glines)
+ - new LB::Vector class for abstracting dimension (mark)
+ - new LB::LaheySpace::Generic, a n-dims laheyspace (mark)
  - support for n-dims
  - ops now belong to their own modules, with one test per op
  - new LB::Interpreter class to create the combination dims / ops
@@ -166,11 +177,10 @@ Low-level changelog
 
 1.20 Mon Feb 13 18:08:28 CET 2006
  - fixed wrapping in L::B::LaheySpace::move_ip_forward to comply with
-   LaheySpace specs (courtesy of Mark Glines)
+   LaheySpace specs (mark)
 
 1.11 Tue Feb  7 18:07:03 CET 2006
- - fixed L::B::IP->svalue returning undef on non-existent stack depth (courtesy
-   of Mark Glines)
+ - fixed L::B::IP->svalue returning undef on non-existent stack depth (mark)
 
 1.10 Tue Feb  7 15:05:13 CET 2006
  - included a Module::Builder mechanism (old scheme with Makefile.PL is preserved)
@@ -182,24 +192,23 @@ Low-level changelog
  - added a TODO file
 
 1.05 Mon Feb  6 19:01:37 CET 2006
- - fixing wrapping when ip delta is greater than lahey space width or height
-   (courtesy of Mark Glines)
+ - fixing wrapping when ip delta is greater than lahey space width or height (mark)
 
 1.04 Wed Feb  1 17:38:49 CET 2006
- - detecting infinite loop on bogus funges in move_curip (courtesy of Mark Glines)
+ - detecting infinite loop on bogus funges in move_curip (mark)
 
 1.03 Mon Jan  2 21:20:07 CET 2006
- - fixing failed test on 64bits platforms (courtesy of Mark Glines)
+ - fixing failed test on 64bits platforms (mark)
 
 1.02 Fri Dec  2 21:44:48 CET 2005
  - enhanced input checking, dealing correctly with non-ascii characters
    (with the help of Mark Glines)
 
 1.01 Sat Nov 26 16:22:23 CET 2005
- - unrolling k instruction to avoid deep recursion warning (courtesy of Mark Glines)
+ - unrolling k instruction to avoid deep recursion warning (mark)
 
 1.00 Thu Oct 28 19:13:59 CEST 2004
- - i instruction support binary flag (courtesy of Philippe Bruhat)
+ - i instruction support binary flag (book)
  - mailing-list available: language-befunge@mongueurs.net
  - stable for now 2 years, -98 fully implemented: sane basis for further work
    on the module

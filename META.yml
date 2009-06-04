@@ -1,12 +1,16 @@
 ---
 name: Language-Befunge
-version: 4.10
+version: 4.11
 author:
   - 'Jerome Quelin <jquelin@cpan.org>'
 abstract: a generic funge interpreter
 license: perl
 resources:
+  MailingList: http://listes.mongueurs.net/mailman/listinfo/language-befunge
+  bugtracker: http://rt.cpan.org/NoAuth/Bugs.html?Dist=Language-Befunge
+  homepage: http://search.cpan.org/dist/Language-Befunge
   license: http://dev.perl.org/licenses/
+  repository: http://repo.or.cz/w/language-befunge.git
 requires:
   Carp: 0
   Class::XSAccessor: 0
@@ -23,6 +27,7 @@ build_requires:
   Class::XSAccessor: 0
   Config: 0
   FindBin: 0
+  IO::Handle: 0
   List::Util: 0
   Math::BaseCalc: 0
   POSIX: 0
@@ -30,6 +35,7 @@ build_requires:
   Storable: 0
   Test::Exception: 0
   Test::More: 0
+  Test::Output: 0
   UNIVERSAL::require: 0
   aliased: 0.22
   perl: 5.010
@@ -43,7 +49,9 @@ recommends:
 provides:
   Language::Befunge:
     file: lib/Language/Befunge.pm
-    version: 4.10
+    version: 4.11
+  Language::Befunge::Debug:
+    file: lib/Language/Befunge/Debug.pm
   Language::Befunge::IP:
     file: lib/Language/Befunge/IP.pm
   Language::Befunge::Interpreter:
@@ -76,8 +84,16 @@ provides:
     file: lib/Language/Befunge/lib/BASE.pm
   Language::Befunge::lib::BOOL:
     file: lib/Language/Befunge/lib/BOOL.pm
+  Language::Befunge::lib::CPLI:
+    file: lib/Language/Befunge/lib/CPLI.pm
+  Language::Befunge::lib::DIRF:
+    file: lib/Language/Befunge/lib/DIRF.pm
   Language::Befunge::lib::EVAR:
     file: lib/Language/Befunge/lib/EVAR.pm
+  Language::Befunge::lib::FILE:
+    file: lib/Language/Befunge/lib/FILE.pm
+  Language::Befunge::lib::FIXP:
+    file: lib/Language/Befunge/lib/FIXP.pm
   Language::Befunge::lib::FOO:
     file: lib/Language/Befunge/lib/FOO.pm
   Language::Befunge::lib::HELO:
@@ -96,9 +112,15 @@ provides:
     file: lib/Language/Befunge/lib/REFC.pm
   Language::Befunge::lib::ROMA:
     file: lib/Language/Befunge/lib/ROMA.pm
+  Language::Befunge::lib::STRN:
+    file: lib/Language/Befunge/lib/STRN.pm
+  Language::Befunge::lib::SUBR:
+    file: lib/Language/Befunge/lib/SUBR.pm
   Language::Befunge::lib::TEST:
     file: lib/Language/Befunge/lib/TEST.pm
-generated_by: Module::Build version 0.32
+  Language::Befunge::lib::TIME:
+    file: lib/Language/Befunge/lib/TIME.pm
+generated_by: Module::Build version 0.33
 meta-spec:
-  url: http://module-build.sourceforge.net/META-spec-v1.2.html
-  version: 1.2
+  url: http://module-build.sourceforge.net/META-spec-v1.4.html
+  version: 1.4

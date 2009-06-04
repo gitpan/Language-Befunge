@@ -1,6 +1,6 @@
 #
 # This file is part of Language::Befunge.
-# Copyright (c) 2001-2008 Jerome Quelin, all rights reserved.
+# Copyright (c) 2001-2009 Jerome Quelin, all rights reserved.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the same terms as Perl itself.
@@ -14,6 +14,7 @@ use strict;
 use warnings;
 
 use Carp;
+use Language::Befunge::Debug;
 use Language::Befunge::IP;
 use UNIVERSAL::require;
 
@@ -25,7 +26,6 @@ use Class::XSAccessor
         get_params     => 'params',
         get_retval     => 'retval',
         get_storage    => 'storage',
-        get_DEBUG      => 'DEBUG',
         get_curip      => 'curip',
         get_ips        => 'ips',
         get_newips     => 'newips',
@@ -39,7 +39,6 @@ use Class::XSAccessor
         set_file       => 'file',
         set_params     => 'params',
         set_retval     => 'retval',
-        set_DEBUG      => 'DEBUG',
         set_curip      => 'curip',
         set_ips        => 'ips',
         set_newips     => 'newips',
@@ -157,7 +156,6 @@ sub new {
         _input     => '',
         params     => [],
         retval     => 0,
-        DEBUG      => 0,
         curip      => undef,
         ops        => $opts->{ops}->get_ops_map,
         ips        => [],
@@ -239,18 +237,6 @@ sub abort {
 
 
 #
-# debug( LIST )
-#
-# Issue a warning if the interpreter has DEBUG enabled.
-#
-sub debug {
-    my $self = shift;
-    $self->get_DEBUG or return;
-    warn @_;
-}
-
-
-#
 # set_input( $string )
 #
 # Preload the input buffer with the given value.
@@ -314,7 +300,7 @@ sub read_file {
 #
 sub store_code {
     my ($self, $code) = @_;
-    $self->debug( "Storing code\n" );
+    debug( "Storing code\n" );
     $self->get_storage->clear;
     $self->get_storage->store( $code );
 }
@@ -336,7 +322,7 @@ sub run_code {
     $self->set_params( [ @_ ] );
 
     # Cosmetics.
-    $self->debug( "\n-= NEW RUN (".$self->get_file.") =-\n" );
+    debug( "\n-= NEW RUN (".$self->get_file.") =-\n" );
 
     # Create the first Instruction Pointer.
     $self->set_ips( [ Language::Befunge::IP->new($$self{dimensions}) ] );
@@ -359,7 +345,7 @@ sub next_tick {
     my $self = shift;
 
     # Cosmetics.
-    $self->debug( "Tick!\n" );
+    debug( "Tick!\n" );
 
     # Process the set of IPs.
     $self->set_newips( [] );
@@ -386,24 +372,24 @@ sub process_ip {
     my $char = $self->get_storage->get_char( $v );
 
     # Cosmetics.
-    $self->debug( "#".$ip->get_id.":$v: $char (ord=$ord)  Stack=(@{$ip->get_toss})\n" );
+    debug( "#".$ip->get_id.":$v: $char (ord=$ord)  Stack=(@{$ip->get_toss})\n" );
 
     # Check if we are in string-mode.
     if ( $ip->get_string_mode ) {
         if ( $char eq '"' ) {
             # End of string-mode.
-            $self->debug( "leaving string-mode\n" );
+            debug( "leaving string-mode\n" );
             $ip->set_string_mode(0);
 
         } elsif ( $char eq ' ' ) {
             # A serie of spaces, to be treated as one space.
-            $self->debug( "string-mode: pushing char ' '\n" );
+            debug( "string-mode: pushing char ' '\n" );
             $self->_move_ip_till( $ip, qr/ / );
             $ip->spush( $ord );
 
         } else {
             # A banal character.
-            $self->debug( "string-mode: pushing char '$char'\n" );
+            debug( "string-mode: pushing char '$char'\n" );
             $ip->spush( $ord );
         }
 
@@ -441,7 +427,7 @@ sub _do_instruction {
     } else {
         # not a regular instruction: reflect.
         my $ord = ord($char);
-        $self->debug( "the command value $ord (char='$char') is not implemented.\n");
+        debug( "the command value $ord (char='$char') is not implemented.\n");
         $self->get_curip->dir_reverse;
     }
 }
@@ -533,10 +519,6 @@ wonder why you are reading this! :-)
 
 the current Instruction Pointer processed (a L::B::IP object)
 
-=item get_DEBUG() / set_DEBUG()
-
-wether the interpreter should output debug messages (a boolean)
-
 =item get_dimensions() / set_dimensions()
 
 the number of dimensions this interpreter works in.
@@ -605,10 +587,6 @@ point on the C<r>.
 Abort the interpreter with the given reason, as well as the current
 file and coordinate of the offending instruction.
 
-
-=item debug( LIST )
-
-Issue a warning if the interpreter has DEBUG enabled.
 
 
 =item set_input( $string )
@@ -736,7 +714,7 @@ Development is discussed on E<lt>language-befunge@mongueurs.netE<gt>
 
 =head1 COPYRIGHT & LICENSE
 
-Copyright (c) 2001-2008 Jerome Quelin, all rights reserved.
+Copyright (c) 2001-2009 Jerome Quelin, all rights reserved.
 
 This program is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.

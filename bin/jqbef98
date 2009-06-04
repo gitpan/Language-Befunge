@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 #
 # This file is part of Language::Befunge.
-# Copyright (c) 2001-2008 Jerome Quelin, all rights reserved.
+# Copyright (c) 2001-2009 Jerome Quelin, all rights reserved.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the same terms as Perl itself.
@@ -15,13 +15,14 @@ use FindBin qw{ $Bin };
 use lib "$Bin/../lib";
 
 use Language::Befunge;
+use Language::Befunge::Debug;
 use Getopt::Long;
 
 my %opts;
 Getopt::Long::Configure('no_auto_abbrev', 'bundling', 'ignore_case', 'no_pass_through');
 GetOptions( \%opts, "verbose|v") or die;
 my $bef = Language::Befunge->new( {file=>shift} );
-$bef->set_DEBUG( $opts{verbose} );
+Language::Befunge::Debug::enable() if $opts{verbose};
 exit $bef->run_code( @ARGV );
 
 __END__
@@ -59,7 +60,7 @@ Jerome Quelin, E<lt>jquelin@cpan.orgE<gt>
 
 =head1 COPYRIGHT & LICENSE
 
-Copyright (c) 2001-2008 Jerome Quelin, all rights reserved.
+Copyright (c) 2001-2009 Jerome Quelin, all rights reserved.
 
 This program is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.
