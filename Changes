@@ -17,6 +17,9 @@ High-level changelog
 Low-level changelog
 ===================
 
+4.12 Tue Jul  7 16:41:51 2009
+ - fix #47642: missing prereqs
+
 4.11 Thu Jun  4 20:24:49 CEST 2009
  - new fingerprint: CPLI - complex numbers extension
  - new fingerprint: DIRF - directory operations

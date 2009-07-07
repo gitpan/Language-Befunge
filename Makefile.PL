@@ -25,16 +25,26 @@ WriteMakefile(
         'Carp'                  => 0,
         'Class::XSAccessor'     => 0,
         'Config'                => 0,
+        'DateTime'              => 0,
+        'File::Spec::Functions' => 0,
         'FindBin'               => 0,
+        'Getopt::Long'          => 0,
+        'IO::File'              => 0,
         'IO::Handle'            => 0,
+        'IO::Pipe'              => 0,
+        'IO::Select'            => 0,
         'List::Util'            => 0,
-        'Math::BaseCalc'        => 0,
+        'Math::BaseCalc'        => 0, # BASE lib
+        'Math::Complex'         => 0, # CPLI lib
+        'Math::Trig'            => 0, # FIXP lib
         'POSIX'                 => 0,
         'Readonly'              => 0,
         'Storable'              => 0,
+        'Test::Builder'         => 0, # TEST lib
         'Test::Exception'       => 0,
         'Test::More'            => 0,
         'Test::Output'          => 0,
+        'Time::HiRes'           => 0, # HRTI lib
         'UNIVERSAL::require'    => 0,
     },
     dist          => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },

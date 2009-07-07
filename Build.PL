@@ -19,15 +19,25 @@ my %requires = (
     'Carp'                  => 0,
     'Class::XSAccessor'     => 0,
     'Config'                => 0,
+    'DateTime'              => 0,
+    'File::Spec::Functions' => 0,
     'FindBin'               => 0,
-    'Math::BaseCalc'        => 0,
+    'Getopt::Long'          => 0,
+    'IO::File'              => 0,
+    'Math::BaseCalc'        => 0, # BASE lib
+    'Math::Complex'         => 0, # CPLI lib
+    'Math::Trig'            => 0, # FIXP lib
     'Readonly'              => 0,
     'Storable'              => 0,
+    'Test::Builder'         => 0, # TEST lib
+    'Time::HiRes'           => 0, # HRTI lib
     'UNIVERSAL::require'    => 0,
 );
 my %build_requires = (
     %requires,
     'IO::Handle'            => 0,
+    'IO::Pipe'              => 0,
+    'IO::Select'            => 0,
     'List::Util'            => 0,
     'POSIX'                 => 0,
     'Test::Exception'       => 0,
@@ -37,10 +47,8 @@ my %build_requires = (
 my %recommends = (
     'Language::Befunge::Storage::Generic::Vec::XS' => 0,
     'Language::Befunge::Vector::XS'                => '0.2.2',
-    'Test::Builder'                                => 0, # TEST lib
     'Test::Pod'                                    => 0,
     'Test::Pod::Coverage'                          => 0,
-    'Time::HiRes'                                  => 0, # HRTI lib
 );
 
 

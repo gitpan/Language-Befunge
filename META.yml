@@ -1,6 +1,6 @@
 ---
 name: Language-Befunge
-version: 4.11
+version: 4.12
 author:
   - 'Jerome Quelin <jquelin@cpan.org>'
 abstract: a generic funge interpreter
@@ -15,10 +15,18 @@ requires:
   Carp: 0
   Class::XSAccessor: 0
   Config: 0
+  DateTime: 0
+  File::Spec::Functions: 0
   FindBin: 0
+  Getopt::Long: 0
+  IO::File: 0
   Math::BaseCalc: 0
+  Math::Complex: 0
+  Math::Trig: 0
   Readonly: 0
   Storable: 0
+  Test::Builder: 0
+  Time::HiRes: 0
   UNIVERSAL::require: 0
   aliased: 0.22
   perl: 5.010
@@ -26,30 +34,38 @@ build_requires:
   Carp: 0
   Class::XSAccessor: 0
   Config: 0
+  DateTime: 0
+  File::Spec::Functions: 0
   FindBin: 0
+  Getopt::Long: 0
+  IO::File: 0
   IO::Handle: 0
+  IO::Pipe: 0
+  IO::Select: 0
   List::Util: 0
   Math::BaseCalc: 0
+  Math::Complex: 0
+  Math::Trig: 0
   POSIX: 0
   Readonly: 0
   Storable: 0
+  Test::Builder: 0
   Test::Exception: 0
   Test::More: 0
   Test::Output: 0
+  Time::HiRes: 0
   UNIVERSAL::require: 0
   aliased: 0.22
   perl: 5.010
 recommends:
   Language::Befunge::Storage::Generic::Vec::XS: 0
   Language::Befunge::Vector::XS: 0.2.2
-  Test::Builder: 0
   Test::Pod: 0
   Test::Pod::Coverage: 0
-  Time::HiRes: 0
 provides:
   Language::Befunge:
     file: lib/Language/Befunge.pm
-    version: 4.11
+    version: 4.12
   Language::Befunge::Debug:
     file: lib/Language/Befunge/Debug.pm
   Language::Befunge::IP:
