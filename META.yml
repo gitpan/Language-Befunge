@@ -1,35 +1,7 @@
 ---
-name: Language-Befunge
-version: 4.12
+abstract: 'a generic funge interpreter'
 author:
   - 'Jerome Quelin <jquelin@cpan.org>'
-abstract: a generic funge interpreter
-license: perl
-resources:
-  MailingList: http://listes.mongueurs.net/mailman/listinfo/language-befunge
-  bugtracker: http://rt.cpan.org/NoAuth/Bugs.html?Dist=Language-Befunge
-  homepage: http://search.cpan.org/dist/Language-Befunge
-  license: http://dev.perl.org/licenses/
-  repository: http://repo.or.cz/w/language-befunge.git
-requires:
-  Carp: 0
-  Class::XSAccessor: 0
-  Config: 0
-  DateTime: 0
-  File::Spec::Functions: 0
-  FindBin: 0
-  Getopt::Long: 0
-  IO::File: 0
-  Math::BaseCalc: 0
-  Math::Complex: 0
-  Math::Trig: 0
-  Readonly: 0
-  Storable: 0
-  Test::Builder: 0
-  Time::HiRes: 0
-  UNIVERSAL::require: 0
-  aliased: 0.22
-  perl: 5.010
 build_requires:
   Carp: 0
   Class::XSAccessor: 0
@@ -57,15 +29,18 @@ build_requires:
   UNIVERSAL::require: 0
   aliased: 0.22
   perl: 5.010
-recommends:
-  Language::Befunge::Storage::Generic::Vec::XS: 0
-  Language::Befunge::Vector::XS: 0.2.2
-  Test::Pod: 0
-  Test::Pod::Coverage: 0
+configure_requires:
+  Module::Build: 0.36
+generated_by: 'Module::Build version 0.3607'
+license: perl
+meta-spec:
+  url: http://module-build.sourceforge.net/META-spec-v1.4.html
+  version: 1.4
+name: Language-Befunge
 provides:
   Language::Befunge:
     file: lib/Language/Befunge.pm
-    version: 4.12
+    version: 4.13
   Language::Befunge::Debug:
     file: lib/Language/Befunge/Debug.pm
   Language::Befunge::IP:
@@ -136,7 +111,34 @@ provides:
     file: lib/Language/Befunge/lib/TEST.pm
   Language::Befunge::lib::TIME:
     file: lib/Language/Befunge/lib/TIME.pm
-generated_by: Module::Build version 0.33
-meta-spec:
-  url: http://module-build.sourceforge.net/META-spec-v1.4.html
-  version: 1.4
+recommends:
+  Language::Befunge::Storage::Generic::Vec::XS: 0
+  Language::Befunge::Vector::XS: v0.2.2
+  Test::Pod: 0
+  Test::Pod::Coverage: 0
+requires:
+  Carp: 0
+  Class::XSAccessor: 0
+  Config: 0
+  DateTime: 0
+  File::Spec::Functions: 0
+  FindBin: 0
+  Getopt::Long: 0
+  IO::File: 0
+  Math::BaseCalc: 0
+  Math::Complex: 0
+  Math::Trig: 0
+  Readonly: 0
+  Storable: 0
+  Test::Builder: 0
+  Time::HiRes: 0
+  UNIVERSAL::require: 0
+  aliased: 0.22
+  perl: 5.010
+resources:
+  MailingList: http://listes.mongueurs.net/mailman/listinfo/language-befunge
+  bugtracker: http://rt.cpan.org/NoAuth/Bugs.html?Dist=Language-Befunge
+  homepage: http://search.cpan.org/dist/Language-Befunge
+  license: http://dev.perl.org/licenses/
+  repository: http://repo.or.cz/w/language-befunge.git
+version: 4.13

@@ -16,7 +16,7 @@ use warnings;
 use Language::Befunge::Interpreter;
 
 # Public variables of the module.
-our $VERSION = '4.12';
+our $VERSION = '4.13';
 $| = 1;
 
 sub new {

@@ -22,6 +22,7 @@ use overload
     '+='  => \&_add_inplace,
     '-='  => \&_substract_inplace,
     '<=>' => \&_compare,
+    'eq'  => \&_compare_string,
     '""'  => \&as_string;
 
 # try to load speed-up LBV
@@ -346,6 +347,19 @@ sub _compare {
     }
     return 0;
 }
+
+
+#
+# my $bool = $v->_compare($string);
+# my $bool = $v eq $string;
+#
+# Check whether the vector stringifies to $string.
+#
+sub _compare_string {
+    my ($self, $str) = @_;
+    return $self->as_string eq $str;
+}
+
 
 
 #- other private methods
